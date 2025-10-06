@@ -19,8 +19,10 @@ const RootLayout = ({
           className="min-h-screen min-w-screen
               bg-slate-800 text-slate-50"
         >
-          <Navbar />
-          <div>{children}</div>
+          <div className="py-4 px-12">
+            <Navbar />
+            <div>{children}</div>
+          </div>
         </div>
       </body>
     </html>
