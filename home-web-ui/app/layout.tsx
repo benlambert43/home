@@ -15,7 +15,10 @@ const RootLayout = ({
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen min-w-screen bg-slate-800 text-slate-50">
+        <div
+          className="min-h-screen min-w-screen bg-gradient-to-br from-cyan-950
+            to-indigo-900 text-slate-50"
+        >
           <div className="px-16 py-8">
             <Navbar />
             <div>{children}</div>
