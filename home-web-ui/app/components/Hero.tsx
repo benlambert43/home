@@ -1,5 +1,5 @@
 const Hero = () => {
-  return <div className="flex justify-center items-center">Hero</div>;
+  return <div className="flex items-center justify-center">Hero</div>;
 };
 
 export default Hero;

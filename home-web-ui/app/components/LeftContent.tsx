@@ -1,5 +1,5 @@
 const LeftContent = () => {
-  return <div className="flex justify-center items-center">Left Content</div>;
+  return <div className="flex items-center justify-center">Left Content</div>;
 };
 
 export default LeftContent;
