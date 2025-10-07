@@ -17,7 +17,7 @@ const RootLayout = ({
       <body>
         <div
           className="min-h-screen min-w-screen bg-gradient-to-br from-cyan-950
-            to-indigo-900 text-slate-50"
+            to-indigo-950 text-slate-50"
         >
           <div className="px-16 py-8">
             <Navbar />
