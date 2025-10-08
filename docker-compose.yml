@@ -1,0 +1,23 @@
+services:
+  database:
+    container_name: database
+    restart: unless-stopped
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ADMIN_USERNAME: ${MONGO_INITDB_ADMIN_USERNAME}
+      MONGO_INITDB_ADMIN_PASSWORD: ${MONGO_INITDB_ADMIN_PASSWORD}
+    volumes:
+      - mongodba1data:/data/db
+      - mongodba1data-config:/data/configdb
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+volumes:
+  mongodba1data:
+    driver: local
+  mongodba1data-config:
+    driver: local
