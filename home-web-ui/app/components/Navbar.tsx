@@ -15,12 +15,12 @@ const Navbar = () => {
       </div>
       <div className="flex flex-1 items-center gap-4 sm:justify-end">
         <div>
-          <Link href="/">
+          <Link href="/settings">
             <Cog6ToothIcon className="size-6" />
           </Link>
         </div>
         <div className="min-w-12">
-          <Link href="/">sign in</Link>
+          <Link href="/signin">sign in</Link>
         </div>
       </div>
     </nav>
