@@ -3,7 +3,7 @@ const Content = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  return <div className="flex items-center justify-around">{children}</div>;
+  return <div className="flex items-start justify-around">{children}</div>;
 };
 
 export default Content;

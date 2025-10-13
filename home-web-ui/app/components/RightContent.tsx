@@ -1,5 +1,9 @@
-const RightContent = () => {
-  return <div className="flex items-center justify-center">Right Content</div>;
+const RightContent = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  return <div className="flex">{children}</div>;
 };
 
 export default RightContent;
