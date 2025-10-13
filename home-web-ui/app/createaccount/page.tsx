@@ -2,7 +2,7 @@ import { CreateAccountForm } from "@/app/createaccount/CreateAccountForm";
 
 const CreateAccount = () => {
   return (
-    <div className="px-4">
+    <div className="mx-4 py-8">
       <div>
         <CreateAccountForm />
       </div>
