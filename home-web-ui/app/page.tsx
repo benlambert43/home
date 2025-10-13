@@ -1,7 +1,7 @@
-import Content from "./components/Content";
-import Hero from "./components/Hero";
-import LeftContent from "./components/LeftContent";
-import RightContent from "./components/RightContent";
+import Content from "@/app/components/Content";
+import Hero from "@/app/components/Hero";
+import LeftContent from "@/app/components/LeftContent";
+import RightContent from "@/app/components/RightContent";
 
 const RightContentList = () => {
   const items: {

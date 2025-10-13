@@ -1,5 +1,5 @@
-import Mountains from "../ui/Mountains";
 import Image from "next/image";
+import Mountains from "@/app/ui/Mountains";
 
 const Hero = () => {
   return (
