@@ -1,5 +1,5 @@
 "use server";
 
-export const signup = async (formData: FormData) => {
+export const createAccount = async (formData: FormData) => {
   console.log(formData);
 };
