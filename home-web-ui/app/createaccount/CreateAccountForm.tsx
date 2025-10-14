@@ -107,6 +107,7 @@ export const CreateAccountForm = () => {
       </div>
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <button
+          disabled={pending}
           type="submit"
           className="w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2
             outline-1 outline-slate-400 focus:outline-slate-50"

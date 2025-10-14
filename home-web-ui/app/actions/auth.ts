@@ -2,6 +2,7 @@
 
 import { SignupFormSchema, SignupFormState } from "@/app/lib/definitions";
 import * as z from "zod";
+import bcrypt from "bcrypt";
 
 export const createAccount = async (
   state: SignupFormState,
@@ -20,5 +21,8 @@ export const createAccount = async (
     return z.treeifyError(validatedFields.error);
   }
 
-  console.log("Success!");
+  const { firstname, lastname, username, email, password, confirmPassword } =
+    validatedFields.data;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 };
