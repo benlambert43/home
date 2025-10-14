@@ -1,8 +1,13 @@
+"use client";
+
 import { createAccount } from "@/app/actions/auth";
+import { useActionState } from "react";
 
 export const CreateAccountForm = () => {
+  const [state, action, pending] = useActionState(createAccount, undefined);
+
   return (
-    <form action={createAccount} className="flex flex-col gap-6">
+    <form action={action} className="flex flex-col gap-4">
       <div className="flex flex-row flex-wrap items-center justify-start gap-4">
         <div
           className="flex w-full max-w-78 flex-col items-start justify-center
@@ -31,6 +36,14 @@ export const CreateAccountForm = () => {
           />
         </div>
       </div>
+      <div>
+        {state?.properties?.firstname?.errors && (
+          <p>{state?.properties?.firstname?.errors}</p>
+        )}
+        {state?.properties?.lastname?.errors && (
+          <p>{state?.properties?.lastname?.errors}</p>
+        )}
+      </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="username">Display Name</label>
         <input
@@ -40,6 +53,11 @@ export const CreateAccountForm = () => {
           name="username"
           placeholder="Display Name"
         />
+      </div>
+      <div>
+        {state?.properties?.username?.errors && (
+          <p>{state?.properties?.username?.errors}</p>
+        )}
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="email">Email</label>
@@ -52,6 +70,11 @@ export const CreateAccountForm = () => {
           placeholder="Email"
         />
       </div>
+      <div>
+        {state?.properties?.email?.errors && (
+          <p>{state?.properties?.email?.errors}</p>
+        )}
+      </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="password">Password</label>
         <input
@@ -62,6 +85,11 @@ export const CreateAccountForm = () => {
           type="password"
         />
       </div>
+      <div>
+        {state?.properties?.password?.errors && (
+          <p>{state?.properties?.password?.errors}</p>
+        )}
+      </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="confirmPassword">Confirm Password</label>
         <input
@@ -71,6 +99,11 @@ export const CreateAccountForm = () => {
           name="confirmPassword"
           type="password"
         />
+      </div>
+      <div>
+        {state?.properties?.confirmPassword?.errors && (
+          <p>{state?.properties?.confirmPassword?.errors}</p>
+        )}
       </div>
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <button
