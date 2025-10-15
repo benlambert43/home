@@ -20,3 +20,7 @@ export interface UserCookie extends UserNoPassword {
   issuedAt: Date;
   expiresAt: Date;
 }
+
+export type EncodedAccountJwt = {
+  user: UserNoPassword;
+};
