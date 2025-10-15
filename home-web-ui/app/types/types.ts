@@ -22,5 +22,6 @@ export interface UserCookie extends UserNoPassword {
 }
 
 export type EncodedAccountJwt = {
+  usage: "BFF" | "API";
   user: UserNoPassword;
 };
