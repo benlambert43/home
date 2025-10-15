@@ -1,8 +1,13 @@
 "use server";
 
+import { createSession } from "@/app/actions/session";
 import { SignupFormSchema, SignupFormState } from "@/app/lib/definitions";
+import { CreateAccountRequestBody } from "@/app/types/request";
+import { CreateAccountResponse } from "@/app/types/response";
 import * as z from "zod";
-import bcrypt from "bcrypt";
+import { redirect } from "next/navigation";
+
+const CREATE_ACCOUNT_URL = `${process.env.API_URL}/accountManagement/createAccount`;
 
 export const createAccount = async (
   state: SignupFormState,
@@ -21,8 +26,55 @@ export const createAccount = async (
     return z.treeifyError(validatedFields.error);
   }
 
-  const { firstname, lastname, username, email, password, confirmPassword } =
+  const createAccountRequestBody: CreateAccountRequestBody =
     validatedFields.data;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const response = await fetch(CREATE_ACCOUNT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(createAccountRequestBody),
+    });
+    if (!response.ok) {
+      const maybeResponse = await response.json();
+      const maybeResponseMessage = maybeResponse?.message;
+      throw new Error(
+        maybeResponseMessage
+          ? maybeResponseMessage
+          : `response.status ${response.status}`,
+      );
+    }
+
+    const json = await response.json();
+
+    const createAccountResponse: CreateAccountResponse = {
+      error: json.error,
+      jwt: json.jwt,
+      message: json.message,
+      user: { ...json.user, password: "", confirmPassword: "" },
+    };
+
+    console.log(createAccountResponse);
+
+    if (
+      createAccountResponse.error === false &&
+      createAccountResponse.jwt &&
+      createAccountResponse.user
+    ) {
+      await createSession(
+        createAccountResponse.jwt,
+        createAccountResponse.user,
+      );
+    } else {
+      throw new Error("createAccountResponse error.");
+    }
+  } catch (error: any) {
+    const errorString =
+      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+    console.error(errorString);
+    return;
+  }
+  redirect("/profile");
 };
