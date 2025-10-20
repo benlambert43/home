@@ -23,7 +23,8 @@ export const createAccount = async (
   });
 
   if (!validatedFields.success) {
-    return z.treeifyError(validatedFields.error);
+    const errors = z.treeifyError(validatedFields.error);
+    return errors;
   }
 
   const createAccountRequestBody: CreateAccountRequestBody =
@@ -56,8 +57,6 @@ export const createAccount = async (
       user: { ...json.user, password: "", confirmPassword: "" },
     };
 
-    console.log(createAccountResponse);
-
     if (
       createAccountResponse.error === false &&
       createAccountResponse.jwt &&
@@ -74,7 +73,7 @@ export const createAccount = async (
     const errorString =
       "message" in error ? `${error.message.toString()}` : "Unknown error.";
     console.error(errorString);
-    return;
+    return { errors: [errorString] };
   }
   redirect("/profile");
 };

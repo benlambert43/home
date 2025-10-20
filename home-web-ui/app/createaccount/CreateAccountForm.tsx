@@ -115,6 +115,7 @@ export const CreateAccountForm = () => {
           Create Account
         </button>
       </div>
+      <div>{state?.errors?.toString()}</div>
     </form>
   );
 };
