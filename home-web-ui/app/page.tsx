@@ -16,7 +16,7 @@ const RightContentList = () => {
     },
     {
       id: 2,
-      title: "🔗📜",
+      title: "⌨️",
       description: (
         <div>
           The source code for this website is available{" "}
