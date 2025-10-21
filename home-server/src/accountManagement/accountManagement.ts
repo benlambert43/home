@@ -66,6 +66,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     res.status(200).send(handleCreateAccountRes);
     return;
   } catch (e) {
+    console.error(e);
     const handleCreateAccountRes: CreateAccountResponse = {
       error: true,
       message: "Error creating new account. Account was not created.",

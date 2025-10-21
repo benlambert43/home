@@ -28,7 +28,7 @@ export const createSession = async (
 
   const cookieStore = await cookies();
 
-  cookieStore.set("session", encodedApiJwtSession, {
+  cookieStore.set("apisession", encodedApiJwtSession, {
     httpOnly: true,
     secure: true,
     expires: expiresAt,
@@ -51,7 +51,7 @@ export const createSession = async (
 
 export const removeSession = async () => {
   const cookieStore = await cookies();
-  cookieStore.delete("session");
+  cookieStore.delete("apisession");
   cookieStore.delete("bffsession");
   cookieStore.delete("user");
   redirect("/signin");
