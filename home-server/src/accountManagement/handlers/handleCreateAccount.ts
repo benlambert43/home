@@ -2,7 +2,7 @@ import * as bcrypt from "bcrypt";
 import { configDotenv } from "dotenv";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
-import { User } from "../../types/types";
+import { User, UserNoPassword } from "../../types/types";
 
 configDotenv();
 
@@ -63,6 +63,30 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
   return saveNewUser as User;
 };
 
+export const removePasswordFromUserObject = (user: User | UserNoPassword) => {
+  const {
+    _id,
+    firstname,
+    lastname,
+    username,
+    email,
+    createdDate,
+    modifiedDate,
+    role,
+  } = user;
+  const userRemovePassword: UserNoPassword = {
+    _id,
+    firstname,
+    lastname,
+    username,
+    email,
+    createdDate,
+    modifiedDate,
+    role,
+  };
+  return userRemovePassword;
+};
+
 export const handleCreateAccount = async (validCreateAccountRequestBody: {
   firstname: string;
   lastname: string;
@@ -73,5 +97,5 @@ export const handleCreateAccount = async (validCreateAccountRequestBody: {
   const newUser = await handleCreateUser(validCreateAccountRequestBody);
   const newJwt = createApiToken(newUser);
 
-  return {};
+  return { token: newJwt, user: newUser };
 };

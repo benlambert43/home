@@ -1,6 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import { configDotenv } from "dotenv";
 import { User, EncodedAccountJwt, UserNoPassword } from "../types/types";
+import { removePasswordFromUserObject } from "../accountManagement/handlers/handleCreateAccount";
 
 configDotenv();
 
@@ -10,16 +11,7 @@ export const createApiToken = (user: User) => {
     throw new Error("Could not create token, TOKEN_ISSUER is not defined.");
   }
 
-  const userRemovePassword: UserNoPassword = {
-    _id: user._id,
-    firstname: user.firstname,
-    lastname: user.lastname,
-    email: user.email,
-    username: user.username,
-    createdDate: user.createdDate,
-    modifiedDate: user.modifiedDate,
-    role: user.role,
-  };
+  const userRemovePassword = removePasswordFromUserObject(user);
 
   const encodedAccountJwtData: EncodedAccountJwt = {
     usage: "API",
