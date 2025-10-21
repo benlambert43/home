@@ -1,6 +1,8 @@
 import * as bcrypt from "bcrypt";
 import { configDotenv } from "dotenv";
 import { UserModel } from "../../model/userModel";
+import { createApiToken } from "../../auth/createApiToken";
+import { User } from "../../types/types";
 
 configDotenv();
 
@@ -54,10 +56,11 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
     email,
     password: saltedPassword,
     createdDate: new Date(),
+    modifiedDate: new Date(),
     role: isAdmin ? "Admin" : "User",
   });
   const saveNewUser = await newUser.save();
-  return saveNewUser;
+  return saveNewUser as User;
 };
 
 export const handleCreateAccount = async (validCreateAccountRequestBody: {
@@ -68,6 +71,7 @@ export const handleCreateAccount = async (validCreateAccountRequestBody: {
   password: string;
 }) => {
   const newUser = await handleCreateUser(validCreateAccountRequestBody);
+  const newJwt = createApiToken(newUser);
 
   return {};
 };
