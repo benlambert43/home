@@ -7,6 +7,7 @@ export const userSchema = new mongoose.Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   createdDate: Date,
+  modifiedDate: Date,
   role: {
     type: String,
     enum: ["User", "Admin"],
