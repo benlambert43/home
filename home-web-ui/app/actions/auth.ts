@@ -54,7 +54,7 @@ export const createAccount = async (
       error: json.error,
       jwt: json.jwt,
       message: json.message,
-      user: { ...json.user, password: "", confirmPassword: "" },
+      user: json.user,
     };
 
     if (
