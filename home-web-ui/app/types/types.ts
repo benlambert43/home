@@ -9,7 +9,7 @@ export interface UserNoPassword {
   confirmedEmail: boolean;
   createdDate: Date;
   modifiedDate: Date;
-  role: "User" | "Admin";
+  role: "user" | "admin";
 }
 
 export interface User extends UserNoPassword {

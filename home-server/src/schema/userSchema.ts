@@ -9,5 +9,5 @@ export const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   createdDate: Date,
   modifiedDate: Date,
-  role: { type: String, enum: ["User", "Admin"] },
+  role: { type: String, enum: ["user", "admin"] },
 });

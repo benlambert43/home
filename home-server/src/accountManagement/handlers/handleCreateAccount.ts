@@ -58,7 +58,7 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
     password: saltedPassword,
     createdDate: new Date(),
     modifiedDate: new Date(),
-    role: isAdmin ? "Admin" : "User",
+    role: isAdmin ? "admin" : "user",
   });
   const saveNewUser = await newUser.save();
   return saveNewUser as User;
