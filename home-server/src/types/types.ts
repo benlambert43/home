@@ -6,6 +6,7 @@ export interface UserNoPassword {
   lastname: string;
   username: string;
   email: string;
+  confirmedEmail: boolean;
   createdDate: Date;
   modifiedDate: Date;
   role: "User" | "Admin";
