@@ -1,4 +1,6 @@
+import { SignInForm } from "@/app/signin/SignInForm";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const SignIn = async () => {
@@ -7,9 +9,11 @@ const SignIn = async () => {
   if (typeof userCookie?.value === "string") redirect("/profile");
 
   return (
-    <div>
-      <div>SignIn</div>
-      <div>Sign in form</div>
+    <div className="mx-4 py-8">
+      <div>
+        <SignInForm />
+      </div>
+      <Link href="/createaccount">create account</Link>
     </div>
   );
 };

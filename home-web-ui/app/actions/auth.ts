@@ -1,7 +1,12 @@
 "use server";
 
 import { createSession } from "@/app/actions/session";
-import { SignupFormSchema, SignupFormState } from "@/app/lib/definitions";
+import {
+  SignInFormSchema,
+  SignInFormState,
+  SignUpFormSchema,
+  SignUpFormState,
+} from "@/app/lib/definitions";
 import { CreateAccountRequestBody } from "@/app/types/request";
 import { CreateAccountResponse } from "@/app/types/response";
 import * as z from "zod";
@@ -10,10 +15,10 @@ import { redirect } from "next/navigation";
 const CREATE_ACCOUNT_URL = `${process.env.API_URL}/accountManagement/createAccount`;
 
 export const createAccount = async (
-  state: SignupFormState,
+  state: SignUpFormState,
   formData: FormData,
 ) => {
-  const validatedFields = SignupFormSchema.safeParse({
+  const validatedFields = SignUpFormSchema.safeParse({
     firstname: formData.get("firstname"),
     lastname: formData.get("lastname"),
     username: formData.get("username"),
@@ -76,4 +81,8 @@ export const createAccount = async (
     return { errors: [errorString] };
   }
   redirect("/profile");
+};
+
+export const signIn = async (state: SignInFormState, formData: FormData) => {
+  return {} as SignInFormState;
 };
