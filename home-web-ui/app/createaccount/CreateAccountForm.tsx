@@ -45,13 +45,13 @@ export const CreateAccountForm = () => {
         )}
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="username">Display Name</label>
+        <label htmlFor="username">Username</label>
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
           id="username"
           name="username"
-          placeholder="Display Name"
+          placeholder="Username"
         />
       </div>
       <div>
@@ -80,6 +80,7 @@ export const CreateAccountForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          placeholder="Enter your password"
           id="password"
           name="password"
           type="password"
@@ -95,6 +96,7 @@ export const CreateAccountForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          placeholder="Enter your password again"
           id="confirmPassword"
           name="confirmPassword"
           type="password"
