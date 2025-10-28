@@ -2,9 +2,15 @@
 
 import { createAccount } from "@/app/actions/auth";
 import { useActionState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export const CreateAccountForm = () => {
+  const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(createAccount, undefined);
+
+  const onPublicCaptchaChange = (token: string | null) => {
+    console.log("Captcha value:", token);
+  };
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -106,6 +112,12 @@ export const CreateAccountForm = () => {
         {state?.properties?.confirmPassword?.errors && (
           <p>{state?.properties?.confirmPassword?.errors}</p>
         )}
+      </div>
+      <div className="flex flex-col items-start justify-center gap-2 py-6">
+        <ReCAPTCHA
+          sitekey={publicCaptchaKey}
+          onChange={onPublicCaptchaChange}
+        />
       </div>
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <button
