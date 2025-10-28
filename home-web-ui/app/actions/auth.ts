@@ -25,7 +25,10 @@ export const createAccount = async (
     email: formData.get("email"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
+    grecaptcharesponse: formData.get("g-recaptcha-response"),
   });
+
+  console.log(validatedFields);
 
   if (!validatedFields.success) {
     const errors = z.treeifyError(validatedFields.error);

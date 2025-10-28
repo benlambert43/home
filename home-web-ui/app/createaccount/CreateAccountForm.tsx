@@ -8,10 +8,6 @@ export const CreateAccountForm = () => {
   const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(createAccount, undefined);
 
-  const onPublicCaptchaChange = (token: string | null) => {
-    console.log("Captcha value:", token);
-  };
-
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className="flex flex-row flex-wrap items-center justify-start gap-4">
@@ -110,14 +106,16 @@ export const CreateAccountForm = () => {
       </div>
       <div>
         {state?.properties?.confirmPassword?.errors && (
-          <p>{state?.properties?.confirmPassword?.errors}</p>
+          <div>
+            {state?.properties?.confirmPassword?.errors.map((e) => (
+              <p key={e}>{e}</p>
+            ))}
+          </div>
         )}
       </div>
-      <div className="flex flex-col items-start justify-center gap-2 py-6">
-        <ReCAPTCHA
-          sitekey={publicCaptchaKey}
-          onChange={onPublicCaptchaChange}
-        />
+      <div className="flex flex-col items-start justify-center gap-2">
+        <label htmlFor="publicCaptcha">Are you a robot?</label>
+        <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
       </div>
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <button
