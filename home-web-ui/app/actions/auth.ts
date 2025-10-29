@@ -28,6 +28,8 @@ export const createAccount = async (
     grecaptcharesponse: formData.get("g-recaptcha-response"),
   });
 
+  //TODO empty captcha returns coerced null to empty string
+
   console.log(validatedFields);
 
   if (!validatedFields.success) {
