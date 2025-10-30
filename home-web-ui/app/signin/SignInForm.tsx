@@ -13,6 +13,7 @@ export const SignInForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          autoComplete="email"
           id="email"
           name="email"
           type="email"

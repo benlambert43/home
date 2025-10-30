@@ -19,6 +19,7 @@ export const CreateAccountForm = () => {
           <input
             className="w-full max-w-78 rounded-xl px-4 py-2 outline-1
               outline-slate-400 focus:outline-slate-50"
+            autoComplete="given-name"
             id="firstname"
             name="firstname"
             placeholder="First Name"
@@ -32,6 +33,7 @@ export const CreateAccountForm = () => {
           <input
             className="w-full max-w-78 rounded-xl px-4 py-2 outline-1
               outline-slate-400 focus:outline-slate-50"
+            autoComplete="family-name"
             id="lastname"
             name="lastname"
             placeholder="Last Name"
@@ -51,6 +53,7 @@ export const CreateAccountForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          autoComplete="username"
           id="username"
           name="username"
           placeholder="Username"
@@ -66,6 +69,7 @@ export const CreateAccountForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          autoComplete="email"
           id="email"
           name="email"
           type="email"
@@ -82,6 +86,7 @@ export const CreateAccountForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          autoComplete="new-password"
           placeholder="Enter your password"
           id="password"
           name="password"
@@ -98,6 +103,7 @@ export const CreateAccountForm = () => {
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
             outline-slate-400 focus:outline-slate-50"
+          autoComplete="new-password"
           placeholder="Enter your password again"
           id="confirmPassword"
           name="confirmPassword"
@@ -114,9 +120,11 @@ export const CreateAccountForm = () => {
         )}
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="publicCaptcha">Are you a robot?</label>
         <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
       </div>
+      {state?.properties?.email?.errors && (
+        <p>{state?.properties?.grecaptcharesponse?.errors}</p>
+      )}
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <button
           disabled={pending}
