@@ -21,9 +21,6 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       lastname: z
         .string()
         .min(2, { message: "Last name must be at least 2 characters long." }),
-      username: z
-        .string()
-        .min(3, { message: "Username must be at least 3 characters long." }),
       email: z.email({ message: "Please enter a valid email." }),
       password: z
         .string()
@@ -37,7 +34,6 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     const createAccountRequestBody = createAccountRequestBodySchema.safeParse({
       firstname: req.body.firstname,
       lastname: req.body.lastname,
-      username: req.body.username,
       email: req.body.email,
       password: req.body.password,
       grecaptcharesponse: req.body.grecaptcharesponse,

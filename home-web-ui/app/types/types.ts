@@ -4,7 +4,6 @@ export interface UserNoPassword {
   _id: Types.ObjectId;
   firstname: string;
   lastname: string;
-  username: string;
   email: string;
   confirmedEmail: boolean;
   userBanned: boolean;

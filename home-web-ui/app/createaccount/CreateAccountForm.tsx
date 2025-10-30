@@ -49,22 +49,6 @@ export const CreateAccountForm = () => {
         )}
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="username">Username</label>
-        <input
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-          autoComplete="username"
-          id="username"
-          name="username"
-          placeholder="Username"
-        />
-      </div>
-      <div>
-        {state?.properties?.username?.errors && (
-          <p>{state?.properties?.username?.errors}</p>
-        )}
-      </div>
-      <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="email">Email</label>
         <input
           className="w-full max-w-160 rounded-xl px-4 py-2 outline-1

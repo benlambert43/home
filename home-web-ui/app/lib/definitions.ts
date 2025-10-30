@@ -8,9 +8,6 @@ export const SignUpFormSchema = z
     lastname: z
       .string()
       .min(2, { message: "⚠️ Last name must be at least 2 characters long." }),
-    username: z
-      .string()
-      .min(3, { message: "⚠️ Username must be at least 3 characters long." }),
     email: z.email({ message: "⚠️ Please enter a valid email." }),
     password: z
       .string()
@@ -43,11 +40,6 @@ export type SignUpFormState =
                   errors: string[];
                 }
               | undefined;
-            username?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
             email?:
               | {
                   errors: string[];
@@ -76,9 +68,6 @@ export const SignInFormSchema = z
     lastname: z
       .string()
       .min(2, { message: "⚠️ Last name must be at least 2 characters long." }),
-    username: z
-      .string()
-      .min(3, { message: "⚠️ Username must be at least 3 characters long." }),
     email: z.email({ message: "⚠️ Please enter a valid email." }),
     password: z
       .string()
@@ -103,11 +92,6 @@ export type SignInFormState =
                 }
               | undefined;
             lastname?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            username?:
               | {
                   errors: string[];
                 }

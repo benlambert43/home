@@ -12,19 +12,10 @@ const saltPassword = async (plaintextpassword: string) => {
   return hash;
 };
 
-const shouldCreateAdminAccount = (
-  email: string,
-  username: string,
-  password: string
-) => {
+const shouldCreateAdminAccount = (email: string, password: string) => {
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-  const ADMIN_USER = process.env.ADMIN_USER;
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-  if (
-    username === ADMIN_USER &&
-    password === ADMIN_PASSWORD &&
-    email === ADMIN_EMAIL
-  ) {
+  if (password === ADMIN_PASSWORD && email === ADMIN_EMAIL) {
     return true;
   }
   return false;
@@ -33,7 +24,6 @@ const shouldCreateAdminAccount = (
 const handleCreateUser = async (validCreateAccountRequestBody: {
   firstname: string;
   lastname: string;
-  username: string;
   email: string;
   password: string;
 }) => {
@@ -42,17 +32,14 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
   );
   const isAdmin = shouldCreateAdminAccount(
     validCreateAccountRequestBody.email,
-    validCreateAccountRequestBody.username,
     validCreateAccountRequestBody.password
   );
 
-  const { firstname, lastname, username, email } =
-    validCreateAccountRequestBody;
+  const { firstname, lastname, email } = validCreateAccountRequestBody;
 
   const newUser = new UserModel({
     firstname,
     lastname,
-    username,
     email,
     confirmedEmail: false,
     userBanned: false,
@@ -70,7 +57,6 @@ export const removePasswordFromUserObject = (user: User | UserNoPassword) => {
     _id,
     firstname,
     lastname,
-    username,
     email,
     confirmedEmail,
     userBanned,
@@ -82,7 +68,6 @@ export const removePasswordFromUserObject = (user: User | UserNoPassword) => {
     _id,
     firstname,
     lastname,
-    username,
     email,
     confirmedEmail,
     userBanned,
@@ -96,7 +81,6 @@ export const removePasswordFromUserObject = (user: User | UserNoPassword) => {
 export const handleCreateAccount = async (validCreateAccountRequestBody: {
   firstname: string;
   lastname: string;
-  username: string;
   email: string;
   password: string;
 }) => {
