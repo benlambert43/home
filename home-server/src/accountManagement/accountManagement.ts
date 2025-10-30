@@ -28,6 +28,10 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       password: z
         .string()
         .min(8, { message: "Password must be at least 8 characters long." }),
+      grecaptcharesponse: z.string().min(1, {
+        message:
+          "Please complete the ReCAPTCHA challenge, or reload the page and try again.",
+      }),
     });
 
     const createAccountRequestBody = createAccountRequestBodySchema.safeParse({
@@ -36,6 +40,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
+      grecaptcharesponse: req.body.grecaptcharesponse,
     });
 
     if (!createAccountRequestBody.success) {
@@ -51,6 +56,8 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     }
 
     const validcreateAccountRequestBody = createAccountRequestBody.data;
+
+    console.log(validcreateAccountRequestBody);
 
     const createAccount = await handleCreateAccount(
       validcreateAccountRequestBody

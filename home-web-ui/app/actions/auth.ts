@@ -28,8 +28,6 @@ export const createAccount = async (
     grecaptcharesponse: formData.get("g-recaptcha-response"),
   });
 
-  console.log(validatedFields);
-
   if (!validatedFields.success) {
     const errors = z.treeifyError(validatedFields.error);
     return errors;
