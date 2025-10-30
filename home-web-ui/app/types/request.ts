@@ -5,4 +5,5 @@ export type CreateAccountRequestBody = {
   email: string;
   password: string;
   confirmPassword: string;
+  grecaptcharesponse: string;
 };
