@@ -22,9 +22,27 @@ const shouldCreateAdminAccount = (email: string, password: string) => {
   return false;
 };
 
+export const createNewUniqueRandomUsername = async (inc?: number) => {
+  if (inc && inc >= 10) {
+    return undefined;
+  }
+
+  const newUsername = generateUsername("-", 4);
+  const existingUsername = await UserModel.find({ username: newUsername });
+
+  if (existingUsername.length === 0) {
+    return newUsername;
+  } else {
+    const initInc = inc ? inc : 0;
+    const addInc = initInc + 1;
+    createNewUniqueRandomUsername(addInc);
+  }
+};
+
 const handleCreateUser = async (validCreateAccountRequestBody: {
   firstname: string;
   lastname: string;
+  username: string;
   email: string;
   password: string;
 }) => {
@@ -36,8 +54,8 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
     validCreateAccountRequestBody.password
   );
 
-  const { firstname, lastname, email } = validCreateAccountRequestBody;
-  const username = generateUsername("-", 3);
+  const { firstname, lastname, username, email } =
+    validCreateAccountRequestBody;
 
   const newUser = new UserModel({
     firstname,
@@ -84,6 +102,7 @@ export const removePasswordFromUserObject = (user: User | UserNoPassword) => {
 export const handleCreateAccount = async (validCreateAccountRequestBody: {
   firstname: string;
   lastname: string;
+  username: string;
   email: string;
   password: string;
 }) => {

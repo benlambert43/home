@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CreateAccountResponse } from "../types/response";
 import * as z from "zod";
 import {
+  createNewUniqueRandomUsername,
   handleCreateAccount,
   removePasswordFromUserObject,
 } from "./handlers/handleCreateAccount";
@@ -51,12 +52,25 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       return;
     }
 
-    const validcreateAccountRequestBody = createAccountRequestBody.data;
+    const uniqueRandomUsername = await createNewUniqueRandomUsername();
 
-    console.log(validcreateAccountRequestBody);
+    if (!uniqueRandomUsername) {
+      const createAccountUsernameErrorResponse: CreateAccountResponse = {
+        error: true,
+        message: "Error creating account with randomized username.",
+      };
+
+      res.status(400).send(createAccountUsernameErrorResponse);
+      return;
+    }
+
+    const validCreateAccountRequestBody = {
+      ...createAccountRequestBody.data,
+      username: uniqueRandomUsername,
+    };
 
     const createAccount = await handleCreateAccount(
-      validcreateAccountRequestBody
+      validCreateAccountRequestBody
     );
 
     const handleCreateAccountRes: CreateAccountResponse = {
