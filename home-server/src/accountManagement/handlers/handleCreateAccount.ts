@@ -3,6 +3,7 @@ import { configDotenv } from "dotenv";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { User, UserNoPassword } from "../../types/types";
+import { generateUsername } from "unique-username-generator";
 
 configDotenv();
 
@@ -36,11 +37,13 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
   );
 
   const { firstname, lastname, email } = validCreateAccountRequestBody;
+  const username = generateUsername("-", 3);
 
   const newUser = new UserModel({
     firstname,
     lastname,
     email,
+    username,
     confirmedEmail: false,
     userBanned: false,
     password: saltedPassword,
