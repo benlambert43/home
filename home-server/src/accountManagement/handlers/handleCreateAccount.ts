@@ -39,6 +39,14 @@ export const createNewUniqueRandomUsername = async (inc?: number) => {
   }
 };
 
+export const checkUniqueEmail = async (email: string) => {
+  const existingEmail = await UserModel.find({ email: email });
+  if (existingEmail.length === 0) {
+    return true;
+  }
+  return false;
+};
+
 const handleCreateUser = async (validCreateAccountRequestBody: {
   firstname: string;
   lastname: string;

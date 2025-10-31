@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CreateAccountResponse } from "../types/response";
 import * as z from "zod";
 import {
+  checkUniqueEmail,
   createNewUniqueRandomUsername,
   handleCreateAccount,
   removePasswordFromUserObject,
@@ -61,6 +62,21 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       };
 
       res.status(400).send(createAccountUsernameErrorResponse);
+      return;
+    }
+
+    const uniqueEmail = await checkUniqueEmail(
+      createAccountRequestBody.data.email
+    );
+
+    if (!uniqueEmail) {
+      const createAccountEmailErrorResponse: CreateAccountResponse = {
+        error: true,
+        message:
+          "Error creating account. An account with this email already exists.",
+      };
+
+      res.status(400).send(createAccountEmailErrorResponse);
       return;
     }
 
