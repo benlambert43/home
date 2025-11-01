@@ -106,7 +106,7 @@ export const CreateAccountForm = () => {
       <div className="flex flex-col items-start justify-center gap-2">
         <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
       </div>
-      {state?.properties?.email?.errors && (
+      {state?.properties?.grecaptcharesponse?.errors && (
         <p>{state?.properties?.grecaptcharesponse?.errors}</p>
       )}
       <div className="flex flex-col items-start justify-center gap-2 py-6">
