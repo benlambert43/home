@@ -4,6 +4,7 @@ import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { User, UserNoPassword } from "../../types/types";
 import { generateUsername } from "unique-username-generator";
+import { handleVerifyCaptcha } from "../../auth/verifyCaptcha";
 
 configDotenv();
 
@@ -46,6 +47,9 @@ export const checkUniqueEmail = async (email: string) => {
   }
   return false;
 };
+
+export const verifyCaptcha = async (grecaptcharesponse: string) =>
+  await handleVerifyCaptcha(grecaptcharesponse);
 
 const handleCreateUser = async (validCreateAccountRequestBody: {
   firstname: string;

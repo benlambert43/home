@@ -4,6 +4,7 @@ import * as z from "zod";
 import {
   checkUniqueEmail,
   createNewUniqueRandomUsername,
+  verifyCaptcha,
   handleCreateAccount,
   removePasswordFromUserObject,
 } from "./handlers/handleCreateAccount";
@@ -50,6 +51,20 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       };
 
       res.status(400).send(createAccountReqBodyErrorResponse);
+      return;
+    }
+
+    const validCaptcha = await verifyCaptcha(
+      createAccountRequestBody.data.grecaptcharesponse
+    );
+
+    if (!validCaptcha.success) {
+      const createAccountRecaptchaErrorResponse: CreateAccountResponse = {
+        error: true,
+        message: "Error creating account. Recaptcha challenge failed.",
+      };
+
+      res.status(400).send(createAccountRecaptchaErrorResponse);
       return;
     }
 
