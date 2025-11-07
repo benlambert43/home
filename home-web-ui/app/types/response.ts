@@ -6,3 +6,10 @@ export type CreateAccountResponse = {
   jwt?: string;
   user?: UserNoPassword;
 };
+
+export type SignInResponse = {
+  error: boolean;
+  message: string;
+  jwt?: string;
+  user?: UserNoPassword;
+};
