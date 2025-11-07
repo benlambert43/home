@@ -4,6 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import userRouter from "./user/user";
 import accountManagementRouter from "./accountManagement/accountManagement";
+import signInRouter from "./signIn/signIn";
 
 configDotenv();
 const app = express();
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/accountManagement", accountManagementRouter);
+app.use("/signIn", signInRouter);
 app.use("/user", userRouter);
 
 app.listen(API_PORT, () => {

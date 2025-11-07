@@ -41,11 +41,6 @@ export const SignInForm = () => {
           <p>{state?.properties?.password?.errors}</p>
         )}
       </div>
-      <div>
-        {state?.properties?.confirmPassword?.errors && (
-          <p>{state?.properties?.confirmPassword?.errors}</p>
-        )}
-      </div>
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <button
           disabled={pending}

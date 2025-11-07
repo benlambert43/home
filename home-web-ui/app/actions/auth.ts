@@ -7,12 +7,16 @@ import {
   SignUpFormSchema,
   SignUpFormState,
 } from "@/app/lib/definitions";
-import { CreateAccountRequestBody } from "@/app/types/request";
-import { CreateAccountResponse } from "@/app/types/response";
+import {
+  CreateAccountRequestBody,
+  SignInRequestBody,
+} from "@/app/types/request";
+import { CreateAccountResponse, SignInResponse } from "@/app/types/response";
 import * as z from "zod";
 import { redirect } from "next/navigation";
 
 const CREATE_ACCOUNT_URL = `${process.env.API_URL}/accountManagement/createAccount`;
+const SIGN_IN_URL = `${process.env.API_URL}/signIn`;
 
 export const createAccount = async (
   state: SignUpFormState,
@@ -84,5 +88,59 @@ export const createAccount = async (
 };
 
 export const signIn = async (state: SignInFormState, formData: FormData) => {
-  return {} as SignInFormState;
+  const validatedFields = SignInFormSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+
+  if (!validatedFields.success) {
+    const errors = z.treeifyError(validatedFields.error);
+    return errors;
+  }
+
+  const signInRequestBody: SignInRequestBody = validatedFields.data;
+
+  try {
+    const response = await fetch(SIGN_IN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(signInRequestBody),
+    });
+    if (!response.ok) {
+      const maybeResponse = await response.json();
+      const maybeResponseMessage = maybeResponse?.message;
+      throw new Error(
+        maybeResponseMessage
+          ? maybeResponseMessage
+          : `response.status ${response.status}`,
+      );
+    }
+
+    const json = await response.json();
+
+    const signInResponse: SignInResponse = {
+      error: json.error,
+      jwt: json.jwt,
+      message: json.message,
+      user: json.user,
+    };
+
+    if (
+      signInResponse.error === false &&
+      signInResponse.jwt &&
+      signInResponse.user
+    ) {
+      await createSession(signInResponse.jwt, signInResponse.user);
+    } else {
+      throw new Error("signInResponse error.");
+    }
+  } catch (error: any) {
+    const errorString =
+      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+    console.error(errorString);
+    return { errors: [errorString] };
+  }
+  redirect("/profile");
 };
