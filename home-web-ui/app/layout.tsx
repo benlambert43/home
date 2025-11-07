@@ -13,13 +13,14 @@ const RootLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className="min-h-screen min-w-screen bg-slate-800 text-slate-50"
+    >
       <body>
-        <div className="min-h-screen min-w-screen bg-slate-800 text-slate-50">
-          <div className="py-8">
-            <Navbar />
-            {children}
-          </div>
+        <div className="py-8">
+          <Navbar />
+          {children}
         </div>
       </body>
     </html>
