@@ -8,7 +8,7 @@ export const userSchema = new mongoose.Schema({
   confirmedEmail: { type: Boolean, required: true },
   userBanned: { type: Boolean, required: true },
   password: { type: String, required: true },
-  createdDate: Date,
-  modifiedDate: Date,
-  role: { type: String, enum: ["user", "admin"] },
+  createdDate: { type: Date, required: true },
+  modifiedDate: { type: Date, required: true },
+  role: { type: String, enum: ["user", "admin"], required: true },
 });
