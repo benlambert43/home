@@ -41,16 +41,6 @@ signInRouter.post("/", async (req, res) => {
       password: signInRequestBody.data?.password,
     });
 
-    if (!signIn.user) {
-      const signInNoUserFoundWithEmail: SignInResponse = {
-        error: true,
-        message: "Error signing in. No user with this email address was found.",
-      };
-
-      res.status(400).send(signInNoUserFoundWithEmail);
-      return;
-    }
-
     const handleSignInRes: SignInResponse = {
       error: false,
       message: "Sign in successful.",
@@ -61,10 +51,14 @@ signInRouter.post("/", async (req, res) => {
     res.status(200).send(handleSignInRes);
     return;
   } catch (e) {
-    console.error(e);
+    const maybeMessage =
+      e && e?.toString() && e.toString().length > 0
+        ? e.toString()
+        : "Error signing in. Please try again.";
+
     const handleSignInRes: SignInResponse = {
       error: true,
-      message: "Error signing in. Please try again.",
+      message: maybeMessage,
     };
     res.status(400).send(handleSignInRes);
     return;

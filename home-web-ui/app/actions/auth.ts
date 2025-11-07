@@ -81,7 +81,7 @@ export const createAccount = async (
   } catch (error: any) {
     const errorString =
       "message" in error ? `${error.message.toString()}` : "Unknown error.";
-    console.error(errorString);
+
     return { errors: [errorString] };
   }
   redirect("/profile");
@@ -139,7 +139,7 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
   } catch (error: any) {
     const errorString =
       "message" in error ? `${error.message.toString()}` : "Unknown error.";
-    console.error(errorString);
+
     return { errors: [errorString] };
   }
   redirect("/profile");

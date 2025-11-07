@@ -21,7 +21,7 @@ export const handleSignIn = async (validSignInRequestBody: {
   });
 
   if (!findUserByEmail) {
-    throw new Error("User with this email does not exist.");
+    throw new Error("Error signing in. Email or password is incorrect.");
   }
 
   const validLogin = await authenticateLogin(
@@ -29,7 +29,7 @@ export const handleSignIn = async (validSignInRequestBody: {
     findUserByEmail.password
   );
   if (!validLogin) {
-    throw new Error("Password is not correct.");
+    throw new Error("Error signing in. Email or password is incorrect.");
   }
 
   const newJwt = createApiToken(findUserByEmail);

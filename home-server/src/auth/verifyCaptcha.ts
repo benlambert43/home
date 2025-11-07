@@ -27,7 +27,6 @@ export const handleVerifyCaptcha = async (
       return { success: false };
     }
   } catch (e) {
-    console.error(e);
     return { success: false };
   }
 };
