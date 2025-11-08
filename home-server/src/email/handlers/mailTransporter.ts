@@ -3,16 +3,23 @@ import { google } from "googleapis";
 import Mail from "nodemailer/lib/mailer";
 const OAuth2 = google.auth.OAuth2;
 
+const EMAIL_OUTGOING_ADDRESS = process.env.EMAIL_OUTGOING_ADDRESS;
+const EMAIL_OUTGOING_JWT_SECRET = process.env.EMAIL_OUTGOING_JWT_SECRET;
+const EMAIL_OUTGOING_CLIENT_ID = process.env.EMAIL_OUTGOING_CLIENT_ID;
+const EMAIL_OUTGOING_CLIENT_SECRET = process.env.EMAIL_OUTGOING_CLIENT_SECRET;
+const EMAIL_OUTGOING_REFRESH_TOKEN = process.env.EMAIL_OUTGOING_REFRESH_TOKEN;
+const EMAIL_OUTGOING_APP_PASSWORD = process.env.EMAIL_OUTGOING_APP_PASSWORD;
+
 const createTransporter = async () => {
   try {
     const oauth2Client = new OAuth2(
-      process.env.CLIENT_ID,
-      process.env.CLIENT_SECRET,
+      EMAIL_OUTGOING_CLIENT_ID,
+      EMAIL_OUTGOING_CLIENT_SECRET,
       "https://developers.google.com/oauthplayground"
     );
 
     oauth2Client.setCredentials({
-      refresh_token: process.env.REFRESH_TOKEN,
+      refresh_token: EMAIL_OUTGOING_REFRESH_TOKEN,
     });
 
     const accessToken = await new Promise((resolve, reject) => {
@@ -31,10 +38,10 @@ const createTransporter = async () => {
       secure: true,
       auth: {
         type: "OAuth2",
-        user: process.env.EMAIL_ADDRESS,
-        clientId: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
-        refreshToken: process.env.REFRESH_TOKEN,
+        user: EMAIL_OUTGOING_ADDRESS,
+        clientId: EMAIL_OUTGOING_CLIENT_ID,
+        clientSecret: EMAIL_OUTGOING_CLIENT_SECRET,
+        refreshToken: EMAIL_OUTGOING_REFRESH_TOKEN,
         accessToken: accessToken ? (accessToken as string) : "",
       },
     });
@@ -54,8 +61,8 @@ const createBackupTransporter = () => {
       port: 465,
       secure: true,
       auth: {
-        user: process.env.EMAIL_ADDRESS,
-        pass: process.env.APP_PASSWORD,
+        user: EMAIL_OUTGOING_ADDRESS,
+        pass: EMAIL_OUTGOING_APP_PASSWORD,
       },
     });
     return backupTransporter;
