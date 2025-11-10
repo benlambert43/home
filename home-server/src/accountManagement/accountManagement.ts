@@ -8,6 +8,7 @@ import {
   handleCreateAccount,
   removePasswordFromUserObject,
 } from "./handlers/handleCreateAccount";
+import { sendMail } from "../email/handlers/mailTransporter";
 
 const accountManagementRouter = Router();
 
@@ -103,6 +104,24 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     const createAccount = await handleCreateAccount(
       validCreateAccountRequestBody
     );
+
+    const sendMailRes = await sendMail({
+      to: validCreateAccountRequestBody.email,
+      subject: "benlambert dot tech email verification",
+      text: `Here is your link to verify your new account: \n\n${"verificationLink"}`,
+    });
+
+    if (sendMailRes === 1) {
+      const createAccountEmailVerificationErrorResponse: CreateAccountResponse =
+        {
+          error: true,
+          message:
+            "Error creating account. Unable to send verification email to the provided address.",
+        };
+
+      res.status(400).send(createAccountEmailVerificationErrorResponse);
+      return;
+    }
 
     const handleCreateAccountRes: CreateAccountResponse = {
       error: false,
