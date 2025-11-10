@@ -105,9 +105,9 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       validCreateAccountRequestBody
     );
 
-    const handleSendEmailVerificationRes = await handleSendEmailVerification({
-      email: createAccount.user.email,
-    });
+    const handleSendEmailVerificationRes = await handleSendEmailVerification(
+      createAccount.user
+    );
 
     if (handleSendEmailVerificationRes === 1) {
       const createAccountEmailVerificationErrorResponse: CreateAccountResponse =
