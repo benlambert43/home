@@ -13,65 +13,55 @@ const EMAIL_OUTGOING_REFRESH_TOKEN = process.env.EMAIL_OUTGOING_REFRESH_TOKEN;
 const EMAIL_OUTGOING_APP_PASSWORD = process.env.EMAIL_OUTGOING_APP_PASSWORD;
 
 const createTransporter = async () => {
-  try {
-    const oauth2Client = new OAuth2(
-      EMAIL_OUTGOING_CLIENT_ID,
-      EMAIL_OUTGOING_CLIENT_SECRET,
-      "https://developers.google.com/oauthplayground"
-    );
+  const oauth2Client = new OAuth2(
+    EMAIL_OUTGOING_CLIENT_ID,
+    EMAIL_OUTGOING_CLIENT_SECRET,
+    "https://developers.google.com/oauthplayground"
+  );
 
-    oauth2Client.setCredentials({
-      refresh_token: EMAIL_OUTGOING_REFRESH_TOKEN,
+  oauth2Client.setCredentials({
+    refresh_token: EMAIL_OUTGOING_REFRESH_TOKEN,
+  });
+
+  const accessToken = await new Promise((resolve, reject) => {
+    oauth2Client.getAccessToken((err, token) => {
+      if (err) {
+        console.error(err);
+        reject(err);
+      }
+      resolve(token);
     });
+  });
 
-    const accessToken = await new Promise((resolve, reject) => {
-      oauth2Client.getAccessToken((err, token) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        }
-        resolve(token);
-      });
-    });
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      type: "OAuth2",
+      user: EMAIL_OUTGOING_ADDRESS,
+      clientId: EMAIL_OUTGOING_CLIENT_ID,
+      clientSecret: EMAIL_OUTGOING_CLIENT_SECRET,
+      refreshToken: EMAIL_OUTGOING_REFRESH_TOKEN,
+      accessToken: accessToken ? (accessToken as string) : "",
+    },
+  });
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        type: "OAuth2",
-        user: EMAIL_OUTGOING_ADDRESS,
-        clientId: EMAIL_OUTGOING_CLIENT_ID,
-        clientSecret: EMAIL_OUTGOING_CLIENT_SECRET,
-        refreshToken: EMAIL_OUTGOING_REFRESH_TOKEN,
-        accessToken: accessToken ? (accessToken as string) : "",
-      },
-    });
-
-    return transporter;
-  } catch (e) {
-    console.error(e);
-    return undefined;
-  }
+  return transporter;
 };
 
 const createBackupTransporter = () => {
-  try {
-    const backupTransporter = nodemailer.createTransport({
-      service: "Gmail",
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: EMAIL_OUTGOING_ADDRESS,
-        pass: EMAIL_OUTGOING_APP_PASSWORD,
-      },
-    });
-    return backupTransporter;
-  } catch (e) {
-    console.error(e);
-    return undefined;
-  }
+  const backupTransporter = nodemailer.createTransport({
+    service: "Gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: EMAIL_OUTGOING_ADDRESS,
+      pass: EMAIL_OUTGOING_APP_PASSWORD,
+    },
+  });
+  return backupTransporter;
 };
 
 export const sendMail = async ({
@@ -89,32 +79,36 @@ export const sendMail = async ({
     text: text,
   };
 
-  const transporter = await createTransporter();
+  try {
+    const transporter = await createTransporter();
 
-  if (transporter) {
-    try {
-      transporter.sendMail(safeMailOptions);
-      return 0;
-    } catch (e) {
-      console.error("Mail Send Error!");
-      console.error(e);
-      return 1;
-    }
-  } else {
-    console.error("Transporter Error!");
-    const backupTransporter = createBackupTransporter();
-    if (backupTransporter) {
+    if (transporter) {
       try {
-        backupTransporter.sendMail(safeMailOptions);
-        return 0;
+        transporter.sendMail(safeMailOptions);
+        return { code: 0, error: undefined };
       } catch (e) {
-        console.error("Backup Mail Send Error!");
+        console.error("Mail Send Error!");
         console.error(e);
-        return 1;
+        return { code: 1, error: e };
       }
     } else {
-      console.error("Backup Transporter Error!");
-      return 1;
+      console.error("Transporter Error!");
+      const backupTransporter = createBackupTransporter();
+      if (backupTransporter) {
+        try {
+          backupTransporter.sendMail(safeMailOptions);
+          return { code: 0, error: undefined };
+        } catch (e) {
+          console.error("Backup Mail Send Error!");
+          console.error(e);
+          return { code: 1, error: e };
+        }
+      } else {
+        console.error("Backup Transporter Error!");
+        return { code: 1, error: "backupTransporter error!" };
+      }
     }
+  } catch (e) {
+    return { code: 1, error: e };
   }
 };
