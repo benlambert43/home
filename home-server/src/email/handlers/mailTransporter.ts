@@ -84,31 +84,35 @@ export const sendMail = async ({
 
     if (transporter) {
       try {
-        transporter.sendMail(safeMailOptions);
-        return { code: 0, error: undefined };
+        const res = await transporter.sendMail(safeMailOptions);
+        return { code: 0, error: undefined, response: res };
       } catch (e) {
         console.error("Mail Send Error!");
         console.error(e);
-        return { code: 1, error: e };
+        return { code: 1, error: e, response: e };
       }
     } else {
       console.error("Transporter Error!");
       const backupTransporter = createBackupTransporter();
       if (backupTransporter) {
         try {
-          backupTransporter.sendMail(safeMailOptions);
-          return { code: 0, error: undefined };
+          const res = await backupTransporter.sendMail(safeMailOptions);
+          return { code: 0, error: undefined, response: res };
         } catch (e) {
           console.error("Backup Mail Send Error!");
           console.error(e);
-          return { code: 1, error: e };
+          return { code: 1, error: e, response: e };
         }
       } else {
         console.error("Backup Transporter Error!");
-        return { code: 1, error: "backupTransporter error!" };
+        return {
+          code: 1,
+          error: "backupTransporter error!",
+          response: "backupTransporter error!",
+        };
       }
     }
   } catch (e) {
-    return { code: 1, error: e };
+    return { code: 1, error: e, response: e };
   }
 };

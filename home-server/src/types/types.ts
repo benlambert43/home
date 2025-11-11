@@ -12,6 +12,19 @@ export interface UserNoPassword {
   role: "user" | "admin";
 }
 
+export interface NewEmailVerification {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  email: string;
+  verificationToken: string;
+  verificationTokenClickedOn: Boolean;
+  error: Boolean;
+  gmailApiResponse: string;
+  createdDate: Date;
+  confirmedDate?: Date;
+  expiresDate: Date;
+}
+
 export interface User extends UserNoPassword {
   password: string;
 }

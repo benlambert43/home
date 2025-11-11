@@ -1,5 +1,11 @@
+import { JwtPayload } from "jsonwebtoken";
 import { removePasswordFromUserObject } from "../../accountManagement/handlers/handleCreateAccount";
-import { EncodedAccountJwt, User } from "../../types/types";
+import { EmailVerificationModel } from "../../model/emailVerificationModel";
+import {
+  EncodedAccountJwt,
+  NewEmailVerification,
+  User,
+} from "../../types/types";
 import { sendMail } from "./mailTransporter";
 import { configDotenv } from "dotenv";
 import * as jwt from "jsonwebtoken";
@@ -25,7 +31,7 @@ const createEmailVerificationToken = (user: User) => {
   };
 
   const token = jwt.sign(encodedAccountJwtData, EMAIL_OUTGOING_JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "1h",
   });
 
   return token;
@@ -34,6 +40,9 @@ const createEmailVerificationToken = (user: User) => {
 export const handleSendEmailVerification = async (user: User) => {
   const BASE_API_URL = process.env.BASE_API_URL;
   const emailVerificationToken = createEmailVerificationToken(user);
+  const tokenObject = jwt.decode(emailVerificationToken) as JwtPayload;
+  const exp = tokenObject.exp || 0;
+  const expiresAt = new Date(exp * 1000);
 
   const sendMailRes = await sendMail({
     to: user.email,
@@ -43,5 +52,18 @@ export const handleSendEmailVerification = async (user: User) => {
     }`,
   });
 
-  return sendMailRes.code;
+  const newEmailVerification = new EmailVerificationModel({
+    userId: user._id,
+    email: user.email,
+    verificationToken: emailVerificationToken,
+    verificationTokenClickedOn: false,
+    error: sendMailRes.code === 0 ? false : true,
+    gmailApiResponse:
+      JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
+    createdDate: new Date(),
+    confirmedDate: undefined,
+    expiresDate: expiresAt,
+  });
+  const saveNewEmailVerification = await newEmailVerification.save();
+  return saveNewEmailVerification as NewEmailVerification;
 };
