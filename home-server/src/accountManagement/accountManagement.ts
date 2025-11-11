@@ -9,6 +9,7 @@ import {
   removePasswordFromUserObject,
 } from "./handlers/handleCreateAccount";
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
+import { UserModel } from "../model/userModel";
 
 const accountManagementRouter = Router();
 
@@ -109,14 +110,14 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       createAccount.user
     );
 
-    if (handleSendEmailVerificationRes === 1) {
+    if (handleSendEmailVerificationRes.error === true) {
       const createAccountEmailVerificationErrorResponse: CreateAccountResponse =
         {
           error: true,
           message:
             "Error creating account. Unable to send verification email to the provided address.",
         };
-
+      await UserModel.findByIdAndDelete(createAccount.user._id);
       res.status(400).send(createAccountEmailVerificationErrorResponse);
       return;
     }
