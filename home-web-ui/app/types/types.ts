@@ -12,6 +12,19 @@ export interface UserNoPassword {
   role: "user" | "admin";
 }
 
+export interface NewEmailVerification {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  email: string;
+  verificationCode: string;
+  verificationCodeClickedOn: Boolean;
+  error: Boolean;
+  gmailApiResponse: string;
+  createdDate: Date;
+  confirmedDate?: Date;
+  expiresDate: Date;
+}
+
 export interface User extends UserNoPassword {
   password: string;
 }
@@ -23,6 +36,6 @@ export interface UserCookie extends UserNoPassword {
 }
 
 export type EncodedAccountJwt = {
-  usage: "BFF" | "API" | "EMAIL";
+  usage: "BFF" | "API";
   user: UserNoPassword;
 };
