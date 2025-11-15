@@ -16,8 +16,8 @@ export interface NewEmailVerification {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   email: string;
-  verificationToken: string;
-  verificationTokenClickedOn: Boolean;
+  verificationCode: string;
+  verificationCodeClickedOn: Boolean;
   error: Boolean;
   gmailApiResponse: string;
   createdDate: Date;
@@ -36,6 +36,6 @@ export interface UserCookie extends UserNoPassword {
 }
 
 export type EncodedAccountJwt = {
-  usage: "BFF" | "API" | "EMAIL";
+  usage: "BFF" | "API";
   user: UserNoPassword;
 };
