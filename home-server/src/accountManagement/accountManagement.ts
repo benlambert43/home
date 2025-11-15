@@ -141,10 +141,10 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
   }
 });
 
-accountManagementRouter.get("/verifyEmail/:token", async (req, res) => {
-  const token = req.params.token;
+accountManagementRouter.get("/verifyEmail/:code", async (req, res) => {
+  const code = req.params.code;
 
-  res.send({ token });
+  res.send({ code });
 });
 
 export default accountManagementRouter;
