@@ -10,6 +10,7 @@ import {
 } from "./handlers/handleCreateAccount";
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
 import { UserModel } from "../model/userModel";
+import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
 
 const accountManagementRouter = Router();
 
@@ -141,10 +142,20 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
   }
 });
 
-accountManagementRouter.get("/verifyEmail/:code", async (req, res) => {
-  const code = req.params.code;
-
-  res.send({ code });
-});
+accountManagementRouter.get(
+  "/verifyEmail/:username/:email/:code",
+  async (req, res) => {
+    try {
+      const username = decodeUrlSafeB64(req.params.username);
+      const email = decodeUrlSafeB64(req.params.email);
+      const code = req.params.code;
+      res.send({ username, email, code });
+      return;
+    } catch (e) {
+      res.status(400).send({ error: true });
+      return;
+    }
+  }
+);
 
 export default accountManagementRouter;

@@ -3,19 +3,36 @@ import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { NewEmailVerification, User } from "../../types/types";
 import { sendMail } from "./mailTransporter";
 import { configDotenv } from "dotenv";
+import { encodeUrlSafeB64 } from "./encodeUrlSafeB64";
 
 configDotenv();
 
+const generateSecurePIN = () => {
+  const randomValues = new Uint32Array(1);
+  crypto.getRandomValues(randomValues);
+  const pin = (randomValues[0] % 1000000).toString().padStart(6, "0");
+  return pin;
+};
+
 export const handleSendEmailVerification = async (user: User) => {
   const BASE_API_URL = process.env.BASE_API_URL;
-  const emailVerificationCode = "12345678";
+  const emailVerificationCode = generateSecurePIN().toString();
+  const encodedUsername = encodeUrlSafeB64(user.username);
+  const encodedEmail = encodeUrlSafeB64(user.email);
+  const createdDate = dayjs();
   const expiresAt = dayjs().add(10, "minute");
 
   const sendMailRes = await sendMail({
     to: user.email,
     subject: "benlambert dot tech email verification",
     text: `Here is your link to verify your new account: \n\n${
-      BASE_API_URL + "accountManagement/verifyEmail/" + emailVerificationCode
+      BASE_API_URL +
+      "accountManagement/verifyEmail/" +
+      encodedUsername +
+      "/" +
+      encodedEmail +
+      "/" +
+      emailVerificationCode
     }`,
   });
 
@@ -27,7 +44,7 @@ export const handleSendEmailVerification = async (user: User) => {
     error: sendMailRes.code === 0 ? false : true,
     gmailApiResponse:
       JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
-    createdDate: new Date(),
+    createdDate: createdDate,
     confirmedDate: undefined,
     expiresDate: expiresAt,
   });
