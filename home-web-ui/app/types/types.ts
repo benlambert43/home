@@ -5,6 +5,7 @@ export interface UserNoPassword {
   firstname: string;
   lastname: string;
   email: string;
+  username: string;
   confirmedEmail: boolean;
   userBanned: boolean;
   createdDate: Date;
