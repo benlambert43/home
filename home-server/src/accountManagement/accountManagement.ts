@@ -11,6 +11,7 @@ import {
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
 import { UserModel } from "../model/userModel";
 import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
+import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
 
 const accountManagementRouter = Router();
 
@@ -156,10 +157,19 @@ accountManagementRouter.get(
         return;
       }
 
+      const { username, email, code } = verifyEmailUrlParams.data;
+
+      const verifyEmailCallback = await handleVerifyEmailCallback({
+        username,
+        email,
+        code,
+      });
+
       res.send({
-        username: verifyEmailUrlParams.data.username,
-        email: verifyEmailUrlParams.data.email,
-        code: verifyEmailUrlParams.data.code,
+        username,
+        email,
+        code,
+        verifyEmailCallback,
       });
       return;
     } catch (e) {
