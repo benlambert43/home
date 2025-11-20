@@ -1,9 +1,7 @@
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
-import { configDotenv } from "dotenv";
 import Mail from "nodemailer/lib/mailer";
 const OAuth2 = google.auth.OAuth2;
-configDotenv();
 
 const EMAIL_OUTGOING_ADDRESS = process.env.EMAIL_OUTGOING_ADDRESS;
 const EMAIL_OUTGOING_CLIENT_ID = process.env.EMAIL_OUTGOING_CLIENT_ID;

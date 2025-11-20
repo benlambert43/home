@@ -1,12 +1,9 @@
 import * as bcrypt from "bcrypt";
-import { configDotenv } from "dotenv";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { User, UserNoPassword } from "../../types/types";
 import { generateUsername } from "unique-username-generator";
 import { handleVerifyCaptcha } from "../../auth/verifyCaptcha";
-
-configDotenv();
 
 const saltPassword = async (plaintextpassword: string) => {
   const salt = await bcrypt.genSalt(5);

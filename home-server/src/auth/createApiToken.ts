@@ -1,9 +1,6 @@
 import * as jwt from "jsonwebtoken";
-import { configDotenv } from "dotenv";
 import { User, EncodedAccountJwt, UserNoPassword } from "../types/types";
 import { removePasswordFromUserObject } from "../accountManagement/handlers/handleCreateAccount";
-
-configDotenv();
 
 export const createApiToken = (user: User) => {
   const jwtTokenIssuer = process.env.TOKEN_ISSUER;

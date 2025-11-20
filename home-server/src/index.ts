@@ -1,12 +1,10 @@
 import express from "express";
-import { configDotenv } from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import userRouter from "./user/user";
 import accountManagementRouter from "./accountManagement/accountManagement";
 import signInRouter from "./signIn/signIn";
 
-configDotenv();
 const app = express();
 app.use(express.json());
 app.use(cors());

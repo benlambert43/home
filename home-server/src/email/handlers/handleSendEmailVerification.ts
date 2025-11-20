@@ -2,10 +2,7 @@ import dayjs from "dayjs";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { NewEmailVerification, User } from "../../types/types";
 import { sendMail } from "./mailTransporter";
-import { configDotenv } from "dotenv";
 import { encodeUrlSafeB64 } from "./encodeUrlSafeB64";
-
-configDotenv();
 
 const generateSecurePIN = () => {
   const randomValues = new Uint32Array(1);

@@ -1,10 +1,6 @@
 import * as bcrypt from "bcrypt";
-import { configDotenv } from "dotenv";
-import { User } from "../../types/types";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
-
-configDotenv();
 
 const authenticateLogin = async (password: string, passwordHash: string) => {
   const hash = passwordHash;
