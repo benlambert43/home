@@ -9,7 +9,6 @@ import {
   removePasswordFromUserObject,
 } from "./handlers/handleCreateAccount";
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
-import { UserModel } from "../model/userModel";
 import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
 
