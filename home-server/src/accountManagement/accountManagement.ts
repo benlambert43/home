@@ -132,10 +132,35 @@ accountManagementRouter.get(
   "/verifyEmail/:username/:email/:code",
   async (req, res) => {
     try {
-      const username = decodeUrlSafeB64(req.params.username);
-      const email = decodeUrlSafeB64(req.params.email);
-      const code = req.params.code;
-      res.send({ username, email, code });
+      const verifyEmailUrlParamSchema = z.object({
+        username: z
+          .string()
+          .min(1)
+          .regex(/^[a-zA-Z0-9-]+$/),
+        email: z.email(),
+        code: z
+          .string()
+          .min(1)
+          .regex(/^[a-zA-Z0-9-]+$/),
+      });
+
+      const verifyEmailUrlParams = verifyEmailUrlParamSchema.safeParse({
+        username: decodeUrlSafeB64(req.params.username),
+        email: decodeUrlSafeB64(req.params.email),
+        code: req.params.code,
+      });
+
+      if (!verifyEmailUrlParams.success) {
+        const errors = z.treeifyError(verifyEmailUrlParams.error);
+        res.status(400).send({ error: true });
+        return;
+      }
+
+      res.send({
+        username: verifyEmailUrlParams.data.username,
+        email: verifyEmailUrlParams.data.email,
+        code: verifyEmailUrlParams.data.code,
+      });
       return;
     } catch (e) {
       res.status(400).send({ error: true });
