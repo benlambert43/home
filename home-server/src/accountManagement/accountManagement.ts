@@ -107,21 +107,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       validCreateAccountRequestBody
     );
 
-    const handleSendEmailVerificationRes = await handleSendEmailVerification(
-      createAccount.user
-    );
-
-    if (handleSendEmailVerificationRes.error === true) {
-      const createAccountEmailVerificationErrorResponse: CreateAccountResponse =
-        {
-          error: true,
-          message:
-            "Error creating account. Unable to send verification email to the provided address.",
-        };
-      await UserModel.findByIdAndDelete(createAccount.user._id);
-      res.status(400).send(createAccountEmailVerificationErrorResponse);
-      return;
-    }
+    handleSendEmailVerification(createAccount.user);
 
     const handleCreateAccountRes: CreateAccountResponse = {
       error: false,
