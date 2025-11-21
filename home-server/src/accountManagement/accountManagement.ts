@@ -165,10 +165,13 @@ accountManagementRouter.get(
       });
 
       res.send({
-        username,
-        email,
-        code,
-        verifyEmailCallback,
+        confirmation:
+          "Thank you for confirming your email address! You may now close this window.",
+        userDetails: {
+          username,
+          email,
+          code,
+        },
       });
       return;
     } catch (e) {

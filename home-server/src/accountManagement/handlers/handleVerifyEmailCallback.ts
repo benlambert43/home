@@ -48,6 +48,6 @@ export const handleVerifyEmailCallback = async ({
     await updateEmailVerificationStatusToTrue({ userId, emailVerificationId });
     return 0;
   } else {
-    return 1;
+    throw new Error("Unable to update email verification.");
   }
 };
