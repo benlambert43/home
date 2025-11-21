@@ -164,6 +164,13 @@ accountManagementRouter.get(
         code,
       });
 
+      if (verifyEmailCallback.error === true) {
+        res
+          .status(400)
+          .send({ error: true, message: verifyEmailCallback.errorMessage });
+        return;
+      }
+
       res.send({
         confirmation:
           "Thank you for confirming your email address! You may now close this window.",
