@@ -12,7 +12,7 @@ const generateSecurePIN = () => {
 };
 
 export const handleSendEmailVerification = async (user: User) => {
-  const BASE_API_URL = process.env.BASE_API_URL;
+  const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
   const emailVerificationCode = generateSecurePIN().toString();
   const encodedUsername = encodeUrlSafeB64(user.username);
   const encodedEmail = encodeUrlSafeB64(user.email);
@@ -23,12 +23,13 @@ export const handleSendEmailVerification = async (user: User) => {
     to: user.email,
     subject: "benlambert dot tech email verification",
     text: `Here is your link to verify your new account: \n\n${
-      BASE_API_URL +
-      "accountManagement/verifyEmail/" +
+      BASE_FRONTEND_URL +
+      "profile/accountManagement/verifyEmail" +
+      "?username=" +
       encodedUsername +
-      "/" +
+      "&email=" +
       encodedEmail +
-      "/" +
+      "&code=" +
       emailVerificationCode
     }`,
   });
