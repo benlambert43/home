@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { CreateAccountResponse } from "../types/response";
+import { CreateAccountResponse, VerifyEmailResponse } from "../types/response";
 import * as z from "zod";
 import {
   checkUniqueEmail,
@@ -152,7 +152,11 @@ accountManagementRouter.get(
 
       if (!verifyEmailUrlParams.success) {
         const errors = z.treeifyError(verifyEmailUrlParams.error);
-        res.status(400).send({ error: true });
+        const verifyEmailResponse: VerifyEmailResponse = {
+          error: true,
+          message: "There was an error verifying url params.",
+        };
+        res.status(400).send(verifyEmailResponse);
         return;
       }
 
@@ -165,24 +169,29 @@ accountManagementRouter.get(
       });
 
       if (verifyEmailCallback.error === true) {
-        res
-          .status(400)
-          .send({ error: true, message: verifyEmailCallback.errorMessage });
+        const verifyEmailResponse: VerifyEmailResponse = {
+          error: true,
+          message: verifyEmailCallback.errorMessage,
+        };
+
+        res.status(400).send(verifyEmailResponse);
         return;
       }
 
-      res.send({
-        confirmation:
-          "Thank you for confirming your email address! You may now close this window.",
-        userDetails: {
-          username,
-          email,
-          code,
-        },
-      });
+      const verifyEmailResponse: VerifyEmailResponse = {
+        error: false,
+        message: "Thank you for confirming your email address!",
+      };
+
+      res.send(verifyEmailResponse);
       return;
     } catch (e) {
-      res.status(400).send({ error: true });
+      const verifyEmailResponse: VerifyEmailResponse = {
+        error: true,
+        message:
+          "An error occurred. Unable to update email verification status. Please request a new link or try again.",
+      };
+      res.status(400).send(verifyEmailResponse);
       return;
     }
   }
