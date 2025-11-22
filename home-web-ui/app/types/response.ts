@@ -13,3 +13,8 @@ export type SignInResponse = {
   jwt?: string;
   user?: UserNoPassword;
 };
+
+export type VerifyEmailResponse = {
+  error: boolean;
+  message: string;
+};
