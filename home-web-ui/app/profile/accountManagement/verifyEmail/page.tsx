@@ -12,6 +12,7 @@ const VerifyEmail = async ({
     if (username && email && code) {
       const VERIFICATION_LINK_URL = `${process.env.API_URL}/accountManagement/verifyEmail/${username}/${email}/${code}`;
       const verificationLinkResponse = await fetch(VERIFICATION_LINK_URL, {
+        cache: "no-store",
         next: { revalidate: 0 },
       });
       const verificationStatus: VerifyEmailResponse =
