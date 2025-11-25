@@ -22,16 +22,13 @@ const VerifyEmail = async ({
         <div className="p-5">
           {verificationStatus.error ? (
             <div>
-              <div>
+              <div className="py-5">
                 An error occurred. Please refresh the page or request a new
                 email verification link.
               </div>
               <div className="py-5">
                 <p className="font-mono text-xs">
                   {JSON.stringify(verificationStatus)}
-                </p>
-                <p className="font-mono text-xs">
-                  {username} {email} {code}
                 </p>
               </div>
             </div>
