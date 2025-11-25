@@ -34,6 +34,19 @@ export const handleVerifyEmailCallback = async ({
   }).lean();
   const userId = user?._id;
   const emailVerificationId = emailVerification?._id;
+
+  if (
+    userId &&
+    emailVerificationId &&
+    user.confirmedEmail === true &&
+    emailVerification.verificationCodeClickedOn === true
+  ) {
+    return {
+      error: true,
+      errorMessage: "You have already confirmed your email address.",
+    };
+  }
+
   const expired = Boolean(
     emailVerification &&
       emailVerification?.expiresDate.getTime() <= new Date().getTime()

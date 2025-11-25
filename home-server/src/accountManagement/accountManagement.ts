@@ -180,7 +180,8 @@ accountManagementRouter.get(
 
       const verifyEmailResponse: VerifyEmailResponse = {
         error: false,
-        message: "Thank you for confirming your email address!",
+        message:
+          "Thank you for confirming your email address! You can now close this window.",
       };
 
       res.send(verifyEmailResponse);
