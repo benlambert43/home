@@ -9,6 +9,7 @@ const Profile = async () => {
 
   return (
     <div className="p-5">
+      <div>{userCookie.value}</div>
       <div>Profile</div>
       <div>
         <button onClick={removeSession}>log out</button>
