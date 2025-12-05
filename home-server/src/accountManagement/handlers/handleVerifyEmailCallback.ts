@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
+import { createApiToken } from "../../auth/createApiToken";
 
 const updateEmailVerificationStatusToTrue = async ({
   userId,
@@ -13,6 +14,11 @@ const updateEmailVerificationStatusToTrue = async ({
   await EmailVerificationModel.findByIdAndUpdate(emailVerificationId, {
     verificationCodeClickedOn: true,
   });
+  const user = await UserModel.findById(userId).lean();
+  if (user) {
+    return user;
+  }
+  return undefined;
 };
 
 export const handleVerifyEmailCallback = async ({
@@ -66,8 +72,20 @@ export const handleVerifyEmailCallback = async ({
     !expired &&
     emailVerification.verificationCode === code
   ) {
-    await updateEmailVerificationStatusToTrue({ userId, emailVerificationId });
-    return { error: false, errorMessage: "" };
+    const updatedUser = await updateEmailVerificationStatusToTrue({
+      userId,
+      emailVerificationId,
+    });
+    if (!updatedUser) {
+      return {
+        error: true,
+        errorMessage: "Unable to find updated user.",
+      };
+    }
+
+    const updatedToken = createApiToken(updatedUser);
+
+    return { error: false, errorMessage: "", newToken: updatedToken };
   } else {
     return {
       error: true,
