@@ -17,4 +17,5 @@ export type SignInResponse = {
 export type VerifyEmailResponse = {
   error: boolean;
   message: string;
+  newToken?: string;
 };
