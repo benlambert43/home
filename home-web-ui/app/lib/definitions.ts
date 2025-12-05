@@ -55,6 +55,11 @@ export type SignUpFormState =
                   errors: string[];
                 }
               | undefined;
+            grecaptcharesponse?:
+              | {
+                  errors: string[];
+                }
+              | undefined;
           }
         | undefined;
     }
@@ -78,6 +83,28 @@ export type SignInFormState =
                 }
               | undefined;
             password?:
+              | {
+                  errors: string[];
+                }
+              | undefined;
+          }
+        | undefined;
+    }
+  | undefined;
+
+export const RequestNewEmailVerificationFormSchema = z.object({
+  grecaptcharesponse: z.string().min(1, {
+    message:
+      "⚠️ Please complete the ReCAPTCHA challenge, or reload the page and try again.",
+  }),
+});
+
+export type RequestNewEmailVerificationFormState =
+  | {
+      errors: string[];
+      properties?:
+        | {
+            grecaptcharesponse?:
               | {
                   errors: string[];
                 }
