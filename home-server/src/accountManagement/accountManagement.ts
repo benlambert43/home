@@ -182,6 +182,7 @@ accountManagementRouter.get(
         error: false,
         message:
           "Thank you for confirming your email address! You can now close this window.",
+        newToken: verifyEmailCallback?.newToken,
       };
 
       res.send(verifyEmailResponse);
