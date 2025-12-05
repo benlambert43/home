@@ -18,4 +18,5 @@ export type VerifyEmailResponse = {
   error: boolean;
   message: string;
   newToken?: string;
+  user?: UserNoPassword;
 };
