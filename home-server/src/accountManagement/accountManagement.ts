@@ -183,6 +183,7 @@ accountManagementRouter.get(
         message:
           "Thank you for confirming your email address! You can now close this window.",
         newToken: verifyEmailCallback?.newToken,
+        user: verifyEmailCallback?.userNoPassword,
       };
 
       res.send(verifyEmailResponse);

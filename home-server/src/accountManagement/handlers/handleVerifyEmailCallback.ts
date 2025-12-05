@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
+import { removePasswordFromUserObject } from "./handleCreateAccount";
 
 const updateEmailVerificationStatusToTrue = async ({
   userId,
@@ -85,7 +86,12 @@ export const handleVerifyEmailCallback = async ({
 
     const updatedToken = createApiToken(updatedUser);
 
-    return { error: false, errorMessage: "", newToken: updatedToken };
+    return {
+      error: false,
+      errorMessage: "",
+      newToken: updatedToken,
+      userNoPassword: removePasswordFromUserObject(updatedUser),
+    };
   } else {
     return {
       error: true,
