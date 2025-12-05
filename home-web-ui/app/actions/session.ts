@@ -56,3 +56,13 @@ export const removeSession = async () => {
   cookieStore.delete("user");
   redirect("/signin");
 };
+
+export const updateSessionTokens = async ({
+  encodedApiJwtSession,
+  user,
+}: {
+  encodedApiJwtSession: string;
+  user: UserNoPassword;
+}) => {
+  await createSession(encodedApiJwtSession, user);
+};
