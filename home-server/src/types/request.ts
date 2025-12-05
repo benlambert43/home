@@ -11,3 +11,7 @@ export type SignInRequestBody = {
   email: string;
   password: string;
 };
+
+export type RequestNewEmailVerificationRequestBody = {
+  grecaptcharesponse: string;
+};

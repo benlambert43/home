@@ -20,3 +20,8 @@ export type VerifyEmailResponse = {
   newToken?: string;
   user?: UserNoPassword;
 };
+
+export type RequestNewEmailVerificationResponse = {
+  error: boolean;
+  message: string;
+};
