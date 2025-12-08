@@ -2,6 +2,8 @@
 
 import { createSession } from "@/app/actions/session";
 import {
+  RequestNewEmailVerificationFormSchema,
+  RequestNewEmailVerificationFormState,
   SignInFormSchema,
   SignInFormState,
   SignUpFormSchema,
@@ -9,14 +11,21 @@ import {
 } from "@/app/lib/definitions";
 import {
   CreateAccountRequestBody,
+  RequestNewEmailVerificationRequestBody,
   SignInRequestBody,
 } from "@/app/types/request";
-import { CreateAccountResponse, SignInResponse } from "@/app/types/response";
+import {
+  CreateAccountResponse,
+  RequestNewEmailVerificationResponse,
+  SignInResponse,
+} from "@/app/types/response";
 import * as z from "zod";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 const CREATE_ACCOUNT_URL = `${process.env.API_URL}/accountManagement/createAccount`;
 const SIGN_IN_URL = `${process.env.API_URL}/signIn`;
+const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.API_URL}/accountManagement/requestNewEmailVerificationLink`;
 
 export const createAccount = async (
   state: SignUpFormState,
@@ -143,4 +152,63 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
     return { errors: [errorString] };
   }
   redirect("/profile");
+};
+
+export const requestNewEmailVerificationLinkAction = async (
+  state: RequestNewEmailVerificationFormState,
+  formData: FormData,
+) => {
+  const cookieStore = await cookies();
+  const apiSessionCookie = cookieStore.get("apisession");
+
+  const validatedFields = RequestNewEmailVerificationFormSchema.safeParse({
+    grecaptcharesponse: formData.get("g-recaptcha-response"),
+  });
+
+  if (!validatedFields.success) {
+    const errors = z.treeifyError(validatedFields.error);
+    return { ...errors, success: false };
+  }
+
+  const requestNewEmailVerificationRequestBody: RequestNewEmailVerificationRequestBody =
+    validatedFields.data;
+
+  try {
+    const response = await fetch(REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: apiSessionCookie?.value || "",
+      },
+      body: JSON.stringify(requestNewEmailVerificationRequestBody),
+    });
+    if (!response.ok) {
+      const maybeResponse = await response.json();
+      const maybeResponseMessage = maybeResponse?.message;
+      throw new Error(
+        maybeResponseMessage
+          ? maybeResponseMessage
+          : `response.status ${response.status}`,
+      );
+    }
+
+    const json = await response.json();
+
+    const requestNewEmailVerificationResponse: RequestNewEmailVerificationResponse =
+      {
+        error: json.error,
+        message: json.message,
+      };
+
+    if (requestNewEmailVerificationResponse.error === true) {
+      throw new Error("requestNewEmailVerificationResponse error.");
+    } else if (requestNewEmailVerificationResponse.error === false) {
+      return { success: true, errors: [] };
+    }
+  } catch (error: any) {
+    const errorString =
+      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+
+    return { success: false, errors: [errorString] };
+  }
 };

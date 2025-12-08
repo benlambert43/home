@@ -102,6 +102,7 @@ export const RequestNewEmailVerificationFormSchema = z.object({
 export type RequestNewEmailVerificationFormState =
   | {
       errors: string[];
+      success?: boolean;
       properties?:
         | {
             grecaptcharesponse?:
