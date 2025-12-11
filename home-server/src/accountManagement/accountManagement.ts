@@ -11,6 +11,8 @@ import {
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
 import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
+import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
+import { authenticateApiToken } from "../auth/authenticateApiToken";
 
 const accountManagementRouter = Router();
 
@@ -188,6 +190,58 @@ accountManagementRouter.get(
 
       res.send(verifyEmailResponse);
       return;
+    } catch (e) {
+      const verifyEmailResponse: VerifyEmailResponse = {
+        error: true,
+        message:
+          "An error occurred. Unable to update email verification status. Please request a new link or try again.",
+      };
+      res.status(400).send(verifyEmailResponse);
+      return;
+    }
+  }
+);
+
+accountManagementRouter.post(
+  "/requestNewEmailVerificationLink",
+  async (req, res) => {
+    try {
+      const verifyEmailVerificationBodySchema = z.object({
+        authorizationToken: z.string().min(1),
+        grecaptcharesponse: z.string().min(1),
+      });
+
+      const verifyEmailVerification =
+        verifyEmailVerificationBodySchema.safeParse({
+          authorizationToken: req.headers?.authorization,
+          grecaptcharesponse: req.body?.grecaptcharesponse,
+        });
+
+      if (!verifyEmailVerification.success) {
+        throw new Error();
+      }
+
+      const { authorizationToken, grecaptcharesponse } =
+        verifyEmailVerification.data;
+
+      const verifiedCaptcha = await handleVerifyCaptcha(grecaptcharesponse);
+      const verifiedToken = authenticateApiToken(authorizationToken);
+
+      if (!verifiedCaptcha.success) {
+        throw new Error();
+      }
+
+      if (verifiedToken.error === true) {
+        throw new Error();
+      }
+
+      console.log(verifiedCaptcha);
+
+      const verifyEmailResponse: VerifyEmailResponse = {
+        error: false,
+        message: "success.",
+      };
+      res.status(200).send(verifyEmailResponse);
     } catch (e) {
       const verifyEmailResponse: VerifyEmailResponse = {
         error: true,
