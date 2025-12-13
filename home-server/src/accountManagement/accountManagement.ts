@@ -231,11 +231,15 @@ accountManagementRouter.post(
         throw new Error();
       }
 
-      if (verifiedToken.error === true) {
+      if (
+        verifiedToken.error === true ||
+        verifiedToken.decodedToken === undefined
+      ) {
         throw new Error();
       }
 
       console.log(verifiedCaptcha);
+      console.log(verifiedToken.decodedToken);
 
       const verifyEmailResponse: VerifyEmailResponse = {
         error: false,
