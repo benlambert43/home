@@ -60,7 +60,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     }
 
     const validCaptcha = await verifyCaptcha(
-      createAccountRequestBody.data.grecaptcharesponse
+      createAccountRequestBody.data.grecaptcharesponse,
     );
 
     if (!validCaptcha.success) {
@@ -86,7 +86,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     }
 
     const uniqueEmail = await checkUniqueEmail(
-      createAccountRequestBody.data.email
+      createAccountRequestBody.data.email,
     );
 
     if (!uniqueEmail) {
@@ -106,7 +106,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     };
 
     const createAccount = await handleCreateAccount(
-      validCreateAccountRequestBody
+      validCreateAccountRequestBody,
     );
 
     handleSendEmailVerification(createAccount.user);
@@ -194,12 +194,12 @@ accountManagementRouter.get(
       const verifyEmailResponse: VerifyEmailResponse = {
         error: true,
         message:
-          "An error occurred. Unable to update email verification status. Please request a new link or try again.",
+          "An error occurred. Unable to update email verification status. Please request a new email verification link or try again.",
       };
       res.status(400).send(verifyEmailResponse);
       return;
     }
-  }
+  },
 );
 
 accountManagementRouter.post(
@@ -250,12 +250,12 @@ accountManagementRouter.post(
       const verifyEmailResponse: VerifyEmailResponse = {
         error: true,
         message:
-          "An error occurred. Unable to update email verification status. Please request a new link or try again.",
+          "An error occurred. Unable to update email verification status. Please request a new email verification link or try again.",
       };
       res.status(400).send(verifyEmailResponse);
       return;
     }
-  }
+  },
 );
 
 export default accountManagementRouter;

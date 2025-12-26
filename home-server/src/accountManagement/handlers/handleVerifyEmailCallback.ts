@@ -56,14 +56,14 @@ export const handleVerifyEmailCallback = async ({
 
   const expired = Boolean(
     emailVerification &&
-      emailVerification?.expiresDate.getTime() <= new Date().getTime()
+    emailVerification?.expiresDate.getTime() <= new Date().getTime(),
   );
 
   if (expired) {
     return {
       error: true,
       errorMessage:
-        "Email verification link has expired. Please request a new link.",
+        "Email verification link has expired. Please request a new email verification link.",
     };
   }
 
@@ -96,7 +96,7 @@ export const handleVerifyEmailCallback = async ({
     return {
       error: true,
       errorMessage:
-        "Unable to update email verification status. Please request a new link or try again.",
+        "Unable to update email verification status. Please request a new email verification link or try again.",
     };
   }
 };
