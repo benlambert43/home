@@ -66,7 +66,6 @@ export type SignUpFormState =
   | undefined;
 
 export const SignInFormSchema = z.object({
-  signInReferral: z.string().optional(),
   email: z.email({ message: "⚠️ Please enter a valid email." }),
   password: z
     .string()
@@ -78,11 +77,6 @@ export type SignInFormState =
       errors: string[];
       properties?:
         | {
-            signInReferral?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
             email?:
               | {
                   errors: string[];
