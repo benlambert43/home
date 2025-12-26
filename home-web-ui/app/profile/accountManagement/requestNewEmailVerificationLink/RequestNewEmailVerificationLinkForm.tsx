@@ -1,15 +1,32 @@
 "use client";
 
 import { requestNewEmailVerificationLinkAction } from "@/app/actions/auth";
-import { useActionState } from "react";
+import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
+import { redirect } from "next/navigation";
+import { useActionState, useEffect } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
-export const RequestNewEmailVerificationLinkForm = () => {
+export const RequestNewEmailVerificationLinkForm = ({
+  props,
+}: {
+  props: { userCookie: RequestCookie | undefined };
+}) => {
   const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(
     requestNewEmailVerificationLinkAction,
     undefined,
   );
+
+  useEffect(() => {
+    if (typeof props.userCookie?.value !== "string") {
+      const signInReferral = localStorage.setItem(
+        "signInReferral",
+        "/profile/accountManagement/requestNewEmailVerificationLink",
+      );
+      console.log(signInReferral);
+      redirect("/signin");
+    }
+  }, []);
 
   return (
     <form action={action} className="flex flex-col gap-4">

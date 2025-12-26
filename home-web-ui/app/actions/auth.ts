@@ -98,6 +98,7 @@ export const createAccount = async (
 
 export const signIn = async (state: SignInFormState, formData: FormData) => {
   const validatedFields = SignInFormSchema.safeParse({
+    signInReferral: formData.get("signInReferral"),
     email: formData.get("email"),
     password: formData.get("password"),
   });
@@ -151,7 +152,15 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
 
     return { errors: [errorString] };
   }
-  redirect("/profile");
+  if (
+    typeof validatedFields.data.signInReferral === "string" &&
+    validatedFields.data.signInReferral?.toString().length > 0
+  ) {
+    const redirectLink = validatedFields.data.signInReferral;
+    redirect(redirectLink);
+  } else {
+    redirect("/profile");
+  }
 };
 
 export const requestNewEmailVerificationLinkAction = async (
