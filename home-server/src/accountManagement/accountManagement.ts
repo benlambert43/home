@@ -13,6 +13,7 @@ import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
 import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
+import { handleRequestNewEmailVerificationLink } from "./handlers/handlerequestNewEmailVerificationLink";
 
 const accountManagementRouter = Router();
 
@@ -238,21 +239,24 @@ accountManagementRouter.post(
         throw new Error();
       }
 
-      console.log(verifiedCaptcha);
-      console.log(verifiedToken.decodedToken);
+      const handleRequestNewEmailVerificationLinkResponse =
+        await handleRequestNewEmailVerificationLink({
+          decodedToken: verifiedToken.decodedToken,
+        });
 
-      const verifyEmailResponse: VerifyEmailResponse = {
+      console.log(handleRequestNewEmailVerificationLinkResponse);
+
+      const requestNewEmailVerificationLinkResponse = {
         error: false,
         message: "success.",
       };
-      res.status(200).send(verifyEmailResponse);
+      res.status(200).send(requestNewEmailVerificationLinkResponse);
     } catch (e) {
-      const verifyEmailResponse: VerifyEmailResponse = {
+      const requestNewEmailVerificationLinkErrorResponse = {
         error: true,
-        message:
-          "An error occurred. Unable to update email verification status. Please request a new email verification link or try again.",
+        message: "An error occurred.",
       };
-      res.status(400).send(verifyEmailResponse);
+      res.status(400).send(requestNewEmailVerificationLinkErrorResponse);
       return;
     }
   },
