@@ -13,7 +13,7 @@ import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
 import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
-import { handleRequestNewEmailVerificationLink } from "./handlers/handlerequestNewEmailVerificationLink";
+import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 
 const accountManagementRouter = Router();
 
