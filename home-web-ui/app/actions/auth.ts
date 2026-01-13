@@ -16,7 +16,7 @@ import {
 } from "@/app/types/request";
 import {
   CreateAccountResponse,
-  RequestNewEmailVerificationResponse,
+  RequestNewEmailVerificationLinkResponse,
   SignInResponse,
 } from "@/app/types/response";
 import * as z from "zod";
@@ -194,7 +194,7 @@ export const requestNewEmailVerificationLinkAction = async (
 
     const json = await response.json();
 
-    const requestNewEmailVerificationResponse: RequestNewEmailVerificationResponse =
+    const requestNewEmailVerificationResponse: RequestNewEmailVerificationLinkResponse =
       {
         error: json.error,
         message: json.message,
