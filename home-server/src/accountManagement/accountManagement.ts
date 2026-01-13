@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { CreateAccountResponse, VerifyEmailResponse } from "../types/response";
+import {
+  CreateAccountResponse,
+  RequestNewEmailVerificationLinkResponse,
+  VerifyEmailResponse,
+} from "../types/response";
 import * as z from "zod";
 import {
   checkUniqueEmail,
@@ -244,18 +248,29 @@ accountManagementRouter.post(
           decodedToken: verifiedToken.decodedToken,
         });
 
-      console.log(handleRequestNewEmailVerificationLinkResponse);
-
-      const requestNewEmailVerificationLinkResponse = {
-        error: false,
-        message: "success.",
-      };
-      res.status(200).send(requestNewEmailVerificationLinkResponse);
+      if (handleRequestNewEmailVerificationLinkResponse.error === false) {
+        const requestNewEmailVerificationLinkResponse: RequestNewEmailVerificationLinkResponse =
+          {
+            error: handleRequestNewEmailVerificationLinkResponse.error,
+            message: handleRequestNewEmailVerificationLinkResponse.errorMsg,
+          };
+        res.status(200).send(requestNewEmailVerificationLinkResponse);
+        return;
+      } else {
+        const requestNewEmailVerificationLinkErrorResponse: RequestNewEmailVerificationLinkResponse =
+          {
+            error: handleRequestNewEmailVerificationLinkResponse.error,
+            message: handleRequestNewEmailVerificationLinkResponse.errorMsg,
+          };
+        res.status(400).send(requestNewEmailVerificationLinkErrorResponse);
+        return;
+      }
     } catch (e) {
-      const requestNewEmailVerificationLinkErrorResponse = {
-        error: true,
-        message: "An error occurred.",
-      };
+      const requestNewEmailVerificationLinkErrorResponse: RequestNewEmailVerificationLinkResponse =
+        {
+          error: true,
+          message: "An error occurred.",
+        };
       res.status(400).send(requestNewEmailVerificationLinkErrorResponse);
       return;
     }

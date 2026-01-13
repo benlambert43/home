@@ -1,6 +1,8 @@
+import dayjs from "dayjs";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { EncodedAccountJwt } from "../../types/types";
+import { handleSendEmailVerification } from "../../email/handlers/handleSendEmailVerification";
 
 export const handleRequestNewEmailVerificationLink = async ({
   decodedToken,
@@ -9,7 +11,17 @@ export const handleRequestNewEmailVerificationLink = async ({
 }) => {
   const foundUser = await UserModel.findById(decodedToken.user._id);
   if (!foundUser) {
-    return { error: true };
+    return {
+      error: true,
+      errorMsg: "Unable to find user with provided user id.",
+    };
+  }
+
+  if (foundUser.confirmedEmail === true) {
+    return {
+      error: true,
+      errorMsg: "You have already confirmed your email address.",
+    };
   }
 
   /*
@@ -24,10 +36,34 @@ export const handleRequestNewEmailVerificationLink = async ({
   }).sort({ createdDate: -1 });
 
   if (!mostRecentEmailVerification) {
-    return { error: true };
+    return {
+      error: true,
+      errorMsg: "Unable to find a record of previous email verification sent.",
+    };
   }
 
-  console.log(foundUser);
-  console.log(mostRecentEmailVerification);
-  return { error: false };
+  const currentDateTime = dayjs();
+  const expiresAtDateTime = dayjs(mostRecentEmailVerification.expiresDate);
+
+  if (currentDateTime.isAfter(expiresAtDateTime)) {
+    try {
+      await handleSendEmailVerification(foundUser);
+      return { error: false, errorMsg: "" };
+    } catch {
+      return {
+        error: true,
+        errorMsg:
+          "Something went wrong when trying to resend email verification.",
+      };
+    }
+  } else {
+    return {
+      error: true,
+      errorMsg: `
+        You already have a pending email verification. 
+        Please check your ${foundUser.email} account's spam and junk mail folders. 
+        You may send another email at ${expiresAtDateTime}
+      `,
+    };
+  }
 };
