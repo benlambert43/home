@@ -21,7 +21,7 @@ export type VerifyEmailResponse = {
   user?: UserNoPassword;
 };
 
-export type RequestNewEmailVerificationResponse = {
+export type RequestNewEmailVerificationLinkResponse = {
   error: boolean;
   message: string;
 };
