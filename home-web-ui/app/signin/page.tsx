@@ -13,7 +13,11 @@ const SignIn = async () => {
       <div>
         <SignInForm />
       </div>
-      <Link href="/createaccount">create account</Link>
+      <div className="mt-4">
+        <Link href="/createaccount" className="underline">
+          Create Account
+        </Link>
+      </div>
     </div>
   );
 };

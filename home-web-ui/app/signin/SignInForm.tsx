@@ -20,11 +20,13 @@ export const SignInForm = () => {
           placeholder="Email"
         />
       </div>
-      <div>
-        {state?.properties?.email?.errors && (
+
+      {state?.properties?.email?.errors && (
+        <div>
           <p>{state?.properties?.email?.errors}</p>
-        )}
-      </div>
+        </div>
+      )}
+
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="password">Password</label>
         <input
@@ -36,12 +38,20 @@ export const SignInForm = () => {
           type="password"
         />
       </div>
-      <div>
-        {state?.properties?.password?.errors && (
+
+      {state?.properties?.password?.errors && (
+        <div>
           <p>{state?.properties?.password?.errors}</p>
-        )}
-      </div>
-      <div className="flex flex-col items-start justify-center gap-2 py-6">
+        </div>
+      )}
+
+      {state?.errors && (
+        <div>
+          <p>{state?.errors.toString()}</p>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-col items-start justify-center gap-2">
         <button
           disabled={pending}
           type="submit"
@@ -51,7 +61,6 @@ export const SignInForm = () => {
           Sign In
         </button>
       </div>
-      <div>{state?.errors?.toString()}</div>
     </form>
   );
 };
