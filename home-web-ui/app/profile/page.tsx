@@ -10,21 +10,43 @@ const Profile = async () => {
   const userCookie = JSON.parse(maybeUserCookie.value) as UserCookie;
 
   return (
-    <div className="p-5">
-      <div>Profile</div>
-      <div>{userCookie._id.toString()}</div>
-      <div>{userCookie.confirmedEmail.toString()}</div>
-      <div>{userCookie.createdDate.toString()}</div>
-      <div>{userCookie.email.toString()}</div>
-      <div>{userCookie.expiresAt.toString()}</div>
-      <div>{userCookie.firstname.toString()}</div>
-      <div>{userCookie.issuedAt.toString()}</div>
-      <div>{userCookie.lastname.toString()}</div>
-      <div>{userCookie.loginAt.toString()}</div>
-      <div>{userCookie.modifiedDate.toString()}</div>
-      <div>{userCookie.role.toString()}</div>
-      <div>{userCookie.userBanned.toString()}</div>
-      <div>{userCookie.username.toString()}</div>
+    <div className="flex flex-col gap-4 p-5">
+      <div className="text-4xl font-bold">Profile</div>
+      <div className="text-xl">User Info:</div>
+      <div className="flex flex-col gap-2 px-2">
+        <div>
+          <p>First Name:</p>
+          <p>{userCookie.firstname.toString()}</p>
+        </div>
+        <div>
+          <p>Last Name:</p>
+          <p>{userCookie.lastname.toString()}</p>
+        </div>
+        <div>
+          <p>Email:</p>
+          <p>{userCookie.email.toString()}</p>
+        </div>
+        <div>
+          <p>Username:</p>
+          <p>{userCookie.username.toString()}</p>
+        </div>
+        <div>
+          <p>Email Verified:</p>
+          <p>{userCookie.confirmedEmail.toString()}</p>
+        </div>
+        <div>
+          <p>Account Created:</p>
+          <p>{new Date(userCookie.createdDate).toLocaleString().toString()}</p>
+        </div>
+        <div>
+          <p>Account Last Modified:</p>
+          <p>{new Date(userCookie.modifiedDate).toLocaleString().toString()}</p>
+        </div>
+        <div>
+          <p>User Role:</p>
+          <p>{userCookie.role.toString()}</p>
+        </div>
+      </div>
 
       <div>
         <button onClick={removeSession}>log out</button>
