@@ -9,7 +9,8 @@ const SignIn = async () => {
   if (typeof userCookie?.value === "string") redirect("/profile");
 
   return (
-    <div className="mx-4 py-8">
+    <div className="flex flex-col gap-4 p-5">
+      <div className="text-4xl font-bold">Sign In</div>
       <div>
         <SignInForm />
       </div>

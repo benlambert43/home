@@ -8,10 +8,9 @@ const CreateAccount = async () => {
   if (typeof userCookie?.value === "string") redirect("/profile");
 
   return (
-    <div className="mx-4 py-8">
-      <div>
-        <CreateAccountForm />
-      </div>
+    <div className="flex flex-col gap-4 p-5">
+      <div className="text-4xl font-bold">Create Account</div>
+      <CreateAccountForm />
     </div>
   );
 };
