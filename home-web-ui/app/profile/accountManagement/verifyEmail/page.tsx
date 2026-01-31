@@ -1,6 +1,7 @@
 import EmailAlreadyVerified from "@/app/profile/accountManagement/verifyEmail/EmailAlreadyVerified";
 import EmailVerified from "@/app/profile/accountManagement/verifyEmail/EmailVerified";
 import { VerifyEmailResponse } from "@/app/types/response";
+import Button from "@/app/ui/Button";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
@@ -74,9 +75,7 @@ const VerifyEmail = async ({
                       "/profile/accountManagement/requestNewEmailVerificationLink"
                     }
                   >
-                    <button className="w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2 outline-1 outline-slate-400 focus:outline-slate-50">
-                      Request a New Email Verification Link
-                    </button>
+                    <Button>Request a New Link</Button>
                   </Link>
                 </div>
               </div>

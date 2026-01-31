@@ -1,6 +1,7 @@
 "use client";
 
 import { requestNewEmailVerificationLinkAction } from "@/app/actions/auth";
+import Button from "@/app/ui/Button";
 import { useActionState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -13,6 +14,9 @@ export const RequestNewEmailVerificationLinkForm = () => {
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      <div>
+        First complete the captcha, then click the button to recieve a new link.
+      </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
       </div>
@@ -21,14 +25,9 @@ export const RequestNewEmailVerificationLinkForm = () => {
       )}
 
       <div className="flex flex-col items-start justify-center gap-2 py-6">
-        <button
-          disabled={pending}
-          type="submit"
-          className="w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2
-            outline-1 outline-slate-400 focus:outline-slate-50"
-        >
-          Create Account
-        </button>
+        <Button disabled={pending} type="submit">
+          Send Me a New Email Verification Link
+        </Button>
       </div>
       <div>{state?.errors?.toString()}</div>
     </form>

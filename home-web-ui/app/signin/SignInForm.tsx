@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "@/app/actions/auth";
+import Button from "@/app/ui/Button";
 import { useActionState } from "react";
 
 export const SignInForm = () => {
@@ -52,14 +53,9 @@ export const SignInForm = () => {
       )}
 
       <div className="mt-4 flex flex-col items-start justify-center gap-2">
-        <button
-          disabled={pending}
-          type="submit"
-          className="w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2
-            outline-1 outline-slate-400 focus:outline-slate-50"
-        >
+        <Button disabled={pending} type="submit">
           Sign In
-        </button>
+        </Button>
       </div>
     </form>
   );

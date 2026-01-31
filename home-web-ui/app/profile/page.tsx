@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { removeSession } from "@/app/actions/session";
 import { UserCookie } from "@/app/types/types";
+import Button from "@/app/ui/Button";
 
 const Profile = async () => {
   const cookieStore = await cookies();
@@ -49,7 +50,7 @@ const Profile = async () => {
       </div>
 
       <div>
-        <button onClick={removeSession}>log out</button>
+        <Button onClick={removeSession}>Log Out</Button>
       </div>
     </div>
   );
