@@ -84,6 +84,7 @@ export const createAccount = async (
         createAccountResponse.jwt,
         createAccountResponse.user,
       );
+      redirect("/profile");
     } else {
       throw new Error("createAccountResponse error.");
     }
@@ -93,7 +94,7 @@ export const createAccount = async (
 
     return { errors: [errorString] };
   }
-  redirect("/profile");
+  return;
 };
 
 export const signIn = async (state: SignInFormState, formData: FormData) => {
@@ -142,6 +143,7 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
       signInResponse.user
     ) {
       await createSession(signInResponse.jwt, signInResponse.user);
+      redirect("/profile");
     } else {
       throw new Error("signInResponse error.");
     }
@@ -151,7 +153,7 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
 
     return { errors: [errorString] };
   }
-  redirect("/profile");
+  return;
 };
 
 export const requestNewEmailVerificationLinkAction = async (
