@@ -75,6 +75,10 @@ export const SignInFormSchema = z.object({
 export type SignInFormState =
   | {
       errors: string[];
+      values: {
+        email?: string;
+        password?: string;
+      };
       properties?:
         | {
             email?:

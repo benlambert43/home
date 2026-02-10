@@ -94,18 +94,35 @@ export const createAccount = async (
 
     return { errors: [errorString] };
   }
-  return;
 };
 
 export const signIn = async (state: SignInFormState, formData: FormData) => {
+  const unvalidatedInputs = {
+    unvalidatedEmail: formData.get("email")
+      ? formData.get("email")?.toString()
+      : undefined,
+    unvalidatedPassword: formData.get("password")
+      ? formData.get("password")?.toString()
+      : undefined,
+  };
+
   const validatedFields = SignInFormSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
 
+  const signInReturn: SignInFormState = {
+    errors: [],
+    values: {
+      email: unvalidatedInputs.unvalidatedEmail || undefined,
+      password: unvalidatedInputs.unvalidatedPassword || undefined,
+    },
+    properties: {},
+  };
+
   if (!validatedFields.success) {
     const errors = z.treeifyError(validatedFields.error);
-    return errors;
+    return { ...signInReturn, ...errors };
   }
 
   const signInRequestBody: SignInRequestBody = validatedFields.data;
@@ -151,9 +168,8 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
     const errorString =
       "message" in error ? `${error.message.toString()}` : "Unknown error.";
 
-    return { errors: [errorString] };
+    return { ...signInReturn, errors: [errorString] };
   }
-  return;
 };
 
 export const requestNewEmailVerificationLinkAction = async (

@@ -19,6 +19,7 @@ export const SignInForm = () => {
           name="email"
           type="email"
           placeholder="Email"
+          defaultValue={state?.values?.email}
         />
       </div>
 
