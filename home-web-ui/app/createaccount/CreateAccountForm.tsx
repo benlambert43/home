@@ -24,6 +24,7 @@ export const CreateAccountForm = () => {
             id="firstname"
             name="firstname"
             placeholder="First Name"
+            defaultValue={state?.values?.firstname}
           />
         </div>
         <div
@@ -38,6 +39,7 @@ export const CreateAccountForm = () => {
             id="lastname"
             name="lastname"
             placeholder="Last Name"
+            defaultValue={state?.values?.lastname}
           />
         </div>
       </div>
@@ -59,6 +61,7 @@ export const CreateAccountForm = () => {
           name="email"
           type="email"
           placeholder="Email"
+          defaultValue={state?.values?.email}
         />
       </div>
       <div>
