@@ -31,6 +31,40 @@ export const createAccount = async (
   state: SignUpFormState,
   formData: FormData,
 ) => {
+  const unvalidatedInputs = {
+    unvalidatedFirstname: formData.get("firstname")
+      ? formData.get("firstname")?.toString()
+      : undefined,
+    unvalidatedLastname: formData.get("lastname")
+      ? formData.get("lastname")?.toString()
+      : undefined,
+    unvalidatedEmail: formData.get("email")
+      ? formData.get("email")?.toString()
+      : undefined,
+    unvalidatedPassword: formData.get("password")
+      ? formData.get("password")?.toString()
+      : undefined,
+    unvalidatedConfirmPassword: formData.get("confirmPassword")
+      ? formData.get("confirmPassword")?.toString()
+      : undefined,
+    unvalidatedGrecaptcharesponse: formData.get("g-recaptcha-response")
+      ? formData.get("confirmPassword")?.toString()
+      : undefined,
+  };
+
+  const signUpReturn: SignUpFormState = {
+    errors: [],
+    values: {
+      firstname: unvalidatedInputs.unvalidatedFirstname,
+      lastname: unvalidatedInputs.unvalidatedLastname,
+      email: unvalidatedInputs.unvalidatedEmail,
+      password: unvalidatedInputs.unvalidatedPassword,
+      confirmPassword: unvalidatedInputs.unvalidatedConfirmPassword,
+      grecaptcharesponse: unvalidatedInputs.unvalidatedGrecaptcharesponse,
+    },
+    properties: {},
+  };
+
   const validatedFields = SignUpFormSchema.safeParse({
     firstname: formData.get("firstname"),
     lastname: formData.get("lastname"),
@@ -42,7 +76,7 @@ export const createAccount = async (
 
   if (!validatedFields.success) {
     const errors = z.treeifyError(validatedFields.error);
-    return errors;
+    return { ...signUpReturn, ...errors };
   }
 
   const createAccountRequestBody: CreateAccountRequestBody =
@@ -92,7 +126,7 @@ export const createAccount = async (
     const errorString =
       "message" in error ? `${error.message.toString()}` : "Unknown error.";
 
-    return { errors: [errorString] };
+    return { ...signUpReturn, errors: [errorString] };
   }
 };
 

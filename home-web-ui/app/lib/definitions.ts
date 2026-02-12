@@ -28,6 +28,14 @@ export const SignUpFormSchema = z
 export type SignUpFormState =
   | {
       errors: string[];
+      values: {
+        firstname?: string;
+        lastname?: string;
+        email?: string;
+        password?: string;
+        confirmPassword?: string;
+        grecaptcharesponse?: string;
+      };
       properties?:
         | {
             firstname?:
