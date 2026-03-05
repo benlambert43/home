@@ -1,6 +1,7 @@
 import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { Notifications } from "@/app/components/Notification";
 
 const SignIn = () => {
   return (
@@ -48,6 +49,7 @@ const Navbar = async () => {
       <div className="flex flex-1 items-center gap-4 sm:justify-end">
         {userCookie ? (
           <>
+            <Notifications />
             <Settings />
             <Profile />
           </>
