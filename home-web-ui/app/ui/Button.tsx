@@ -16,9 +16,9 @@ const Button = (props: {
       onClick={onClick}
       className={
         className ||
-        `w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2 outline-1
-        outline-slate-400 hover:cursor-pointer hover:shadow-md
-        hover:shadow-slate-500 focus:outline-slate-100`
+        `w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2
+        hover:cursor-pointer hover:bg-slate-400 focus:bg-slate-500
+        focus:outline-slate-100`
       }
     >
       {children}

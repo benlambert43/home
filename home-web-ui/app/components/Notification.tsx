@@ -4,7 +4,7 @@ import { BellIcon } from "@heroicons/react/16/solid";
 
 export const Notifications = () => {
   return (
-    <div>
+    <button className={"hover:cursor-pointer"}>
       <div className="relative">
         <BellIcon className="size-6" />
         <span
@@ -12,6 +12,6 @@ export const Notifications = () => {
             bg-red-500"
         />
       </div>
-    </div>
+    </button>
   );
 };
