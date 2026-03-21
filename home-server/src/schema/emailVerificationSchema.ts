@@ -6,6 +6,7 @@ export const emailVerificationSchema = new mongoose.Schema({
   verificationCode: { type: String, required: true },
   verificationCodeClickedOn: { type: Boolean, required: true },
   error: { type: Boolean, required: true },
+  pendingSend: { type: Boolean, required: true },
   gmailApiResponse: { type: String, required: true },
   createdDate: { type: Date, required: true },
   confirmedDate: { type: Date },

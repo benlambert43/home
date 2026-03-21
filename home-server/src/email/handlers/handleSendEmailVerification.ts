@@ -19,6 +19,22 @@ export const handleSendEmailVerification = async (user: User) => {
   const createdDate = dayjs();
   const expiresAt = dayjs().add(10, "minute");
 
+  const pendingSendEmailVerification = new EmailVerificationModel({
+    userId: user._id,
+    email: user.email,
+    verificationCode: emailVerificationCode,
+    verificationCodeClickedOn: false,
+    error: true,
+    pendingSend: true,
+    gmailApiResponse: "Pending.",
+    createdDate: createdDate,
+    confirmedDate: undefined,
+    expiresDate: expiresAt,
+  });
+  const pendingSendEmailVerificationId = (
+    await pendingSendEmailVerification.save()
+  )._id;
+
   const sendMailRes = await sendMail({
     to: user.email,
     subject: "benlambert dot tech email verification",
@@ -34,18 +50,14 @@ export const handleSendEmailVerification = async (user: User) => {
     }`,
   });
 
-  const newEmailVerification = new EmailVerificationModel({
-    userId: user._id,
-    email: user.email,
-    verificationCode: emailVerificationCode,
-    verificationCodeClickedOn: false,
-    error: sendMailRes.code === 0 ? false : true,
-    gmailApiResponse:
-      JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
-    createdDate: createdDate,
-    confirmedDate: undefined,
-    expiresDate: expiresAt,
-  });
-  const saveNewEmailVerification = await newEmailVerification.save();
-  return saveNewEmailVerification as NewEmailVerification;
+  const finalizePendingSendEmailVerification =
+    await EmailVerificationModel.findByIdAndUpdate(
+      pendingSendEmailVerificationId,
+      {
+        error: sendMailRes.code === 0 ? false : true,
+        pendingSend: false,
+        gmailApiResponse:
+          JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
+      },
+    );
 };

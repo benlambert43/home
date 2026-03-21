@@ -20,6 +20,7 @@ export interface NewEmailVerification {
   verificationCode: string;
   verificationCodeClickedOn: Boolean;
   error: Boolean;
+  pendingSend: Boolean;
   gmailApiResponse: string;
   createdDate: Date;
   confirmedDate?: Date;

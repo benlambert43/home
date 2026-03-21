@@ -47,7 +47,7 @@ export const handleRequestNewEmailVerificationLink = async ({
 
   if (currentDateTime.isAfter(expiresAtDateTime)) {
     try {
-      await handleSendEmailVerification(foundUser);
+      handleSendEmailVerification(foundUser);
       return { error: false, errorMsg: "" };
     } catch {
       return {
