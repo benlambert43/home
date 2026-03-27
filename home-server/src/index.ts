@@ -1,9 +1,7 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import userRouter from "./user/user";
-import accountManagementRouter from "./accountManagement/accountManagement";
-import signInRouter from "./signIn/signIn";
+import apiRouter from "./api/api";
 
 const app = express();
 app.use(express.json());
@@ -24,9 +22,7 @@ app.get("/", (req, res) => {
   res.status(200).send({ message: "Welcome to home-server" });
 });
 
-app.use("/accountManagement", accountManagementRouter);
-app.use("/signIn", signInRouter);
-app.use("/user", userRouter);
+app.use("/api", apiRouter);
 
 app.listen(API_PORT, () => {
   console.log(`home-server is running on port ${API_PORT}`);
