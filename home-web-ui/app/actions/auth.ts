@@ -23,9 +23,9 @@ import * as z from "zod";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-const CREATE_ACCOUNT_URL = `${process.env.API_URL}/accountManagement/createAccount`;
-const SIGN_IN_URL = `${process.env.API_URL}/signIn`;
-const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.API_URL}/accountManagement/requestNewEmailVerificationLink`;
+const CREATE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/createAccount`;
+const SIGN_IN_URL = `${process.env.BASE_API_URL}/signIn`;
+const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/requestNewEmailVerificationLink`;
 
 export const createAccount = async (
   state: SignUpFormState,
