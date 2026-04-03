@@ -20,6 +20,7 @@ export interface NewEmailVerification {
   verificationCode: string;
   verificationCodeClickedOn: Boolean;
   error: Boolean;
+  pendingSend: Boolean;
   gmailApiResponse: string;
   createdDate: Date;
   confirmedDate?: Date;
@@ -39,4 +40,16 @@ export interface UserCookie extends UserNoPassword {
 export type EncodedAccountJwt = {
   usage: "BFF" | "API";
   user: UserNoPassword;
+};
+
+export type Notification = {
+  _id: Types.ObjectId;
+  recipientUserId: Types.ObjectId;
+  subtype: string;
+  message: string;
+  referenceLink: string;
+  markedAsRead: boolean;
+  canBeMarkedAsRead: boolean;
+  canBeDeleted: boolean;
+  timestamp: Date;
 };

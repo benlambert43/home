@@ -41,3 +41,15 @@ export type EncodedAccountJwt = {
   usage: "BFF" | "API";
   user: UserNoPassword;
 };
+
+export type Notification = {
+  _id: Types.ObjectId;
+  recipientUserId: Types.ObjectId;
+  subtype: string;
+  message: string;
+  referenceLink: string;
+  markedAsRead: boolean;
+  canBeMarkedAsRead: boolean;
+  canBeDeleted: boolean;
+  timestamp: Date;
+};
