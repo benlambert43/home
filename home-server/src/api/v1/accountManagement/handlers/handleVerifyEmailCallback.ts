@@ -3,6 +3,7 @@ import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { removePasswordFromUserObject } from "./handleCreateAccount";
+import { removeNotification } from "../../notification/handlers/removeNotification";
 
 const updateEmailVerificationStatusToTrue = async ({
   userId,
@@ -85,6 +86,10 @@ export const handleVerifyEmailCallback = async ({
     }
 
     const updatedToken = createApiToken(updatedUser);
+    await removeNotification({
+      recipientUserId: updatedUser._id,
+      subtype: "confirmEmail",
+    });
 
     return {
       error: false,
