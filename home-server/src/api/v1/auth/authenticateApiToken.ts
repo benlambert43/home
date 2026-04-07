@@ -1,10 +1,13 @@
 import * as jwt from "jsonwebtoken";
 import { EncodedAccountJwt } from "../types/types";
 
-export const authenticateApiToken = (unverifiedCaptchaToken: string) => {
+export const authenticateApiToken = (unverifiedToken?: string) => {
   const secret = process.env.TOKEN_ISSUER || "";
   try {
-    const decode = jwt.verify(unverifiedCaptchaToken, secret);
+    if (typeof unverifiedToken === "undefined") {
+      throw new Error("No authorization token provided.");
+    }
+    const decode = jwt.verify(unverifiedToken, secret);
 
     if (typeof decode === "string") {
       const decodedTokenString: EncodedAccountJwt = JSON.parse(decode);

@@ -1,4 +1,4 @@
-import { UserNoPassword } from "./types";
+import { Notification, UserNoPassword } from "./types";
 
 export type CreateAccountResponse = {
   error: boolean;
@@ -24,4 +24,10 @@ export type VerifyEmailResponse = {
 export type RequestNewEmailVerificationLinkResponse = {
   error: boolean;
   message: string;
+};
+
+export type GetNotificationsResponse = {
+  error: boolean;
+  message: string;
+  notifications?: Notification[];
 };

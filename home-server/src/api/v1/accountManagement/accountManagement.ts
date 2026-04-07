@@ -18,6 +18,8 @@ import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback"
 import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
+import { createNewNotification } from "../notification/handlers/createNewNotification";
+const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
 
 const accountManagementRouter = Router();
 
@@ -113,6 +115,15 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     const createAccount = await handleCreateAccount(
       validCreateAccountRequestBody,
     );
+
+    await createNewNotification({
+      recipientUserId: createAccount.user._id,
+      subtype: "confirmEmail",
+      message: "Please check your inbox to confirm your email.",
+      referenceLink: `${BASE_FRONTEND_URL}profile`,
+      canBeMarkedAsRead: false,
+      canBeDeleted: false,
+    });
 
     handleSendEmailVerification(createAccount.user);
 
