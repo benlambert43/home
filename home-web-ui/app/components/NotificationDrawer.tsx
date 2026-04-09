@@ -1,9 +1,11 @@
 import { NotificationContext } from "@/app/components/Notification";
+import { useRouter } from "next/navigation";
 import { useContext } from "react";
 
 const NotificationDrawer = () => {
   const { content, drawer } = useContext(NotificationContext);
   const { notificationDrawerOpen } = drawer;
+  const router = useRouter();
 
   return (
     notificationDrawerOpen && (
@@ -23,12 +25,19 @@ const NotificationDrawer = () => {
             <p className="text-sm text-slate-400">No new notifications</p>
           ) : (
             content.notifications.map((n) => (
-              <div
+              <button
                 key={n._id.toString()}
-                className="rounded-lg bg-slate-600 px-3 py-2 text-sm text-white"
+                className="rounded-lg bg-slate-600 px-3 py-2 text-left text-sm
+                  text-white hover:cursor-pointer hover:bg-slate-500"
+                onClick={() => {
+                  if (n.referenceLink && n.referenceLink.length > 0) {
+                    router.push(n.referenceLink);
+                    drawer.handleSetNotificationDrawerClosed();
+                  }
+                }}
               >
                 {n.message}
-              </div>
+              </button>
             ))
           )}
         </div>
