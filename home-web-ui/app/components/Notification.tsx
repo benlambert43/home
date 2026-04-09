@@ -33,14 +33,16 @@ export const Notifications = () => {
         typeof maybeNotifications.notifications !== "undefined"
           ? maybeNotifications.notifications
           : [];
-      setNotifications(realNotifications);
+      const updateNotificationsClonedArray = [...realNotifications];
+      setNotifications(updateNotificationsClonedArray);
       setNotificationsRefreshing(false);
     };
     fetchNotifications();
-  }, [notificationsRefreshing, notificationDrawerOpen]);
+  }, [notificationsRefreshing]);
 
   const handleSetNotificationDrawerOpen = () => {
     setNotificationDrawerOpen(true);
+    setNotificationsRefreshing(true);
   };
   const handleSetNotificationDrawerClosed = () => {
     setNotificationDrawerOpen(false);
