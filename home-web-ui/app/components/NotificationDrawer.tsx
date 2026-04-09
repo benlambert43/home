@@ -7,10 +7,10 @@ const NotificationDrawer = () => {
 
   return (
     notificationDrawerOpen && (
-      <div
-        role="dialog"
-        className="fixed top-24 right-4 z-50 w-80 rounded-xl bg-slate-700 p-4
-          shadow-lg"
+      <dialog
+        open={notificationDrawerOpen}
+        className="absolute top-full right-2 left-auto z-50 m-0 mt-2 w-80
+          rounded-xl border-0 bg-slate-700 p-4 shadow-lg"
       >
         <div
           className="mb-2 text-sm font-semibold tracking-wide text-slate-300
@@ -32,7 +32,7 @@ const NotificationDrawer = () => {
             ))
           )}
         </div>
-      </div>
+      </dialog>
     )
   );
 };

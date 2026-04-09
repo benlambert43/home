@@ -37,7 +37,7 @@ const Navbar = async () => {
 
   return (
     <nav
-      className="mx-2 flex flex-row flex-wrap-reverse items-center
+      className="relative mx-2 flex flex-row flex-wrap-reverse items-center
         justify-between gap-x-8 gap-y-6 rounded-xl bg-slate-600 px-6 py-4"
     >
       <div className="flex flex-4 flex-wrap items-center justify-start gap-4">
