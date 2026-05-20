@@ -8,8 +8,10 @@ import { createContext, useEffect, useState } from "react";
 const defaultNotificationContext = {
   drawer: {
     notificationDrawerOpen: false,
+    isClosing: false,
     handleSetNotificationDrawerOpen: () => {},
     handleSetNotificationDrawerClosed: () => {},
+    handleAnimatedClose: () => {},
   },
   content: {
     notifications: [] as Notification[],
@@ -23,6 +25,7 @@ export const NotificationContext = createContext(defaultNotificationContext);
 
 export const Notifications = () => {
   const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsRefreshing, setNotificationsRefreshing] = useState(false);
 
@@ -33,8 +36,7 @@ export const Notifications = () => {
         typeof maybeNotifications.notifications !== "undefined"
           ? maybeNotifications.notifications
           : [];
-      const updateNotificationsClonedArray = [...realNotifications];
-      setNotifications(updateNotificationsClonedArray);
+      setNotifications([...realNotifications]);
       setNotificationsRefreshing(false);
     };
     fetchNotifications();
@@ -47,6 +49,13 @@ export const Notifications = () => {
   const handleSetNotificationDrawerClosed = () => {
     setNotificationDrawerOpen(false);
   };
+  const handleAnimatedClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setNotificationDrawerOpen(false);
+      setIsClosing(false);
+    }, 250);
+  };
   const handleRefreshNotifications = () => {
     setNotificationsRefreshing(true);
   };
@@ -56,8 +65,10 @@ export const Notifications = () => {
       value={{
         drawer: {
           notificationDrawerOpen,
+          isClosing,
           handleSetNotificationDrawerClosed,
           handleSetNotificationDrawerOpen,
+          handleAnimatedClose,
         },
         content: {
           notifications,
