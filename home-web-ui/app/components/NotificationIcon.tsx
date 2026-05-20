@@ -1,7 +1,9 @@
+// --> NotificationIcon.tsx <--
+
 import { NotificationContext } from "@/app/components/Notification";
 import NotificationDrawer from "@/app/components/NotificationDrawer";
 import { BellIcon } from "@heroicons/react/16/solid";
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 
 const NotificationIcon = () => {
   const { content, drawer, stream } = useContext(NotificationContext);
@@ -9,12 +11,31 @@ const NotificationIcon = () => {
     notificationDrawerOpen,
     handleSetNotificationDrawerClosed,
     handleSetNotificationDrawerOpen,
+    handleAnimatedClose,
   } = drawer;
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!notificationDrawerOpen) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        handleAnimatedClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [notificationDrawerOpen, handleAnimatedClose]);
 
   return (
     <>
       <button
-        className={"hover:cursor-pointer"}
+        className="hover:cursor-pointer"
         onClick={() => {
           if (notificationDrawerOpen) {
             handleSetNotificationDrawerClosed();
@@ -23,7 +44,7 @@ const NotificationIcon = () => {
           }
         }}
       >
-        <div className="relative">
+        <div ref={containerRef} className="relative">
           <BellIcon className="size-6" />
           {content.notifications.length > 0 && (
             <span

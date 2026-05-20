@@ -54,7 +54,7 @@ export const Notifications = () => {
     setTimeout(() => {
       setNotificationDrawerOpen(false);
       setIsClosing(false);
-    }, 250);
+    }, 200);
   };
   const handleRefreshNotifications = () => {
     setNotificationsRefreshing(true);
