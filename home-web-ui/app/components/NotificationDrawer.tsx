@@ -1,18 +1,20 @@
 import { NotificationContext } from "@/app/components/Notification";
 import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 const NotificationDrawer = () => {
   const { content, drawer } = useContext(NotificationContext);
   const { notificationDrawerOpen } = drawer;
   const router = useRouter();
+  const [isClosing, setIsClosing] = useState(false);
 
   return (
     notificationDrawerOpen && (
       <dialog
         open={notificationDrawerOpen}
-        className="absolute top-full right-2 left-auto z-50 m-0 mt-2 w-80
-          rounded-xl border-0 bg-slate-700 p-4 shadow-lg"
+        className={`absolute top-full right-2 left-auto z-50 m-0 mt-2 w-80
+          rounded-xl border-0 bg-slate-700 p-4 shadow-lg transition-opacity
+          duration-250 ${isClosing ? "opacity-0" : "opacity-100"}`}
       >
         <div
           className="mb-2 text-sm font-semibold tracking-wide text-slate-300
@@ -31,8 +33,12 @@ const NotificationDrawer = () => {
                   text-white hover:cursor-pointer hover:bg-slate-500"
                 onClick={() => {
                   if (n.referenceLink && n.referenceLink.length > 0) {
+                    setIsClosing(true);
                     router.push(n.referenceLink);
-                    drawer.handleSetNotificationDrawerClosed();
+                    setTimeout(() => {
+                      drawer.handleSetNotificationDrawerClosed();
+                      setIsClosing(false);
+                    }, 250);
                   }
                 }}
               >
