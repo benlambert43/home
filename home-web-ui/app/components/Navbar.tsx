@@ -1,7 +1,7 @@
 import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { Notifications } from "@/app/components/Notification";
+import { Notifications } from "@/app/components/Notifications";
 
 const SignIn = () => {
   return (

@@ -1,4 +1,4 @@
-import { NotificationContext } from "@/app/components/Notification";
+import { NotificationContext } from "@/app/components/Notifications";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 

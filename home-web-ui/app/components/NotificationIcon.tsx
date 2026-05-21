@@ -1,4 +1,4 @@
-import { NotificationContext } from "@/app/components/Notification";
+import { NotificationContext } from "@/app/components/Notifications";
 import NotificationDrawer from "@/app/components/NotificationDrawer";
 import { BellIcon } from "@heroicons/react/16/solid";
 import { useContext, useEffect, useRef } from "react";
