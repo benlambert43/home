@@ -1,5 +1,3 @@
-// --> NotificationIcon.tsx <--
-
 import { NotificationContext } from "@/app/components/Notification";
 import NotificationDrawer from "@/app/components/NotificationDrawer";
 import { BellIcon } from "@heroicons/react/16/solid";
@@ -33,7 +31,7 @@ const NotificationIcon = () => {
   }, [notificationDrawerOpen, handleAnimatedClose]);
 
   return (
-    <>
+    <div ref={containerRef} className="flex items-center">
       <button
         className="hover:cursor-pointer"
         onClick={() => {
@@ -44,7 +42,7 @@ const NotificationIcon = () => {
           }
         }}
       >
-        <div ref={containerRef} className="relative">
+        <div className="relative">
           <BellIcon className="size-6" />
           {content.notifications.length > 0 && (
             <span
@@ -55,7 +53,7 @@ const NotificationIcon = () => {
         </div>
       </button>
       <NotificationDrawer />
-    </>
+    </div>
   );
 };
 
