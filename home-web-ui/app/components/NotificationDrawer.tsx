@@ -11,7 +11,7 @@ const NotificationDrawer = () => {
     notificationDrawerOpen && (
       <dialog
         open={notificationDrawerOpen}
-        className={`absolute top-full right-2 left-auto z-50 m-0 mt-2 w-80
+        className={`absolute top-full right-2 left-auto z-50 m-0 mt-2 w-70
           rounded-xl border-0 bg-slate-700 p-4 shadow-lg transition-opacity
           duration-200 ${isClosing ? "opacity-0" : "opacity-100"}`}
       >
