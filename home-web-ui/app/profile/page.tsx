@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { removeSession } from "@/app/actions/session";
 import { UserCookie } from "@/app/types/types";
+import ProfileBanner from "@/app/profile/ProfileBanner";
 import Button from "@/app/ui/Button";
 
 const Profile = async () => {
@@ -13,6 +14,9 @@ const Profile = async () => {
   return (
     <div className="flex flex-col gap-4 p-5">
       <div className="text-4xl font-bold">Profile</div>
+      <div>
+        <ProfileBanner userCookie={userCookie} />
+      </div>
       <div className="text-xl">User Info:</div>
       <div className="flex flex-col gap-2 px-2">
         <div>
