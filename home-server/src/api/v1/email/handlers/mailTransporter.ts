@@ -13,7 +13,7 @@ const createTransporter = async () => {
   const oauth2Client = new OAuth2(
     EMAIL_OUTGOING_CLIENT_ID,
     EMAIL_OUTGOING_CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground"
+    "https://developers.google.com/oauthplayground",
   );
 
   oauth2Client.setCredentials({
@@ -61,6 +61,30 @@ const createBackupTransporter = () => {
   return backupTransporter;
 };
 
+const fireBackupTransporter = async (safeMailOptions: Mail.Options) => {
+  console.error("Transporter Error!");
+  console.log("Attempting to send with backup transporter...");
+  const backupTransporter = createBackupTransporter();
+  if (backupTransporter) {
+    try {
+      const res = await backupTransporter.sendMail(safeMailOptions);
+      console.log(JSON.stringify(res, undefined, "  "));
+      return { code: 0, error: undefined, response: res };
+    } catch (e) {
+      console.error("Backup Mail Send Error!");
+      console.error(e);
+      return { code: 1, error: e, response: e };
+    }
+  } else {
+    console.error("Backup Transporter Error!");
+    return {
+      code: 1,
+      error: "backupTransporter error!",
+      response: "backupTransporter error!",
+    };
+  }
+};
+
 export const sendMail = async ({
   to,
   subject,
@@ -76,38 +100,21 @@ export const sendMail = async ({
     text: text,
   };
 
+  // Try to create a Transporter, and if that fails, create the backup transporter.
   try {
-    const transporter = await createTransporter();
+    // Try with the primary transporter using API keys. If that fails, use the App Key password.
+    try {
+      const transporter = await createTransporter();
+      const res = await transporter.sendMail(safeMailOptions);
+      return { code: 0, error: undefined, response: res };
+    } catch (e) {
+      const backupRes = await fireBackupTransporter(safeMailOptions);
 
-    if (transporter) {
-      try {
-        const res = await transporter.sendMail(safeMailOptions);
-        return { code: 0, error: undefined, response: res };
-      } catch (e) {
-        console.error("Mail Send Error!");
-        console.error(e);
-        return { code: 1, error: e, response: e };
-      }
-    } else {
-      console.error("Transporter Error!");
-      const backupTransporter = createBackupTransporter();
-      if (backupTransporter) {
-        try {
-          const res = await backupTransporter.sendMail(safeMailOptions);
-          return { code: 0, error: undefined, response: res };
-        } catch (e) {
-          console.error("Backup Mail Send Error!");
-          console.error(e);
-          return { code: 1, error: e, response: e };
-        }
-      } else {
-        console.error("Backup Transporter Error!");
-        return {
-          code: 1,
-          error: "backupTransporter error!",
-          response: "backupTransporter error!",
-        };
-      }
+      return {
+        code: backupRes.code,
+        error: backupRes.error,
+        response: backupRes.response,
+      };
     }
   } catch (e) {
     return { code: 1, error: e, response: e };
