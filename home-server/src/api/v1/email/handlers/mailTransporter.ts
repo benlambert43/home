@@ -69,6 +69,11 @@ const fireBackupTransporter = async (safeMailOptions: Mail.Options) => {
     try {
       const res = await backupTransporter.sendMail(safeMailOptions);
       console.log(JSON.stringify(res, undefined, "  "));
+      if (res.response.includes("OK")) {
+        console.log(
+          "Backup send appears to have been successful. Update the primary API key ASAP.",
+        );
+      }
       return { code: 0, error: undefined, response: res };
     } catch (e) {
       console.error("Backup Mail Send Error!");
