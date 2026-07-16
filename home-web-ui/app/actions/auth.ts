@@ -48,7 +48,7 @@ export const createAccount = async (
       ? formData.get("confirmPassword")?.toString()
       : undefined,
     unvalidatedGrecaptcharesponse: formData.get("g-recaptcha-response")
-      ? formData.get("confirmPassword")?.toString()
+      ? formData.get("g-recaptcha-response")?.toString()
       : undefined,
   };
 
