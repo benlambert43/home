@@ -1,13 +1,30 @@
 "use client";
 
 import { createAccount } from "@/app/actions/auth";
+import { SignUpFormState } from "@/app/lib/definitions";
 import Button from "@/app/ui/Button";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+
+const hasFormErrors = (state: SignUpFormState): boolean => {
+  if (!state) return false;
+  if (state.errors?.length) return true;
+  if (state.properties) {
+    return Object.values(state.properties).some((p) => p?.errors?.length > 0);
+  }
+  return false;
+};
 
 export const CreateAccountForm = () => {
   const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(createAccount, undefined);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  useEffect(() => {
+    if (hasFormErrors(state)) {
+      recaptchaRef.current?.reset();
+    }
+  }, [state]);
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -108,7 +125,11 @@ export const CreateAccountForm = () => {
         )}
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
-        <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
+        <ReCAPTCHA
+          id="publicCaptcha"
+          sitekey={publicCaptchaKey}
+          ref={recaptchaRef}
+        />
       </div>
       {state?.properties?.grecaptcharesponse?.errors && (
         <p>{state?.properties?.grecaptcharesponse?.errors}</p>
