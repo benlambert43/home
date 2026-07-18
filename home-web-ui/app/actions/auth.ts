@@ -22,6 +22,7 @@ import {
 import * as z from "zod";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 const CREATE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/createAccount`;
 const SIGN_IN_URL = `${process.env.BASE_API_URL}/signIn`;
@@ -255,9 +256,14 @@ export const requestNewEmailVerificationLinkAction = async (
     if (requestNewEmailVerificationResponse.error === true) {
       throw new Error("requestNewEmailVerificationResponse error.");
     } else if (requestNewEmailVerificationResponse.error === false) {
-      return { success: true, errors: [] };
+      redirect(
+        "/profile/accountManagement/requestNewEmailVerificationLinkSuccess",
+      );
     }
   } catch (error: any) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
     const errorString =
       "message" in error ? `${error.message.toString()}` : "Unknown error.";
 
