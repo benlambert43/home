@@ -35,7 +35,10 @@ export const handleRequestNewEmailVerificationLink = async ({
     userId: foundUser._id,
   }).sort({ createdDate: -1 });
 
-  if (!mostRecentEmailVerification) {
+  if (
+    mostRecentEmailVerification === undefined ||
+    mostRecentEmailVerification === null
+  ) {
     return {
       error: true,
       errorMsg: "Unable to find a record of previous email verification sent.",
