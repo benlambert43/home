@@ -17,8 +17,7 @@ const Profile = async () => {
       <div>
         <ProfileBanner userCookie={userCookie} />
       </div>
-      <div className="text-xl">User Info:</div>
-      <div className="flex flex-col gap-2 px-2">
+      <div className="flex flex-col gap-2">
         <div>
           <p>First Name:</p>
           <p>{userCookie.firstname.toString()}</p>
@@ -37,23 +36,15 @@ const Profile = async () => {
         </div>
         <div>
           <p>Email Verified:</p>
-          <p>{userCookie.confirmedEmail.toString()}</p>
-        </div>
-        <div>
-          <p>Account Created:</p>
-          <p>{new Date(userCookie.createdDate).toLocaleString().toString()}</p>
-        </div>
-        <div>
-          <p>Account Last Modified:</p>
-          <p>{new Date(userCookie.modifiedDate).toLocaleString().toString()}</p>
-        </div>
-        <div>
-          <p>User Role:</p>
-          <p>{userCookie.role.toString()}</p>
+          <p>
+            {userCookie.confirmedEmail === true
+              ? "✅ Verified"
+              : "❌ Not yet verified."}
+          </p>
         </div>
       </div>
 
-      <div>
+      <div className="py-5">
         <Button onClick={removeSession}>Log Out</Button>
       </div>
     </div>
