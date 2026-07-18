@@ -17,8 +17,7 @@ const Button = (props: {
       className={
         className ||
         `w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2
-        hover:cursor-pointer hover:bg-slate-400 focus:bg-slate-500
-        focus:outline-slate-100`
+        hover:cursor-pointer hover:bg-slate-400 focus:outline-slate-100`
       }
     >
       {children}
