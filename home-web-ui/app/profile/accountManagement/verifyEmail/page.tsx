@@ -75,7 +75,7 @@ const VerifyEmail = async ({
                       "/profile/accountManagement/requestNewEmailVerificationLink"
                     }
                   >
-                    <Button>Request a New Link</Button>
+                    <Button size="large">Request a New Link</Button>
                   </Link>
                 </div>
               </div>

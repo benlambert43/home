@@ -25,7 +25,7 @@ export const RequestNewEmailVerificationLinkForm = () => {
       )}
 
       <div className="flex flex-col items-start justify-center gap-2 py-6">
-        <Button disabled={pending} type="submit">
+        <Button size="large" disabled={pending} type="submit">
           Send Me a New Email Verification Link
         </Button>
       </div>

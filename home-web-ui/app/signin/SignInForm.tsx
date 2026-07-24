@@ -54,7 +54,7 @@ export const SignInForm = () => {
       )}
 
       <div className="mt-4 flex flex-col items-start justify-center gap-2">
-        <Button disabled={pending} type="submit">
+        <Button size="large" disabled={pending} type="submit">
           Sign In
         </Button>
       </div>

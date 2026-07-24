@@ -18,13 +18,8 @@ const ProfileBanner = (props: { userCookie: UserCookie }) => {
                 href={"http://google.com/gmail"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex gap-x-2 rounded-sm bg-slate-500 px-2 py-1
-                  hover:cursor-pointer hover:bg-slate-400
-                  focus:outline-slate-100"
               >
-                <div className="flex items-center justify-center px-1">
-                  <EnvelopeIcon className="size-6" />
-                </div>
+                <EnvelopeIcon className="size-6" />
                 Open Gmail
               </Link>
               <Link

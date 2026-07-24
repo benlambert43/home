@@ -135,7 +135,7 @@ export const CreateAccountForm = () => {
         <p>{state?.properties?.grecaptcharesponse?.errors}</p>
       )}
       <div className="flex flex-col items-start justify-center gap-2 py-6">
-        <Button disabled={pending} type="submit">
+        <Button size="large" disabled={pending} type="submit">
           Create Account
         </Button>
       </div>
