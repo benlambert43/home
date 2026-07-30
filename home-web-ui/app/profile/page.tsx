@@ -33,6 +33,13 @@ const Profile = async () => {
         <div>
           <p>Username:</p>
           <p>{userCookie.username.toString()}</p>
+          <Button
+            type="link"
+            linkProps={{ href: "/profile/accountManagement/changeUsername" }}
+            size="small"
+          >
+            Change Username
+          </Button>
         </div>
         <div>
           <p>Email Verified:</p>
