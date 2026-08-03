@@ -31,3 +31,10 @@ export type GetNotificationsResponse = {
   message: string;
   notifications?: Notification[];
 };
+
+export type ChangeUsernameResponse = {
+  error: boolean;
+  message: string;
+  jwt?: string;
+  user?: UserNoPassword;
+};

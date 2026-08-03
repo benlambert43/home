@@ -15,3 +15,7 @@ export type SignInRequestBody = {
 export type RequestNewEmailVerificationRequestBody = {
   grecaptcharesponse: string;
 };
+
+export type ChangeUsernameRequestBody = {
+  newUsername: string;
+};
