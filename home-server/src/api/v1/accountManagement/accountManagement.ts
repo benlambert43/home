@@ -3,6 +3,7 @@ import {
   CreateAccountResponse,
   RequestNewEmailVerificationLinkResponse,
   VerifyEmailResponse,
+  ChangeUsernameResponse,
 } from "../types/response";
 import * as z from "zod";
 import {
@@ -19,6 +20,10 @@ import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
+import {
+  checkUniqueUsername,
+  handleChangeUsername,
+} from "./handlers/handleChangeUsernameResponse";
 const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
 
 const accountManagementRouter = Router();
@@ -286,6 +291,73 @@ accountManagementRouter.post(
       return;
     }
   },
+
+  accountManagementRouter.post("/changeUsername", async (req, res) => {
+    try {
+      const changeUsernameBodySchema = z.object({
+        authorizationToken: z.string().min(1),
+        newUsername: z.string().min(1),
+      });
+
+      const changeUsername = changeUsernameBodySchema.safeParse({
+        authorizationToken: req.headers?.authorization,
+        newUsername: req.body?.newUsername,
+      });
+
+      if (!changeUsername.success) {
+        throw new Error();
+      }
+
+      const { authorizationToken, newUsername } = changeUsername.data;
+
+      const verifiedToken = authenticateApiToken(authorizationToken);
+
+      if (
+        verifiedToken.error === true ||
+        verifiedToken.decodedToken === undefined
+      ) {
+        throw new Error();
+      }
+
+      const { decodedToken } = verifiedToken;
+
+      const uniqueUsername = await checkUniqueUsername(
+        changeUsername.data.newUsername,
+      );
+
+      if (!uniqueUsername) {
+        const requestChangeUsernameLinkResponse: ChangeUsernameResponse = {
+          error: true,
+          message:
+            "Error changing username. An account with this username already exists.",
+        };
+
+        res.status(400).send(requestChangeUsernameLinkResponse);
+        return;
+      }
+
+      const handleChangeUsernameResponse = await handleChangeUsername(
+        decodedToken,
+        newUsername,
+      );
+
+      if (handleChangeUsernameResponse.error === false) {
+        res.status(200).send(handleChangeUsernameResponse);
+        return;
+      } else {
+        res.status(400).send(handleChangeUsernameResponse);
+        return;
+      }
+    } catch (e) {
+      const requestChangeUsernameLinkErrorResponse: ChangeUsernameResponse = {
+        error: true,
+        message:
+          "An error occurred before username change was able to process.",
+      };
+      res.status(400).send(requestChangeUsernameLinkErrorResponse);
+      return;
+    }
+  }),
 );
 
 export default accountManagementRouter;
