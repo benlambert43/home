@@ -41,6 +41,7 @@ const ChangeUsernameForm = (props: { userCookie: UserCookie }) => {
           Change Username
         </Button>
       </div>
+      <div>{state?.errors?.toString()}</div>
     </form>
   );
 };

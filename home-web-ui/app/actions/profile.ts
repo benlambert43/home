@@ -9,10 +9,10 @@ import {
 } from "@/app/lib/definitions";
 import { ChangeUsernameRequestBody } from "@/app/types/request";
 import { ChangeUsernameResponse } from "@/app/types/response";
-import { createSession } from "@/app/actions/session";
+import { updateSessionTokens } from "@/app/actions/session";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-const CHANGE_USERNAME_LINK_URL = ``;
+const CHANGE_USERNAME_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/changeUsername`;
 
 export const changeUsername = async (
   state: ChangeUsernameFormState,
@@ -78,10 +78,10 @@ export const changeUsername = async (
       changeUsernameResponse.jwt &&
       changeUsernameResponse.user
     ) {
-      await createSession(
-        changeUsernameResponse.jwt,
-        changeUsernameResponse.user,
-      );
+      await updateSessionTokens({
+        encodedApiJwtSession: changeUsernameResponse.jwt,
+        user: changeUsernameResponse.user,
+      });
       redirect("/profile");
     } else {
       throw new Error("changeUsernameResponse error.");
