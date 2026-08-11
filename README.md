@@ -11,11 +11,17 @@ Uses npm workspace.
 
 ## Commands
 
-| Command                                |                         |
-| -------------------------------------- | ----------------------- |
-| `docker compose up -d`                 | MongoDB docker instance |
-| `npm run dev`                          | Site (localhost:3000)   |
-| `npm run dev:server`                   | API                     |
+
+
+docker compose up -d  
+
+
+npm run dev  
+
+
+npm run dev:server  
+
+
 
 
 All timestamp strings should be in ISO 8601 format.
