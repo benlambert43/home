@@ -39,13 +39,13 @@ const VerifyEmail = async ({
         if (
           verificationStatus.error === false &&
           verificationStatus.message &&
-          verificationStatus.newToken &&
+          verificationStatus.jwt &&
           verificationStatus.user
         ) {
           return (
             <EmailVerified
               verificationStatusMessage={verificationStatus.message}
-              newToken={verificationStatus.newToken}
+              jwt={verificationStatus.jwt}
               user={verificationStatus.user}
             />
           );

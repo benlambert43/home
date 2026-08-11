@@ -185,32 +185,19 @@ accountManagementRouter.get(
 
       const { username, email, code } = verifyEmailUrlParams.data;
 
-      const verifyEmailCallback = await handleVerifyEmailCallback({
+      const verifyEmailCallbackResponse = await handleVerifyEmailCallback({
         username,
         email,
         code,
       });
 
-      if (verifyEmailCallback.error === true) {
-        const verifyEmailResponse: VerifyEmailResponse = {
-          error: true,
-          message: verifyEmailCallback.errorMessage,
-        };
-
-        res.status(400).send(verifyEmailResponse);
+      if (verifyEmailCallbackResponse.error === false) {
+        res.status(200).send(verifyEmailCallbackResponse);
+        return;
+      } else {
+        res.status(400).send(verifyEmailCallbackResponse);
         return;
       }
-
-      const verifyEmailResponse: VerifyEmailResponse = {
-        error: false,
-        message:
-          "Thank you for confirming your email address! You can now close this window.",
-        newToken: verifyEmailCallback?.newToken,
-        user: verifyEmailCallback?.userNoPassword,
-      };
-
-      res.send(verifyEmailResponse);
-      return;
     } catch (e) {
       const verifyEmailResponse: VerifyEmailResponse = {
         error: true,

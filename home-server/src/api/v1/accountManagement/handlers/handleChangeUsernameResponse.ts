@@ -24,8 +24,8 @@ export const handleChangeUsername = async (
     throw new Error(`Updated user with id ${decodedToken.user._id} not found.`);
   }
 
-  const newToken = createApiToken(updatedUser);
+  const jwt = createApiToken(updatedUser);
   const userNoPassword = serializeUser(updatedUser);
 
-  return { error: false, message: "", jwt: newToken, user: userNoPassword };
+  return { error: false, message: "", jwt: jwt, user: userNoPassword };
 };

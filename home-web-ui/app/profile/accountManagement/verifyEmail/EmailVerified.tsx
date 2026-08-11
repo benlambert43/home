@@ -7,15 +7,15 @@ import { useEffect } from "react";
 
 const EmailVerified = (props: {
   verificationStatusMessage: string;
-  newToken: string;
+  jwt: string;
   user: UserNoPassword;
 }) => {
-  const { verificationStatusMessage, newToken, user } = props;
+  const { verificationStatusMessage, jwt, user } = props;
 
   useEffect(() => {
     const updateTokens = async () => {
       await updateSessionTokens({
-        encodedApiJwtSession: newToken,
+        encodedApiJwtSession: jwt,
         user: user,
       }).then(() => {
         redirect("/profile");

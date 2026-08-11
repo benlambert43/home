@@ -17,10 +17,7 @@ export type SignInResponse = AuthenticatedUserResponse;
 
 export type ChangeUsernameResponse = AuthenticatedUserResponse;
 
-export interface VerifyEmailResponse extends ApiResponse {
-  newToken?: string;
-  user?: UserNoPassword;
-}
+export type VerifyEmailResponse = AuthenticatedUserResponse;
 
 export type RequestNewEmailVerificationLinkResponse = ApiResponse;
 

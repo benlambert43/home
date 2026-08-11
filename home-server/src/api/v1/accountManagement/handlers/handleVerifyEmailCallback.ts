@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { VerifyEmailResponse } from "@home/shared";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
@@ -31,7 +32,7 @@ export const handleVerifyEmailCallback = async ({
   username: string;
   email: string;
   code: string;
-}) => {
+}): Promise<VerifyEmailResponse> => {
   const user = await UserModel.findOne({
     username: username,
     email: email,
@@ -51,7 +52,7 @@ export const handleVerifyEmailCallback = async ({
   ) {
     return {
       error: true,
-      errorMessage: "You have already confirmed your email address.",
+      message: "You have already confirmed your email address.",
     };
   }
 
@@ -63,7 +64,7 @@ export const handleVerifyEmailCallback = async ({
   if (expired) {
     return {
       error: true,
-      errorMessage:
+      message:
         "Email verification link has expired. Please request a new email verification link.",
     };
   }
@@ -81,11 +82,11 @@ export const handleVerifyEmailCallback = async ({
     if (!updatedUser) {
       return {
         error: true,
-        errorMessage: "Unable to find updated user.",
+        message: "Unable to find updated user.",
       };
     }
 
-    const updatedToken = createApiToken(updatedUser);
+    const jwt = createApiToken(updatedUser);
     await removeNotification({
       recipientUserId: updatedUser._id,
       subtype: "confirmEmail",
@@ -93,14 +94,15 @@ export const handleVerifyEmailCallback = async ({
 
     return {
       error: false,
-      errorMessage: "",
-      newToken: updatedToken,
-      userNoPassword: serializeUser(updatedUser),
+      message:
+        "Thank you for confirming your email address! You can now close this window.",
+      jwt: jwt,
+      user: serializeUser(updatedUser),
     };
   } else {
     return {
       error: true,
-      errorMessage:
+      message:
         "Unable to update email verification status. Please request a new email verification link or try again.",
     };
   }
