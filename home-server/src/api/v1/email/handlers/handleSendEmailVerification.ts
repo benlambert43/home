@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
-import { NewEmailVerification, User } from "../../types/types";
+import { User } from "../../types/db";
 import { sendMail } from "./mailTransporter";
 import { encodeUrlSafeB64 } from "./encodeUrlSafeB64";
 

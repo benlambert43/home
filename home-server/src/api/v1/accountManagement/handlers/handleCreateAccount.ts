@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
-import { User, UserNoPassword } from "../../types/types";
+import { User } from "../../types/db";
 import { generateUsername } from "unique-username-generator";
 import { handleVerifyCaptcha } from "../../auth/verifyCaptcha";
 
@@ -80,34 +80,6 @@ const handleCreateUser = async (validCreateAccountRequestBody: {
   });
   const saveNewUser = await newUser.save();
   return saveNewUser as User;
-};
-
-export const removePasswordFromUserObject = (user: User | UserNoPassword) => {
-  const {
-    _id,
-    firstname,
-    lastname,
-    email,
-    username,
-    confirmedEmail,
-    userBanned,
-    createdDate,
-    modifiedDate,
-    role,
-  } = user;
-  const userRemovePassword: UserNoPassword = {
-    _id,
-    firstname,
-    lastname,
-    email,
-    username,
-    confirmedEmail,
-    userBanned,
-    createdDate,
-    modifiedDate,
-    role,
-  };
-  return userRemovePassword;
 };
 
 export const handleCreateAccount = async (validCreateAccountRequestBody: {

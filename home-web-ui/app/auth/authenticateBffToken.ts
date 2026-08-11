@@ -2,7 +2,7 @@
 
 import "server-only";
 import { jwtVerify } from "jose";
-import { EncodedAccountJwt } from "../types/types";
+import { EncodedAccountJwt } from "@home/shared";
 
 export type AuthenticatedBffToken = {
   valid: boolean;

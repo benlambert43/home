@@ -4,15 +4,15 @@ import {
   RequestNewEmailVerificationLinkResponse,
   VerifyEmailResponse,
   ChangeUsernameResponse,
-} from "../types/response";
+} from "@home/shared";
 import * as z from "zod";
 import {
   checkUniqueEmail,
   createNewUniqueRandomUsername,
   verifyCaptcha,
   handleCreateAccount,
-  removePasswordFromUserObject,
 } from "./handlers/handleCreateAccount";
+import { serializeUser } from "../types/serialize";
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
 import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
@@ -136,7 +136,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       error: false,
       message: "New account created",
       jwt: createAccount.token,
-      user: removePasswordFromUserObject(createAccount.user),
+      user: serializeUser(createAccount.user),
     };
 
     res.status(200).send(handleCreateAccountRes);

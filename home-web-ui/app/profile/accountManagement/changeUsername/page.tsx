@@ -1,5 +1,5 @@
 import ChangeUsernameForm from "@/app/profile/accountManagement/changeUsername/ChangeUsernameForm";
-import { UserCookie } from "@/app/types/types";
+import { UserCookie } from "@/app/lib/session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 

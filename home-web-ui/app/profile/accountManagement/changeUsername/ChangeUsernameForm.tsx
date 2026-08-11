@@ -1,7 +1,7 @@
 "use client";
 
 import { changeUsername } from "@/app/actions/profile";
-import { UserCookie } from "@/app/types/types";
+import { UserCookie } from "@/app/lib/session";
 import Button from "@/app/ui/Button";
 import { useActionState } from "react";
 

@@ -1,5 +1,5 @@
 import * as jwt from "jsonwebtoken";
-import { EncodedAccountJwt } from "../types/types";
+import { EncodedAccountJwt } from "@home/shared";
 
 export const authenticateApiToken = (unverifiedToken?: string) => {
   const secret = process.env.TOKEN_ISSUER || "";

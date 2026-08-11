@@ -2,7 +2,7 @@
 
 import { getNotifications } from "@/app/actions/notifications";
 import NotificationIcon from "@/app/components/NotificationIcon";
-import { Notification } from "@/app/types/types";
+import { Notification } from "@home/shared";
 import { createContext, useEffect, useState } from "react";
 
 const defaultNotificationContext = {

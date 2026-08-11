@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
-import { EncodedAccountJwt } from "../../types/types";
+import { EncodedAccountJwt } from "@home/shared";
 import { handleSendEmailVerification } from "../../email/handlers/handleSendEmailVerification";
 
 export const handleRequestNewEmailVerificationLink = async ({

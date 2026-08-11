@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { removeSession } from "@/app/actions/session";
-import { UserCookie } from "@/app/types/types";
+import { UserCookie } from "@/app/lib/session";
 import ProfileBanner from "@/app/profile/ProfileBanner";
 import Button from "@/app/ui/Button";
 

@@ -1,6 +1,6 @@
 import EmailAlreadyVerified from "@/app/profile/accountManagement/verifyEmail/EmailAlreadyVerified";
 import EmailVerified from "@/app/profile/accountManagement/verifyEmail/EmailVerified";
-import { VerifyEmailResponse } from "@/app/types/response";
+import { VerifyEmailResponse } from "@home/shared";
 import Button from "@/app/ui/Button";
 import { cookies } from "next/headers";
 import Link from "next/link";

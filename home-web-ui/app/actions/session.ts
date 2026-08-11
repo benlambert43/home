@@ -1,6 +1,7 @@
 "use server";
 import { createBffToken } from "@/app/auth/createBffToken";
-import { UserCookie, UserNoPassword } from "@/app/types/types";
+import { UserNoPassword } from "@home/shared";
+import { UserCookie } from "@/app/lib/session";
 import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -19,9 +20,9 @@ export const createSession = async (
 
   const plainTextUserCookie: UserCookie = {
     ...user,
-    loginAt: new Date(),
-    expiresAt,
-    issuedAt,
+    loginAt: new Date().toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    issuedAt: issuedAt.toISOString(),
   };
 
   const encodedBffJwtSession = await createBffToken(user);

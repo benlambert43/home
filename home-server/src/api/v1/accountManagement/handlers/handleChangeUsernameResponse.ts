@@ -1,8 +1,7 @@
 import { createApiToken } from "../../auth/createApiToken";
 import { UserModel } from "../../model/userModel";
-import { ChangeUsernameResponse } from "../../types/response";
-import { EncodedAccountJwt } from "../../types/types";
-import { removePasswordFromUserObject } from "./handleCreateAccount";
+import { ChangeUsernameResponse, EncodedAccountJwt } from "@home/shared";
+import { serializeUser } from "../../types/serialize";
 
 export const checkUniqueUsername = async (newUsername: string) => {
   const existingEmail = await UserModel.find({ username: newUsername });
@@ -26,7 +25,7 @@ export const handleChangeUsername = async (
   }
 
   const newToken = createApiToken(updatedUser);
-  const userNoPassword = removePasswordFromUserObject(updatedUser);
+  const userNoPassword = serializeUser(updatedUser);
 
   return { error: false, message: "", jwt: newToken, user: userNoPassword };
 };

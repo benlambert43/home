@@ -1,6 +1,6 @@
 "use server";
 
-import { GetNotificationsResponse } from "@/app/types/response";
+import { GetNotificationsResponse } from "@home/shared";
 import { cookies } from "next/headers";
 
 const NOTIFICATION_URL = `${process.env.BASE_API_URL}/notifications`;

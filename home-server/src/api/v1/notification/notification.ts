@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
-import { GetNotificationsResponse } from "../types/response";
+import { GetNotificationsResponse } from "@home/shared";
 import { handleGetNotifications } from "./handlers/handleGetNotifications";
 
 const notificationRouter = Router();

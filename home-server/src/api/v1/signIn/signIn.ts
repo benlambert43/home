@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { SignInResponse } from "../types/response";
+import { SignInResponse } from "@home/shared";
 import * as z from "zod";
 import { handleSignIn } from "./handlers/handleSignIn";
-import { removePasswordFromUserObject } from "../accountManagement/handlers/handleCreateAccount";
+import { serializeUser } from "../types/serialize";
 
 const signInRouter = Router();
 
@@ -45,7 +45,7 @@ signInRouter.post("/", async (req, res) => {
       error: false,
       message: "Sign in successful.",
       jwt: signIn.token,
-      user: removePasswordFromUserObject(signIn.user),
+      user: serializeUser(signIn.user),
     };
 
     res.status(200).send(handleSignInRes);

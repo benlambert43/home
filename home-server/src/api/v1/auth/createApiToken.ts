@@ -1,18 +1,16 @@
 import * as jwt from "jsonwebtoken";
-import { User, EncodedAccountJwt, UserNoPassword } from "../types/types";
-import { removePasswordFromUserObject } from "../accountManagement/handlers/handleCreateAccount";
+import { EncodedAccountJwt } from "@home/shared";
+import { SerializableUser, serializeUser } from "../types/serialize";
 
-export const createApiToken = (user: User) => {
+export const createApiToken = (user: SerializableUser) => {
   const jwtTokenIssuer = process.env.TOKEN_ISSUER;
   if (typeof jwtTokenIssuer !== "string" || jwtTokenIssuer.length < 1) {
     throw new Error("Could not create token, TOKEN_ISSUER is not defined.");
   }
 
-  const userRemovePassword = removePasswordFromUserObject(user);
-
   const encodedAccountJwtData: EncodedAccountJwt = {
     usage: "API",
-    user: userRemovePassword,
+    user: serializeUser(user),
   };
 
   const token = jwt.sign(encodedAccountJwtData, jwtTokenIssuer, {

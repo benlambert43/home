@@ -2,7 +2,7 @@
 
 import "server-only";
 import { SignJWT } from "jose";
-import { EncodedAccountJwt, UserNoPassword } from "../types/types";
+import { EncodedAccountJwt, UserNoPassword } from "@home/shared";
 
 export const createBffToken = async (user: UserNoPassword) => {
   const BFF_SESSION_SECRET = process.env.BFF_SESSION_SECRET;

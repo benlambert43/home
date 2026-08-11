@@ -1,7 +1,7 @@
 "use client";
 
 import { updateSessionTokens } from "@/app/actions/session";
-import { UserNoPassword } from "@/app/types/types";
+import { UserNoPassword } from "@home/shared";
 import { redirect } from "next/navigation";
 import { useEffect } from "react";
 

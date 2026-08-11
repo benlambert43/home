@@ -11,14 +11,12 @@ import {
 } from "@/app/lib/definitions";
 import {
   CreateAccountRequestBody,
-  RequestNewEmailVerificationRequestBody,
-  SignInRequestBody,
-} from "@/app/types/request";
-import {
   CreateAccountResponse,
   RequestNewEmailVerificationLinkResponse,
+  RequestNewEmailVerificationRequestBody,
+  SignInRequestBody,
   SignInResponse,
-} from "@/app/types/response";
+} from "@home/shared";
 import * as z from "zod";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";

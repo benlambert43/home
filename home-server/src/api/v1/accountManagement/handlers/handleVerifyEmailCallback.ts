@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
-import { removePasswordFromUserObject } from "./handleCreateAccount";
+import { serializeUser } from "../../types/serialize";
 import { removeNotification } from "../../notification/handlers/removeNotification";
 
 const updateEmailVerificationStatusToTrue = async ({
@@ -95,7 +95,7 @@ export const handleVerifyEmailCallback = async ({
       error: false,
       errorMessage: "",
       newToken: updatedToken,
-      userNoPassword: removePasswordFromUserObject(updatedUser),
+      userNoPassword: serializeUser(updatedUser),
     };
   } else {
     return {

@@ -7,8 +7,10 @@ import {
   ChangeUsernameFormSchema,
   ChangeUsernameFormState,
 } from "@/app/lib/definitions";
-import { ChangeUsernameRequestBody } from "@/app/types/request";
-import { ChangeUsernameResponse } from "@/app/types/response";
+import {
+  ChangeUsernameRequestBody,
+  ChangeUsernameResponse,
+} from "@home/shared";
 import { updateSessionTokens } from "@/app/actions/session";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
