@@ -1,0 +1,20 @@
+{
+  "name": "@home/shared",
+  "version": "1.0.0",
+  "description": "HTTP contract types shared between home-server and its clients.",
+  "license": "ISC",
+  "private": true,
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    }
+  },
+  "files": ["src"],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

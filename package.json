@@ -1,0 +1,21 @@
+{
+  "name": "home",
+  "version": "1.0.0",
+  "description": "Ben Lambert's Personal Website",
+  "license": "ISC",
+  "private": true,
+  "workspaces": ["home-shared", "home-server", "home-web-ui"],
+  "scripts": {
+    "dev": "npm run dev --workspace home-web-ui",
+    "dev:server": "npm start --workspace home-server",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspace home-web-ui"
+  },
+  "allowScripts": {
+    "bcrypt@6.0.0": true,
+    "fsevents@2.3.3": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
+  }
+}
