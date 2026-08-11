@@ -18,3 +18,4 @@ Uses npm workspace.
 | `npm run dev:server`                   | API                     |
 
 
+All timestamp strings should be in ISO 8601 format.
