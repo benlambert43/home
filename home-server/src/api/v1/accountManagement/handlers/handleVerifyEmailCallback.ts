@@ -37,12 +37,10 @@ export const handleVerifyEmailCallback = async ({
     verificationCodeClickedOn: true,
   });
 
-  // `new: true` returns the updated document, so the token below is signed
-  // from the confirmed user without a second read.
   const updatedUser = await UserModel.findByIdAndUpdate(
     user._id,
     { confirmedEmail: true },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
 
   if (!updatedUser) {

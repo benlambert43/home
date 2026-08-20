@@ -34,7 +34,6 @@ export interface SerializableNotification {
   timestamp: MaybeDate;
 }
 
-
 export const serializeUser = (user: SerializableUser): UserNoPassword => ({
   _id: toId(user._id),
   firstname: user.firstname,

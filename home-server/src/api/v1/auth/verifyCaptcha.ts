@@ -1,5 +1,5 @@
 export const handleVerifyCaptcha = async (
-  providedUnverifiedCaptchaToken: string
+  providedUnverifiedCaptchaToken: string,
 ) => {
   const recaptchaPrivateKey = process.env.CAPTCHA_SECRET;
 
@@ -15,7 +15,7 @@ export const handleVerifyCaptcha = async (
       throw new Error(
         maybeResponseMessage
           ? maybeResponseMessage
-          : `response.status ${response.status}`
+          : `response.status ${response.status}`,
       );
     }
 

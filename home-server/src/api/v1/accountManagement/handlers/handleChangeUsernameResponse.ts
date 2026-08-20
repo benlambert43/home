@@ -10,7 +10,7 @@ export const handleChangeUsername = async (
   const updatedUser = await UserModel.findByIdAndUpdate(
     decodedToken.user._id,
     { username: newUsername, modifiedDate: new Date() },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   if (!updatedUser) {
