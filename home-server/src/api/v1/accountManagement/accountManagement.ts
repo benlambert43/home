@@ -1,17 +1,24 @@
 import { Router } from "express";
+import { CreateAccountResponse } from "@home/shared";
+import { parseRequest } from "../http/parseRequest";
 import {
-  CreateAccountResponse,
-  RequestNewEmailVerificationLinkResponse,
-  VerifyEmailResponse,
-  ChangeUsernameResponse,
-} from "@home/shared";
-import * as z from "zod";
+  sendFailure,
+  sendResult,
+  sendSuccess,
+  sendUnauthenticated,
+} from "../http/respond";
+import { accountAlreadyExists, ApiMessage } from "../http/messages";
 import {
-  checkUniqueEmail,
+  changeUsernameBodySchema,
+  createAccountBodySchema,
+  requestNewEmailVerificationLinkBodySchema,
+  verifyEmailParamsSchema,
+} from "../http/requestSchemas";
+import {
   createNewUniqueRandomUsername,
-  verifyCaptcha,
   handleCreateAccount,
 } from "./handlers/handleCreateAccount";
+import { checkUniqueEmail, checkUniqueUsername } from "../user/userQueries";
 import { serializeUser } from "../types/serialize";
 import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
 import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
@@ -20,10 +27,8 @@ import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
-import {
-  checkUniqueUsername,
-  handleChangeUsername,
-} from "./handlers/handleChangeUsernameResponse";
+import { handleChangeUsername } from "./handlers/handleChangeUsernameResponse";
+
 const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
 
 const accountManagementRouter = Router();
@@ -34,95 +39,23 @@ accountManagementRouter.get("/", (req, res) => {
 
 accountManagementRouter.post("/createAccount", async (req, res) => {
   try {
-    const createAccountRequestBodySchema = z.object({
-      firstname: z
-        .string()
-        .min(2, { message: "First name must be at least 2 characters long." }),
-      lastname: z
-        .string()
-        .min(2, { message: "Last name must be at least 2 characters long." }),
-      email: z.email({ message: "Please enter a valid email." }),
-      password: z
-        .string()
-        .min(8, { message: "Password must be at least 8 characters long." }),
-      grecaptcharesponse: z.string().min(1, {
-        message:
-          "Please complete the ReCAPTCHA challenge, or reload the page and try again.",
-      }),
-    });
+    const body = parseRequest(createAccountBodySchema, req.body, res);
+    if (!body) return;
 
-    const createAccountRequestBody = createAccountRequestBodySchema.safeParse({
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
-      email: req.body.email,
-      password: req.body.password,
-      grecaptcharesponse: req.body.grecaptcharesponse,
-    });
+    const captcha = await handleVerifyCaptcha(body.grecaptcharesponse);
+    if (!captcha.success) return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
 
-    if (!createAccountRequestBody.success) {
-      const errors = z.treeifyError(createAccountRequestBody.error);
+    const username = await createNewUniqueRandomUsername();
+    if (!username) return sendFailure(res);
 
-      const createAccountReqBodyErrorResponse: CreateAccountResponse = {
-        error: true,
-        message: "Error creating account while parsing request body.",
-      };
+    const emailAvailable = await checkUniqueEmail(body.email);
+    if (!emailAvailable) return sendFailure(res, accountAlreadyExists("email"));
 
-      res.status(400).send(createAccountReqBodyErrorResponse);
-      return;
-    }
-
-    const validCaptcha = await verifyCaptcha(
-      createAccountRequestBody.data.grecaptcharesponse,
-    );
-
-    if (!validCaptcha.success) {
-      const createAccountRecaptchaErrorResponse: CreateAccountResponse = {
-        error: true,
-        message: "Error creating account. Recaptcha challenge failed.",
-      };
-
-      res.status(400).send(createAccountRecaptchaErrorResponse);
-      return;
-    }
-
-    const uniqueRandomUsername = await createNewUniqueRandomUsername();
-
-    if (!uniqueRandomUsername) {
-      const createAccountUsernameErrorResponse: CreateAccountResponse = {
-        error: true,
-        message: "Error creating account with randomized username.",
-      };
-
-      res.status(400).send(createAccountUsernameErrorResponse);
-      return;
-    }
-
-    const uniqueEmail = await checkUniqueEmail(
-      createAccountRequestBody.data.email,
-    );
-
-    if (!uniqueEmail) {
-      const createAccountEmailErrorResponse: CreateAccountResponse = {
-        error: true,
-        message:
-          "Error creating account. An account with this email already exists.",
-      };
-
-      res.status(400).send(createAccountEmailErrorResponse);
-      return;
-    }
-
-    const validCreateAccountRequestBody = {
-      ...createAccountRequestBody.data,
-      username: uniqueRandomUsername,
-    };
-
-    const createAccount = await handleCreateAccount(
-      validCreateAccountRequestBody,
-    );
+    const { grecaptcharesponse, ...account } = body;
+    const { token, user } = await handleCreateAccount({ ...account, username });
 
     await createNewNotification({
-      recipientUserId: createAccount.user._id,
+      recipientUserId: user._id,
       subtype: "confirmEmail",
       message: "Please check your inbox to confirm your email.",
       referenceLink: `${BASE_FRONTEND_URL}profile`,
@@ -130,24 +63,15 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       canBeDeleted: false,
     });
 
-    handleSendEmailVerification(createAccount.user);
+    handleSendEmailVerification(user);
 
-    const handleCreateAccountRes: CreateAccountResponse = {
-      error: false,
-      message: "New account created",
-      jwt: createAccount.token,
-      user: serializeUser(createAccount.user),
-    };
-
-    res.status(200).send(handleCreateAccountRes);
-    return;
+    sendSuccess<CreateAccountResponse>(res, {
+      message: ApiMessage.ACCOUNT_CREATED,
+      jwt: token,
+      user: serializeUser(user),
+    });
   } catch (e) {
-    const handleCreateAccountRes: CreateAccountResponse = {
-      error: true,
-      message: "Error creating new account. Account was not created.",
-    };
-    res.status(400).send(handleCreateAccountRes);
-    return;
+    sendFailure(res);
   }
 });
 
@@ -155,57 +79,20 @@ accountManagementRouter.get(
   "/verifyEmail/:username/:email/:code",
   async (req, res) => {
     try {
-      const verifyEmailUrlParamSchema = z.object({
-        username: z
-          .string()
-          .min(1)
-          .regex(/^[a-zA-Z0-9-]+$/),
-        email: z.email(),
-        code: z
-          .string()
-          .min(1)
-          .regex(/^[a-zA-Z0-9-]+$/),
-      });
+      const params = parseRequest(
+        verifyEmailParamsSchema,
+        {
+          username: decodeUrlSafeB64(req.params.username),
+          email: decodeUrlSafeB64(req.params.email),
+          code: req.params.code,
+        },
+        res,
+      );
+      if (!params) return;
 
-      const verifyEmailUrlParams = verifyEmailUrlParamSchema.safeParse({
-        username: decodeUrlSafeB64(req.params.username),
-        email: decodeUrlSafeB64(req.params.email),
-        code: req.params.code,
-      });
-
-      if (!verifyEmailUrlParams.success) {
-        const errors = z.treeifyError(verifyEmailUrlParams.error);
-        const verifyEmailResponse: VerifyEmailResponse = {
-          error: true,
-          message: "There was an error verifying url params.",
-        };
-        res.status(400).send(verifyEmailResponse);
-        return;
-      }
-
-      const { username, email, code } = verifyEmailUrlParams.data;
-
-      const verifyEmailCallbackResponse = await handleVerifyEmailCallback({
-        username,
-        email,
-        code,
-      });
-
-      if (verifyEmailCallbackResponse.error === false) {
-        res.status(200).send(verifyEmailCallbackResponse);
-        return;
-      } else {
-        res.status(400).send(verifyEmailCallbackResponse);
-        return;
-      }
+      sendResult(res, await handleVerifyEmailCallback(params));
     } catch (e) {
-      const verifyEmailResponse: VerifyEmailResponse = {
-        error: true,
-        message:
-          "An error occurred. Unable to update email verification status. Please request a new email verification link or try again.",
-      };
-      res.status(400).send(verifyEmailResponse);
-      return;
+      sendFailure(res, ApiMessage.VERIFICATION_LINK_INVALID);
     }
   },
 );
@@ -214,137 +101,47 @@ accountManagementRouter.post(
   "/requestNewEmailVerificationLink",
   async (req, res) => {
     try {
-      const verifyEmailVerificationBodySchema = z.object({
-        authorizationToken: z.string().min(1),
-        grecaptcharesponse: z.string().min(1),
-      });
+      const verifiedToken = authenticateApiToken(req.headers?.authorization);
+      if (verifiedToken.error) return sendUnauthenticated(res);
 
-      const verifyEmailVerification =
-        verifyEmailVerificationBodySchema.safeParse({
-          authorizationToken: req.headers?.authorization,
-          grecaptcharesponse: req.body?.grecaptcharesponse,
-        });
+      const body = parseRequest(
+        requestNewEmailVerificationLinkBodySchema,
+        req.body,
+        res,
+      );
+      if (!body) return;
 
-      if (!verifyEmailVerification.success) {
-        throw new Error();
-      }
+      const captcha = await handleVerifyCaptcha(body.grecaptcharesponse);
+      if (!captcha.success) return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
 
-      const { authorizationToken, grecaptcharesponse } =
-        verifyEmailVerification.data;
-
-      const verifiedCaptcha = await handleVerifyCaptcha(grecaptcharesponse);
-      const verifiedToken = authenticateApiToken(authorizationToken);
-
-      if (!verifiedCaptcha.success) {
-        throw new Error();
-      }
-
-      if (
-        verifiedToken.error === true ||
-        verifiedToken.decodedToken === undefined
-      ) {
-        throw new Error();
-      }
-
-      const handleRequestNewEmailVerificationLinkResponse =
-        await handleRequestNewEmailVerificationLink({
-          decodedToken: verifiedToken.decodedToken,
-        });
-
-      if (handleRequestNewEmailVerificationLinkResponse.error === false) {
-        const requestNewEmailVerificationLinkResponse: RequestNewEmailVerificationLinkResponse =
-          {
-            error: handleRequestNewEmailVerificationLinkResponse.error,
-            message: handleRequestNewEmailVerificationLinkResponse.errorMsg,
-          };
-        res.status(200).send(requestNewEmailVerificationLinkResponse);
-        return;
-      } else {
-        const requestNewEmailVerificationLinkErrorResponse: RequestNewEmailVerificationLinkResponse =
-          {
-            error: handleRequestNewEmailVerificationLinkResponse.error,
-            message: handleRequestNewEmailVerificationLinkResponse.errorMsg,
-          };
-        res.status(400).send(requestNewEmailVerificationLinkErrorResponse);
-        return;
-      }
+      sendResult(
+        res,
+        await handleRequestNewEmailVerificationLink(verifiedToken.decodedToken),
+      );
     } catch (e) {
-      const requestNewEmailVerificationLinkErrorResponse: RequestNewEmailVerificationLinkResponse =
-        {
-          error: true,
-          message: "An error occurred.",
-        };
-      res.status(400).send(requestNewEmailVerificationLinkErrorResponse);
-      return;
+      sendFailure(res);
     }
   },
-
-  accountManagementRouter.post("/changeUsername", async (req, res) => {
-    try {
-      const changeUsernameBodySchema = z.object({
-        authorizationToken: z.string().min(1),
-        newUsername: z.string().min(1),
-      });
-
-      const changeUsername = changeUsernameBodySchema.safeParse({
-        authorizationToken: req.headers?.authorization,
-        newUsername: req.body?.newUsername,
-      });
-
-      if (!changeUsername.success) {
-        throw new Error();
-      }
-
-      const { authorizationToken, newUsername } = changeUsername.data;
-
-      const verifiedToken = authenticateApiToken(authorizationToken);
-
-      if (
-        verifiedToken.error === true ||
-        verifiedToken.decodedToken === undefined
-      ) {
-        throw new Error();
-      }
-
-      const { decodedToken } = verifiedToken;
-
-      const uniqueUsername = await checkUniqueUsername(
-        changeUsername.data.newUsername,
-      );
-
-      if (!uniqueUsername) {
-        const requestChangeUsernameLinkResponse: ChangeUsernameResponse = {
-          error: true,
-          message:
-            "Error changing username. An account with this username already exists.",
-        };
-
-        res.status(400).send(requestChangeUsernameLinkResponse);
-        return;
-      }
-
-      const handleChangeUsernameResponse = await handleChangeUsername(
-        decodedToken,
-        newUsername,
-      );
-
-      if (handleChangeUsernameResponse.error === false) {
-        res.status(200).send(handleChangeUsernameResponse);
-        return;
-      } else {
-        res.status(400).send(handleChangeUsernameResponse);
-        return;
-      }
-    } catch (e) {
-      const requestChangeUsernameLinkErrorResponse: ChangeUsernameResponse = {
-        error: true,
-        message:
-          "An error occurred before username change was able to process.",
-      };
-      res.status(400).send(requestChangeUsernameLinkErrorResponse);
-      return;
-    }
-  }),
 );
+
+accountManagementRouter.post("/changeUsername", async (req, res) => {
+  try {
+    const verifiedToken = authenticateApiToken(req.headers?.authorization);
+    if (verifiedToken.error) return sendUnauthenticated(res);
+
+    const body = parseRequest(changeUsernameBodySchema, req.body, res);
+    if (!body) return;
+
+    const available = await checkUniqueUsername(body.newUsername);
+    if (!available) return sendFailure(res, accountAlreadyExists("username"));
+
+    sendResult(
+      res,
+      await handleChangeUsername(verifiedToken.decodedToken, body.newUsername),
+    );
+  } catch (e) {
+    sendFailure(res);
+  }
+});
 
 export default accountManagementRouter;

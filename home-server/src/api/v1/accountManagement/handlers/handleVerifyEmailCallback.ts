@@ -1,28 +1,10 @@
-import { Types } from "mongoose";
 import { VerifyEmailResponse } from "@home/shared";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { serializeUser } from "../../types/serialize";
 import { removeNotification } from "../../notification/handlers/removeNotification";
-
-const updateEmailVerificationStatusToTrue = async ({
-  userId,
-  emailVerificationId,
-}: {
-  userId: Types.ObjectId;
-  emailVerificationId: Types.ObjectId;
-}) => {
-  await UserModel.findByIdAndUpdate(userId, { confirmedEmail: true });
-  await EmailVerificationModel.findByIdAndUpdate(emailVerificationId, {
-    verificationCodeClickedOn: true,
-  });
-  const user = await UserModel.findById(userId).lean();
-  if (user) {
-    return user;
-  }
-  return undefined;
-};
+import { ApiMessage } from "../../http/messages";
 
 export const handleVerifyEmailCallback = async ({
   username,
@@ -33,77 +15,49 @@ export const handleVerifyEmailCallback = async ({
   email: string;
   code: string;
 }): Promise<VerifyEmailResponse> => {
-  const user = await UserModel.findOne({
-    username: username,
-    email: email,
-  }).lean();
+  const user = await UserModel.findOne({ username, email }).lean();
   const emailVerification = await EmailVerificationModel.findOne({
-    email: email,
+    email,
     verificationCode: code,
   }).lean();
-  const userId = user?._id;
-  const emailVerificationId = emailVerification?._id;
 
-  if (
-    userId &&
-    emailVerificationId &&
-    user.confirmedEmail === true &&
-    emailVerification.verificationCodeClickedOn === true
-  ) {
-    return {
-      error: true,
-      message: "You have already confirmed your email address.",
-    };
+  if (!user || !emailVerification) {
+    return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
   }
 
-  const expired = Boolean(
-    emailVerification &&
-    emailVerification?.expiresDate.getTime() <= new Date().getTime(),
-  );
-
-  if (expired) {
-    return {
-      error: true,
-      message:
-        "Email verification link has expired. Please request a new email verification link.",
-    };
+  if (user.confirmedEmail && emailVerification.verificationCodeClickedOn) {
+    return { error: true, message: ApiMessage.EMAIL_ALREADY_CONFIRMED };
   }
 
-  if (
-    userId &&
-    emailVerificationId &&
-    !expired &&
-    emailVerification.verificationCode === code
-  ) {
-    const updatedUser = await updateEmailVerificationStatusToTrue({
-      userId,
-      emailVerificationId,
-    });
-    if (!updatedUser) {
-      return {
-        error: true,
-        message: "Unable to find updated user.",
-      };
-    }
-
-    const jwt = createApiToken(updatedUser);
-    await removeNotification({
-      recipientUserId: updatedUser._id,
-      subtype: "confirmEmail",
-    });
-
-    return {
-      error: false,
-      message:
-        "Thank you for confirming your email address! You can now close this window.",
-      jwt: jwt,
-      user: serializeUser(updatedUser),
-    };
-  } else {
-    return {
-      error: true,
-      message:
-        "Unable to update email verification status. Please request a new email verification link or try again.",
-    };
+  if (emailVerification.expiresDate.getTime() <= Date.now()) {
+    return { error: true, message: ApiMessage.VERIFICATION_LINK_EXPIRED };
   }
+
+  await EmailVerificationModel.findByIdAndUpdate(emailVerification._id, {
+    verificationCodeClickedOn: true,
+  });
+
+  // `new: true` returns the updated document, so the token below is signed
+  // from the confirmed user without a second read.
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    user._id,
+    { confirmedEmail: true },
+    { new: true },
+  ).lean();
+
+  if (!updatedUser) {
+    return { error: true, message: ApiMessage.UNEXPECTED };
+  }
+
+  await removeNotification({
+    recipientUserId: updatedUser._id,
+    subtype: "confirmEmail",
+  });
+
+  return {
+    error: false,
+    message: ApiMessage.EMAIL_CONFIRMED,
+    jwt: createApiToken(updatedUser),
+    user: serializeUser(updatedUser),
+  };
 };

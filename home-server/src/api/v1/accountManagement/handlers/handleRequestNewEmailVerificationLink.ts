@@ -1,27 +1,24 @@
 import dayjs from "dayjs";
+import {
+  EncodedAccountJwt,
+  RequestNewEmailVerificationLinkResponse,
+} from "@home/shared";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
-import { EncodedAccountJwt } from "@home/shared";
 import { handleSendEmailVerification } from "../../email/handlers/handleSendEmailVerification";
+import { ApiMessage, pendingEmailVerification } from "../../http/messages";
 
-export const handleRequestNewEmailVerificationLink = async ({
-  decodedToken,
-}: {
-  decodedToken: EncodedAccountJwt;
-}) => {
+export const handleRequestNewEmailVerificationLink = async (
+  decodedToken: EncodedAccountJwt,
+): Promise<RequestNewEmailVerificationLinkResponse> => {
   const foundUser = await UserModel.findById(decodedToken.user._id);
+
   if (!foundUser) {
-    return {
-      error: true,
-      errorMsg: "Unable to find user with provided user id.",
-    };
+    return { error: true, message: ApiMessage.UNEXPECTED };
   }
 
   if (foundUser.confirmedEmail === true) {
-    return {
-      error: true,
-      errorMsg: "You have already confirmed your email address.",
-    };
+    return { error: true, message: ApiMessage.EMAIL_ALREADY_CONFIRMED };
   }
 
   /*
@@ -35,38 +32,26 @@ export const handleRequestNewEmailVerificationLink = async ({
     userId: foundUser._id,
   }).sort({ createdDate: -1 });
 
-  if (
-    mostRecentEmailVerification === undefined ||
-    mostRecentEmailVerification === null
-  ) {
+  if (!mostRecentEmailVerification) {
+    return { error: true, message: ApiMessage.UNEXPECTED };
+  }
+
+  const expiresAtDateTime = dayjs(mostRecentEmailVerification.expiresDate);
+
+  if (!dayjs().isAfter(expiresAtDateTime)) {
     return {
       error: true,
-      errorMsg: "Unable to find a record of previous email verification sent.",
+      message: pendingEmailVerification(
+        foundUser.email,
+        expiresAtDateTime.format("MMM D, YYYY [at] h:mm A"),
+      ),
     };
   }
 
-  const currentDateTime = dayjs();
-  const expiresAtDateTime = dayjs(mostRecentEmailVerification.expiresDate);
-
-  if (currentDateTime.isAfter(expiresAtDateTime)) {
-    try {
-      handleSendEmailVerification(foundUser);
-      return { error: false, errorMsg: "" };
-    } catch {
-      return {
-        error: true,
-        errorMsg:
-          "Something went wrong when trying to resend email verification.",
-      };
-    }
-  } else {
-    return {
-      error: true,
-      errorMsg: `
-        You already have a pending email verification. 
-        Please check your ${foundUser.email} account's spam and junk mail folders. 
-        You may send another email at ${expiresAtDateTime}
-      `,
-    };
+  try {
+    handleSendEmailVerification(foundUser);
+    return { error: false, message: "" };
+  } catch {
+    return { error: true, message: ApiMessage.UNEXPECTED };
   }
 };
