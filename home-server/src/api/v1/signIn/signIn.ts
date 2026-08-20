@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { SignInResponse } from "@home/shared";
-import * as z from "zod";
+import { parseRequest } from "../http/parseRequest";
+import { signInBodySchema } from "../http/requestSchemas";
+import { ApiMessage } from "../http/messages";
+import { sendFailure, sendSuccess } from "../http/respond";
 import { handleSignIn } from "./handlers/handleSignIn";
 import { serializeUser } from "../types/serialize";
 
@@ -12,56 +15,19 @@ signInRouter.get("/", (req, res) => {
 
 signInRouter.post("/", async (req, res) => {
   try {
-    const signInRequestBodySchema = z.object({
-      email: z.email({ message: "Please enter a valid email." }),
-      password: z
-        .string()
-        .min(8, { message: "Password must be at least 8 characters long." }),
-    });
+    const body = parseRequest(signInBodySchema, req.body, res);
+    if (!body) return;
 
-    const signInRequestBody = signInRequestBodySchema.safeParse({
-      email: req.body.email,
-      password: req.body.password,
-    });
+    const signIn = await handleSignIn(body);
+    if (signIn.error) return sendFailure(res, signIn.message, 401);
 
-    if (!signInRequestBody.success) {
-      const errors = z.treeifyError(signInRequestBody.error);
-
-      const signInReqBodyErrorResponse: SignInResponse = {
-        error: true,
-        message: "Error signing in while parsing request body.",
-      };
-
-      res.status(400).send(signInReqBodyErrorResponse);
-      return;
-    }
-
-    const signIn = await handleSignIn({
-      email: signInRequestBody.data?.email,
-      password: signInRequestBody.data?.password,
-    });
-
-    const handleSignInRes: SignInResponse = {
-      error: false,
-      message: "Sign in successful.",
+    sendSuccess<SignInResponse>(res, {
+      message: ApiMessage.SIGNED_IN,
       jwt: signIn.token,
       user: serializeUser(signIn.user),
-    };
-
-    res.status(200).send(handleSignInRes);
-    return;
+    });
   } catch (e) {
-    const maybeMessage =
-      e && e?.toString() && e.toString().length > 0
-        ? e.toString()
-        : "Error signing in. Please try again.";
-
-    const handleSignInRes: SignInResponse = {
-      error: true,
-      message: maybeMessage,
-    };
-    res.status(400).send(handleSignInRes);
-    return;
+    sendFailure(res);
   }
 });
 

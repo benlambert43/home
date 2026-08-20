@@ -1,34 +1,15 @@
 import * as bcrypt from "bcrypt";
+import { SignInRequestBody } from "@home/shared";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
+import { ApiMessage } from "../../http/messages";
 
-const authenticateLogin = async (password: string, passwordHash: string) => {
-  const hash = passwordHash;
-  const result = await bcrypt.compare(password, hash);
-  return result;
-};
+export const handleSignIn = async ({ email, password }: SignInRequestBody) => {
+  const user = await UserModel.findOne({ email });
 
-export const handleSignIn = async (validSignInRequestBody: {
-  email: string;
-  password: string;
-}) => {
-  const findUserByEmail = await UserModel.findOne({
-    email: validSignInRequestBody.email,
-  });
-
-  if (!findUserByEmail) {
-    throw new Error("Error signing in. Email or password is incorrect.");
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return { error: true as const, message: ApiMessage.INVALID_CREDENTIALS };
   }
 
-  const validLogin = await authenticateLogin(
-    validSignInRequestBody.password,
-    findUserByEmail.password
-  );
-  if (!validLogin) {
-    throw new Error("Error signing in. Email or password is incorrect.");
-  }
-
-  const newJwt = createApiToken(findUserByEmail);
-
-  return { token: newJwt, user: findUserByEmail };
+  return { error: false as const, token: createApiToken(user), user };
 };
