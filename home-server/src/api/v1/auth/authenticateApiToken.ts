@@ -1,34 +1,33 @@
 import * as jwt from "jsonwebtoken";
 import { EncodedAccountJwt } from "@home/shared";
 
-export const authenticateApiToken = (unverifiedToken?: string) => {
+export type ApiTokenAuthentication =
+  | { error: false; decodedToken: EncodedAccountJwt }
+  | { error: true; errorMsg: string };
+
+export const authenticateApiToken = (
+  unverifiedToken?: string,
+): ApiTokenAuthentication => {
   const secret = process.env.TOKEN_ISSUER || "";
+
   try {
     if (typeof unverifiedToken === "undefined") {
       throw new Error("No authorization token provided.");
     }
-    const decode = jwt.verify(unverifiedToken, secret);
 
-    if (typeof decode === "string") {
-      const decodedTokenString: EncodedAccountJwt = JSON.parse(decode);
-      return { error: false, errorMsg: "", decodedToken: decodedTokenString };
-    }
+    const decoded = jwt.verify(unverifiedToken, secret);
 
-    const encodedDataFromJwt = {
+    return {
       error: false,
-      errorMsg: "",
-      decodedToken: decode as EncodedAccountJwt,
+      decodedToken:
+        typeof decoded === "string"
+          ? (JSON.parse(decoded) as EncodedAccountJwt)
+          : (decoded as EncodedAccountJwt),
     };
-    return encodedDataFromJwt;
   } catch (e) {
-    const errorMsgStr = () => {
-      try {
-        const stringErr = JSON.stringify(e, undefined, " ");
-        return stringErr;
-      } catch {
-        return "Unknown error.";
-      }
+    return {
+      error: true,
+      errorMsg: e instanceof Error ? e.message : "Unknown error.",
     };
-    return { error: true, errorMsg: errorMsgStr(), decodedToken: undefined };
   }
 };
