@@ -1,33 +1,20 @@
 import { Router } from "express";
-import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { GetNotificationsResponse } from "@home/shared";
+import { authenticateApiToken } from "../auth/authenticateApiToken";
+import { sendSuccess, sendUnauthenticated } from "../http/respond";
 import { handleGetNotifications } from "./handlers/handleGetNotifications";
 
 const notificationRouter = Router();
 
 notificationRouter.get("/", async (req, res) => {
-  const unverifiedToken = req.headers?.authorization;
-  const validAuthToken = authenticateApiToken(unverifiedToken);
-  const { error, errorMsg, decodedToken } = validAuthToken;
-  if (error === false && decodedToken) {
-    const notifications = await handleGetNotifications(decodedToken.user._id);
+  const verifiedToken = authenticateApiToken(req.headers?.authorization);
+  if (verifiedToken.error) return sendUnauthenticated(res);
 
-    const getNotificationsResponse: GetNotificationsResponse = {
-      error: false,
-      message: "",
-      notifications,
-    };
+  const notifications = await handleGetNotifications(
+    verifiedToken.decodedToken.user._id,
+  );
 
-    res.status(200).send(getNotificationsResponse);
-    return;
-  } else {
-    const getNotificationsErrorResponse: GetNotificationsResponse = {
-      error: false,
-      message: errorMsg,
-    };
-    res.status(400).send(getNotificationsErrorResponse);
-    return;
-  }
+  sendSuccess<GetNotificationsResponse>(res, { message: "", notifications });
 });
 
 notificationRouter.patch("/:id/read", (req, res) => {
