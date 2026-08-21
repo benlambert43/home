@@ -11,7 +11,7 @@ const ChangeUsername = async () => {
       <div className="text-4xl font-bold">Change Username</div>
       <div>Current username: {user.username}</div>
       <div>
-        <ChangeUsernameForm user={user} />
+        <ChangeUsernameForm />
       </div>
     </div>
   );

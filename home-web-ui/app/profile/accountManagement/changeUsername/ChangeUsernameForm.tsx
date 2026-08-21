@@ -1,13 +1,10 @@
 "use client";
 
 import { changeUsername } from "@/app/actions/profile";
-import { UserNoPassword } from "@home/shared";
 import Button from "@/app/ui/Button";
 import { useActionState } from "react";
 
-const ChangeUsernameForm = (props: { user: UserNoPassword }) => {
-  const { user } = props;
-
+const ChangeUsernameForm = () => {
   const [state, action, pending] = useActionState(changeUsername, undefined);
 
   return (

@@ -1,7 +1,6 @@
 "use server";
 import { createBffToken } from "@/app/auth/createBffToken";
 import { UserNoPassword } from "@home/shared";
-import { UserCookie } from "@/app/lib/session";
 import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -11,19 +10,10 @@ export const createSession = async (
   user: UserNoPassword,
 ) => {
   const decodedJwt = jwtDecode(encodedApiJwtSession);
-  const { exp, iat } = decodedJwt;
-  if (typeof exp !== "number" || typeof iat !== "number")
-    throw new Error("No exp or iat on token.");
+  const { exp } = decodedJwt;
+  if (typeof exp !== "number") throw new Error("No exp on token.");
 
   const expiresAt = new Date(exp * 1000);
-  const issuedAt = new Date(iat * 1000);
-
-  const plainTextUserCookie: UserCookie = {
-    ...user,
-    loginAt: new Date().toISOString(),
-    expiresAt: expiresAt.toISOString(),
-    issuedAt: issuedAt.toISOString(),
-  };
 
   const encodedBffJwtSession = await createBffToken(user);
 
@@ -44,17 +34,12 @@ export const createSession = async (
     sameSite: "lax",
     path: "/",
   });
-
-  cookieStore.set("user", JSON.stringify(plainTextUserCookie), {
-    expires: expiresAt,
-  });
 };
 
 export const removeSession = async () => {
   const cookieStore = await cookies();
   cookieStore.delete("apisession");
   cookieStore.delete("bffsession");
-  cookieStore.delete("user");
   redirect("/signin");
 };
 
