@@ -1,11 +1,10 @@
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { redirect } from "next/navigation";
 import { CreateAccountForm } from "@/app/createaccount/CreateAccountForm";
 
 const CreateAccount = async () => {
-  const cookieStore = await cookies();
-  const userCookie = cookieStore.get("user");
-  if (typeof userCookie?.value === "string") redirect("/profile");
+  const user = await getBffSessionUser();
+  if (user) redirect("/profile");
 
   return (
     <div className="flex flex-col gap-4 p-5">

@@ -1,13 +1,13 @@
-import { UserCookie } from "@/app/lib/session";
+import { UserNoPassword } from "@home/shared";
 import Button from "@/app/ui/Button";
 import { ArrowRightIcon, EnvelopeIcon } from "@heroicons/react/16/solid";
 
 import Link from "next/link";
 
-const ProfileBanner = (props: { userCookie: UserCookie }) => {
+const ProfileBanner = (props: { user: UserNoPassword }) => {
   return (
     <>
-      {props.userCookie.confirmedEmail === false && (
+      {props.user.confirmedEmail === false && (
         <div className="max-w-80 rounded-md border-2 p-4">
           <div>
             Email is not yet confirmed. Please check your inbox or resend the

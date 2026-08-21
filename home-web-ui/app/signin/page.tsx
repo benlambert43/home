@@ -1,12 +1,11 @@
 import { SignInForm } from "@/app/signin/SignInForm";
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const SignIn = async () => {
-  const cookieStore = await cookies();
-  const userCookie = cookieStore.get("user");
-  if (typeof userCookie?.value === "string") redirect("/profile");
+  const user = await getBffSessionUser();
+  if (user) redirect("/profile");
 
   return (
     <div className="flex flex-col gap-4 p-5">

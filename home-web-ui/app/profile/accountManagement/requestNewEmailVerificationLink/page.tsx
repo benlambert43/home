@@ -1,11 +1,10 @@
 import { RequestNewEmailVerificationLinkForm } from "@/app/profile/accountManagement/requestNewEmailVerificationLink/RequestNewEmailVerificationLinkForm";
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { redirect } from "next/navigation";
 
 const RequestNewEmailVerificationLink = async () => {
-  const cookieStore = await cookies();
-  const userCookie = cookieStore.get("user");
-  if (typeof userCookie?.value !== "string") redirect("/signin");
+  const user = await getBffSessionUser();
+  if (!user) redirect("/signin");
 
   return (
     <div className="mx-4 py-8">

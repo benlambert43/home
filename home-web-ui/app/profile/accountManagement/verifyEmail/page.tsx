@@ -2,7 +2,7 @@ import EmailAlreadyVerified from "@/app/profile/accountManagement/verifyEmail/Em
 import EmailVerified from "@/app/profile/accountManagement/verifyEmail/EmailVerified";
 import { VerifyEmailResponse } from "@home/shared";
 import Button from "@/app/ui/Button";
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import Link from "next/link";
 
 const VerifyEmail = async ({
@@ -11,14 +11,9 @@ const VerifyEmail = async ({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
   try {
-    // If the user cookie already exists and the confirmed email is true then skip the fetch call.
-    const cookieStore = await cookies();
-    const userCookie = cookieStore.get("user");
-    if (
-      userCookie &&
-      JSON.parse(userCookie.value)?._id &&
-      JSON.parse(userCookie.value)?.confirmedEmail === true
-    ) {
+    // If the session already exists and the confirmed email is true then skip the fetch call.
+    const user = await getBffSessionUser();
+    if (user?._id && user.confirmedEmail === true) {
       return <EmailAlreadyVerified />;
     } else {
       const username = (await searchParams).username;

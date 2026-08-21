@@ -1,12 +1,11 @@
 import { EnvelopeIcon } from "@heroicons/react/16/solid";
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const requestNewEmailVerificationLinkSuccess = async () => {
-  const cookieStore = await cookies();
-  const userCookie = cookieStore.get("user");
-  if (typeof userCookie?.value !== "string") redirect("/signin");
+  const user = await getBffSessionUser();
+  if (!user) redirect("/signin");
 
   return (
     <div className="mx-4 flex flex-col gap-2 py-8">

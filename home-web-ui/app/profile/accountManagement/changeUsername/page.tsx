@@ -1,20 +1,17 @@
 import ChangeUsernameForm from "@/app/profile/accountManagement/changeUsername/ChangeUsernameForm";
-import { UserCookie } from "@/app/lib/session";
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { redirect } from "next/navigation";
 
 const ChangeUsername = async () => {
-  const cookieStore = await cookies();
-  const maybeUserCookie = cookieStore.get("user");
-  if (typeof maybeUserCookie?.value !== "string") redirect("/signin");
-  const userCookie = JSON.parse(maybeUserCookie.value) as UserCookie;
+  const user = await getBffSessionUser();
+  if (!user) redirect("/signin");
 
   return (
     <div className="flex flex-col gap-4 p-5">
       <div className="text-4xl font-bold">Change Username</div>
-      <div>Current username: {userCookie.username}</div>
+      <div>Current username: {user.username}</div>
       <div>
-        <ChangeUsernameForm userCookie={userCookie} />
+        <ChangeUsernameForm user={user} />
       </div>
     </div>
   );

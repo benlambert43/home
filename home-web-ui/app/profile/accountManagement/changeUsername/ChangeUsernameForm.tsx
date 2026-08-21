@@ -1,12 +1,12 @@
 "use client";
 
 import { changeUsername } from "@/app/actions/profile";
-import { UserCookie } from "@/app/lib/session";
+import { UserNoPassword } from "@home/shared";
 import Button from "@/app/ui/Button";
 import { useActionState } from "react";
 
-const ChangeUsernameForm = (props: { userCookie: UserCookie }) => {
-  const { userCookie } = props;
+const ChangeUsernameForm = (props: { user: UserNoPassword }) => {
+  const { user } = props;
 
   const [state, action, pending] = useActionState(changeUsername, undefined);
 

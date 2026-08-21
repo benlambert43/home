@@ -1,6 +1,6 @@
 import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { Notifications } from "@/app/components/Notifications";
 
 const SignIn = () => {
@@ -32,8 +32,7 @@ const Settings = () => {
 };
 
 const Navbar = async () => {
-  const cookieStore = await cookies();
-  const userCookie = cookieStore.get("user");
+  const user = await getBffSessionUser();
 
   return (
     <nav
@@ -47,7 +46,7 @@ const Navbar = async () => {
         <Link href="/about">about</Link>
       </div>
       <div className="flex flex-1 items-center gap-4 sm:justify-end">
-        {userCookie ? (
+        {user ? (
           <>
             <Notifications />
             <Settings />
