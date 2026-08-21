@@ -4,13 +4,22 @@
   "description": "Ben Lambert's Personal Website",
   "license": "ISC",
   "private": true,
-  "workspaces": ["home-shared", "home-server", "home-web-ui"],
+  "workspaces": [
+    "home-shared",
+    "home-server",
+    "home-web-ui"
+  ],
   "scripts": {
     "dev": "npm run dev --workspace home-web-ui",
     "dev:server": "npm start --workspace home-server",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspace home-web-ui"
+    "lint": "npm run lint --workspace home-web-ui",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
   },
   "allowScripts": {
     "bcrypt@6.0.0": true,
