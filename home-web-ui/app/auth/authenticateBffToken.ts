@@ -1,5 +1,3 @@
-"use server";
-
 import "server-only";
 import { jwtVerify } from "jose";
 import { EncodedAccountJwt } from "@home/shared";
@@ -11,7 +9,7 @@ export type AuthenticatedBffToken = {
 };
 
 export const authenticateBffToken = async (
-  JwtStr?: string
+  JwtStr?: string,
 ): Promise<AuthenticatedBffToken> => {
   const BFF_SESSION_SECRET = process.env.BFF_SESSION_SECRET;
   const encodedBffKey = new TextEncoder().encode(BFF_SESSION_SECRET);
@@ -32,17 +30,16 @@ export const authenticateBffToken = async (
       algorithms: ["HS256"],
     });
     const encodedAccountJwtData = decodedJwt.payload as EncodedAccountJwt;
+
+    if (encodedAccountJwtData.usage !== "BFF" || !encodedAccountJwtData.user) {
+      throw new Error("The JWT is not a BFF session token.");
+    }
+
     return { valid: true, authenticatedUser: encodedAccountJwtData };
   } catch (e) {
-    const errorMsgStr = () => {
-      try {
-        const stringErr = JSON.stringify(e, undefined, " ");
-        return stringErr;
-      } catch {
-        return "Unknown error while parsing the JWT validation error string.";
-      }
+    return {
+      valid: false,
+      message: e instanceof Error ? e.message : "Unknown error.",
     };
-
-    return { valid: false, message: errorMsgStr() };
   }
 };

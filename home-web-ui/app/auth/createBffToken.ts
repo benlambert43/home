@@ -1,5 +1,3 @@
-"use server";
-
 import "server-only";
 import { SignJWT } from "jose";
 import { EncodedAccountJwt, UserNoPassword } from "@home/shared";
