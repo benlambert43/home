@@ -21,7 +21,7 @@ npm run dev:server
 
 Lint rules shared by every workspace live in eslint.config.base.mjs
 
-Each workspace's `eslint.config.mjs` layers its own framework config and ignores on top.
+Each workspace's `eslint.config.mjs` layers its own framework config and ignores on top of the root base eslint config.
 
 ## Timestamps
 
