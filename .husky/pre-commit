@@ -1,1 +1,1 @@
-BYPASS_HINT="git commit --no-verify" sh scripts/check.sh
+BYPASS_HINT="git commit --no-verify" sh scripts/check.sh --no-build

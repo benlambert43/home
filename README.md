@@ -17,4 +17,12 @@ npm run dev
 
 npm run dev:server
 
+## Linting
+
+Lint rules shared by every workspace live in eslint.config.base.mjs
+
+Each workspace's `eslint.config.mjs` layers its own framework config and ignores on top.
+
+## Timestamps
+
 All timestamp strings should be in ISO 8601 format.

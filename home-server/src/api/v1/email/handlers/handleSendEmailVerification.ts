@@ -50,14 +50,13 @@ export const handleSendEmailVerification = async (user: User) => {
     }`,
   });
 
-  const finalizePendingSendEmailVerification =
-    await EmailVerificationModel.findByIdAndUpdate(
-      pendingSendEmailVerificationId,
-      {
-        error: sendMailRes.code === 0 ? false : true,
-        pendingSend: false,
-        gmailApiResponse:
-          JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
-      },
-    );
+  await EmailVerificationModel.findByIdAndUpdate(
+    pendingSendEmailVerificationId,
+    {
+      error: sendMailRes.code === 0 ? false : true,
+      pendingSend: false,
+      gmailApiResponse:
+        JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
+    },
+  );
 };
