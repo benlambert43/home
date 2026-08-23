@@ -1,10 +1,8 @@
 import nodemailer from "nodemailer";
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
 import Mail from "nodemailer/lib/mailer";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { TZDate } from "@date-fns/tz";
-
-const OAuth2 = google.auth.OAuth2;
 
 const EMAIL_OUTGOING_ADDRESS = process.env.EMAIL_OUTGOING_ADDRESS;
 const EMAIL_OUTGOING_CLIENT_ID = process.env.EMAIL_OUTGOING_CLIENT_ID;
@@ -44,7 +42,7 @@ const emailCountMidnightPacificTime = async () => {
 };
 
 const createTransporter = async () => {
-  const oauth2Client = new OAuth2(
+  const oauth2Client = new OAuth2Client(
     EMAIL_OUTGOING_CLIENT_ID,
     EMAIL_OUTGOING_CLIENT_SECRET,
     "https://developers.google.com/oauthplayground",
