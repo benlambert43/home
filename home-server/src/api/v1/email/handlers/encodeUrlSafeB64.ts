@@ -13,7 +13,7 @@ export const decodeUrlSafeB64 = (encoded: string) => {
     .replace(/EQUALS/g, "=");
   try {
     return atob(base64String);
-  } catch (e) {
+  } catch {
     throw new Error("Invalid encoded value");
   }
 };

@@ -151,7 +151,7 @@ export const sendMail = async ({
       const emailRateLimitCount = await emailCountMidnightPacificTime();
       console.log("Emails sent today: " + emailRateLimitCount);
       return { code: 0, error: undefined, response: res };
-    } catch (e) {
+    } catch {
       const backupRes = await fireBackupTransporter(safeMailOptions);
 
       return {

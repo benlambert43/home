@@ -48,10 +48,9 @@ export const handleRequestNewEmailVerificationLink = async (
     };
   }
 
-  try {
-    handleSendEmailVerification(foundUser);
-    return { error: false, message: "" };
-  } catch {
-    return { error: true, message: ApiMessage.UNEXPECTED };
-  }
+  handleSendEmailVerification(foundUser).catch((e: unknown) => {
+    console.error("Failed to send account verification email:", e);
+  });
+
+  return { error: false, message: "" };
 };

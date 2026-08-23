@@ -7,7 +7,7 @@ export const sendSuccess = <T extends ApiResponse>(
   body: Omit<T, "error">,
   status = 200,
 ) => {
-  res.status(status).send({ ...body, error: false } as T);
+  res.status(status).send({ ...body, error: false });
 };
 
 export const sendFailure = (

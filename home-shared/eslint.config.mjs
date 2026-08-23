@@ -1,3 +1,3 @@
 import { typescriptBase } from "../eslint.config.base.mjs";
 
-export default typescriptBase;
+export default typescriptBase();

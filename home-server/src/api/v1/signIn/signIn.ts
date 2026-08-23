@@ -26,7 +26,7 @@ signInRouter.post("/", async (req, res) => {
       jwt: signIn.token,
       user: serializeUser(signIn.user),
     });
-  } catch (e) {
+  } catch {
     sendFailure(res);
   }
 });

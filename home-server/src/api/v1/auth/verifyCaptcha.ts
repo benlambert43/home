@@ -1,3 +1,8 @@
+import * as z from "zod";
+
+const siteVerifyResponseSchema = z.object({ success: z.boolean() });
+const errorResponseSchema = z.object({ message: z.string() });
+
 export const handleVerifyCaptcha = async (
   providedUnverifiedCaptchaToken: string,
 ) => {
@@ -10,23 +15,25 @@ export const handleVerifyCaptcha = async (
       method: "POST",
     });
     if (!response.ok) {
-      const maybeResponse = await response.json();
-      const maybeResponseMessage = maybeResponse?.message;
+      const errorResponse = errorResponseSchema.safeParse(
+        await response.json(),
+      );
       throw new Error(
-        maybeResponseMessage
-          ? maybeResponseMessage
+        errorResponse.success
+          ? errorResponse.data.message
           : `response.status ${response.status}`,
       );
     }
 
-    const json = await response.json();
-
-    if (json?.success && json?.success === true) {
-      return { success: true };
-    } else {
+    const siteVerifyResponse = siteVerifyResponseSchema.safeParse(
+      await response.json(),
+    );
+    if (!siteVerifyResponse.success) {
       return { success: false };
     }
-  } catch (e) {
+
+    return { success: siteVerifyResponse.data.success };
+  } catch {
     return { success: false };
   }
 };

@@ -63,14 +63,16 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       canBeDeleted: false,
     });
 
-    handleSendEmailVerification(user);
+    handleSendEmailVerification(user).catch((e: unknown) => {
+      console.error("Failed to send account verification email:", e);
+    });
 
     sendSuccess<CreateAccountResponse>(res, {
       message: ApiMessage.ACCOUNT_CREATED,
       jwt: token,
       user: serializeUser(user),
     });
-  } catch (e) {
+  } catch {
     sendFailure(res);
   }
 });
@@ -91,7 +93,7 @@ accountManagementRouter.get(
       if (!params) return;
 
       sendResult(res, await handleVerifyEmailCallback(params));
-    } catch (e) {
+    } catch {
       sendFailure(res, ApiMessage.VERIFICATION_LINK_INVALID);
     }
   },
@@ -118,7 +120,7 @@ accountManagementRouter.post(
         res,
         await handleRequestNewEmailVerificationLink(verifiedToken.decodedToken),
       );
-    } catch (e) {
+    } catch {
       sendFailure(res);
     }
   },
@@ -139,7 +141,7 @@ accountManagementRouter.post("/changeUsername", async (req, res) => {
       res,
       await handleChangeUsername(verifiedToken.decodedToken, body.newUsername),
     );
-  } catch (e) {
+  } catch {
     sendFailure(res);
   }
 });
