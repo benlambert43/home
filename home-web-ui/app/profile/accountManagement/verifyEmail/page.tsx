@@ -1,104 +1,103 @@
-import EmailAlreadyVerified from "@/app/profile/accountManagement/verifyEmail/EmailAlreadyVerified";
-import EmailVerified from "@/app/profile/accountManagement/verifyEmail/EmailVerified";
-import { VerifyEmailResponse } from "@home/shared";
-import Button from "@/app/ui/Button";
+import VerificationComplete from "@/app/profile/accountManagement/verifyEmail/VerificationComplete";
+import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
+import { UserNoPassword, VerifyEmailResponse } from "@home/shared";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import Link from "next/link";
+
+type VerificationResult =
+  | {
+      status: "complete";
+      message: string;
+      session?: { jwt: string; user: UserNoPassword };
+    }
+  | { status: "failed"; message: string }
+  | { status: "missingParams" }
+  | { status: "unreachable"; error: string };
+
+const resolveVerification = async (
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>,
+): Promise<VerificationResult> => {
+  const user = await getBffSessionUser();
+  if (user?._id && user.confirmedEmail === true) {
+    return { status: "complete", message: "" };
+  }
+
+  const { username, email, code } = await searchParams;
+
+  if (!username || !email || !code) {
+    return { status: "missingParams" };
+  }
+
+  const VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${username}/${email}/${code}`;
+  const verificationLinkResponse = await fetch(VERIFICATION_LINK_URL, {
+    cache: "no-store",
+    next: { revalidate: 0 },
+  });
+  const verificationStatus: VerifyEmailResponse =
+    await verificationLinkResponse.json();
+
+  if (
+    verificationStatus.error === false &&
+    verificationStatus.message &&
+    verificationStatus.jwt &&
+    verificationStatus.user
+  ) {
+    return {
+      status: "complete",
+      message: verificationStatus.message,
+      session: {
+        jwt: verificationStatus.jwt,
+        user: verificationStatus.user,
+      },
+    };
+  }
+
+  return { status: "failed", message: verificationStatus.message };
+};
 
 const VerifyEmail = async ({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) => {
+  let result: VerificationResult;
+
   try {
-    // If the session already exists and the confirmed email is true then skip the fetch call.
-    const user = await getBffSessionUser();
-    if (user?._id && user.confirmedEmail === true) {
-      return <EmailAlreadyVerified />;
-    } else {
-      const username = (await searchParams).username;
-      const email = (await searchParams).email;
-      const code = (await searchParams).code;
-
-      if (username && email && code) {
-        const VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${username}/${email}/${code}`;
-        const verificationLinkResponse = await fetch(VERIFICATION_LINK_URL, {
-          cache: "no-store",
-          next: { revalidate: 0 },
-        });
-        const verificationStatus: VerifyEmailResponse =
-          await verificationLinkResponse.json();
-
-        // if the response from the server is good, then run the client component to update the cookies on the client.
-        // returns early and redirects to /profile
-        if (
-          verificationStatus.error === false &&
-          verificationStatus.message &&
-          verificationStatus.jwt &&
-          verificationStatus.user
-        ) {
-          return (
-            <EmailVerified
-              verificationStatusMessage={verificationStatus.message}
-              jwt={verificationStatus.jwt}
-              user={verificationStatus.user}
-            />
-          );
-        }
-
-        return (
-          <div className="p-5">
-            {verificationStatus.error ? (
-              <div>
-                <div className="py-5">
-                  <p>
-                    An error occurred. Please refresh the page or request a new
-                    email verification link.
-                  </p>
-
-                  {verificationStatus?.message ? (
-                    <p>{verificationStatus.message}</p>
-                  ) : (
-                    <p className="font-mono">
-                      {JSON.stringify(verificationStatus)}
-                    </p>
-                  )}
-                </div>
-                <div className="py-5">
-                  <Link
-                    href={
-                      "/profile/accountManagement/requestNewEmailVerificationLink"
-                    }
-                  >
-                    <Button size="large">Request a New Link</Button>
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div>{verificationStatus.message}</div>
-              </div>
-            )}
-          </div>
-        );
-      } else {
-        return (
-          <div className="p-5">
-            <div>Missing username, email and/or code.</div>
-          </div>
-        );
-      }
-    }
+    result = await resolveVerification(searchParams);
   } catch (e) {
+    result = {
+      status: "unreachable",
+      error: e instanceof Error ? e.toString() : String(e),
+    };
+  }
+
+  if (result.status === "complete") {
     return (
-      <div className="p-5">
-        <div>
-          An error occurred. Unable to reach email verification service.
-        </div>
-        <div>{e?.toString()}</div>
-      </div>
+      <VerificationComplete message={result.message} session={result.session} />
     );
   }
+
+  if (result.status === "missingParams") {
+    return (
+      <VerificationProblem headline="Missing username, email and/or code." />
+    );
+  }
+
+  if (result.status === "unreachable") {
+    return (
+      <VerificationProblem
+        headline="An error occurred. Unable to reach email verification service."
+        detail={result.error}
+      />
+    );
+  }
+
+  return (
+    <VerificationProblem
+      headline="An error occurred. Please refresh the page or request a new email verification link."
+      detail={result.message}
+      showRequestNewLink
+    />
+  );
 };
 
 export default VerifyEmail;
