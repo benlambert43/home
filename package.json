@@ -17,6 +17,8 @@
     "lint": "npm run lint --workspace home-web-ui",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check": "sh scripts/check.sh",
+    "check:push": "sh scripts/check.sh --build",
     "prepare": "husky"
   },
   "devDependencies": {
