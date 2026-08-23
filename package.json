@@ -21,6 +21,7 @@
     "format:check": "prettier --check .",
     "check": "sh scripts/check.sh",
     "check:fast": "sh scripts/check.sh --no-build",
+    "clean:untracked": "git clean -xdf -e '.env' -e '*.env' -e '**/.env'",
     "prepare": "husky"
   },
   "devDependencies": {
