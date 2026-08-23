@@ -14,16 +14,20 @@
     "dev:server": "npm start --workspace home-server",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspace home-web-ui",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "sh scripts/check.sh",
-    "check:push": "sh scripts/check.sh --build",
+    "check:fast": "sh scripts/check.sh --no-build",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
     "husky": "^9.1.7",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "typescript-eslint": "^8.67.0"
   },
   "allowScripts": {
     "bcrypt@6.0.0": true,
