@@ -19,18 +19,15 @@ const emailCountMidnightPacificTime = async () => {
     start: Date;
     end: Date;
   } {
-    // View "now" through the lens of Pacific wall-clock time
     const zonedNow = new TZDate(baseDate, PACIFIC_TZ);
 
     const year = zonedNow.getFullYear();
     const month = zonedNow.getMonth();
     const day = zonedNow.getDate();
 
-    // Construct Pacific midnight directly
     const start = new TZDate(year, month, day, 0, 0, 0, 0, PACIFIC_TZ);
     const end = new TZDate(year, month, day + 1, 0, 0, 0, 0, PACIFIC_TZ);
 
-    // Convert to plain Date instances for the Mongo driver
     return {
       start: new Date(start.valueOf()),
       end: new Date(end.valueOf()),
@@ -142,9 +139,7 @@ export const sendMail = async ({
     text: text,
   };
 
-  // Try to create a Transporter, and if that fails, create the backup transporter.
   try {
-    // Try with the primary transporter using API keys. If that fails, use the App Key password.
     try {
       const transporter = await createTransporter();
       const res = await transporter.sendMail(safeMailOptions);
