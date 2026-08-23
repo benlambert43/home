@@ -26,6 +26,7 @@ run() {
     case "$label" in
       format:check) printf '  Fix with: \033[1mnpm run format\033[0m\n' ;;
       lint)         printf '  Fix with: \033[1mnpm run lint:fix\033[0m\n' ;;
+      lint:deprecations) printf '  Each finding names its replacement; there is no autofix.\n' ;;
     esac
     if [ -n "${BYPASS_HINT:-}" ]; then
       printf '  Bypass with: \033[1m%s\033[0m\n' "$BYPASS_HINT"
@@ -38,6 +39,7 @@ run() {
 run format:check "root, $(scope_of format:check)"
 run lint
 run typecheck
+run lint:deprecations "root + all workspaces"
 if [ "$with_build" -eq 1 ]; then
   run build
 fi

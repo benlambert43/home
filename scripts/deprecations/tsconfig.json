@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "../../**/*.js",
+    "../../**/*.jsx",
+    "../../**/*.mjs",
+    "../../**/*.cjs"
+  ],
+  "exclude": [
+    "../../**/node_modules",
+    "../../**/.next",
+    "../../**/build",
+    "../../**/out"
+  ]
+}
