@@ -1,2 +1,5 @@
 .env
 node_modules
+
+# home-server build output (tsc outDir)
+home-server/**/build/
