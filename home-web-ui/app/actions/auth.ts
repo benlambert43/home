@@ -121,9 +121,9 @@ export const createAccount = async (
     } else {
       throw new Error("createAccountResponse error.");
     }
-  } catch (error: any) {
+  } catch (error) {
     const errorString =
-      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+      error instanceof Error ? error.message : "Unknown error.";
 
     return { ...signUpReturn, errors: [errorString] };
   }
@@ -197,9 +197,9 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
     } else {
       throw new Error("signInResponse error.");
     }
-  } catch (error: any) {
+  } catch (error) {
     const errorString =
-      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+      error instanceof Error ? error.message : "Unknown error.";
 
     return { ...signInReturn, errors: [errorString] };
   }
@@ -258,12 +258,12 @@ export const requestNewEmailVerificationLinkAction = async (
         "/profile/accountManagement/requestNewEmailVerificationLinkSuccess",
       );
     }
-  } catch (error: any) {
+  } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
     const errorString =
-      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+      error instanceof Error ? error.message : "Unknown error.";
 
     return { success: false, errors: [errorString] };
   }

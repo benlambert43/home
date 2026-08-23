@@ -43,9 +43,9 @@ export const getNotifications = async () => {
     } else {
       throw new Error(getNotificationsResponse.message);
     }
-  } catch (error: any) {
+  } catch (error) {
     const errorString =
-      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+      error instanceof Error ? error.message : "Unknown error.";
 
     const getNotificationsErrorResponse: GetNotificationsResponse = {
       error: true,

@@ -4,7 +4,7 @@ import { BellIcon } from "@heroicons/react/16/solid";
 import { useContext, useEffect, useRef } from "react";
 
 const NotificationIcon = () => {
-  const { content, drawer, stream } = useContext(NotificationContext);
+  const { content, drawer } = useContext(NotificationContext);
   const {
     notificationDrawerOpen,
     handleSetNotificationDrawerClosed,

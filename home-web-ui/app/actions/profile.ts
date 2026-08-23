@@ -88,12 +88,12 @@ export const changeUsername = async (
     } else {
       throw new Error("changeUsernameResponse error.");
     }
-  } catch (error: any) {
+  } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
     const errorString =
-      "message" in error ? `${error.message.toString()}` : "Unknown error.";
+      error instanceof Error ? error.message : "Unknown error.";
 
     return { ...changeUsernameReturn, errors: [errorString] };
   }

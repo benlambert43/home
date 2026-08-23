@@ -1,6 +1,6 @@
 import { UserNoPassword } from "@home/shared";
 import Button from "@/app/ui/Button";
-import { ArrowRightIcon, EnvelopeIcon } from "@heroicons/react/16/solid";
+import { EnvelopeIcon } from "@heroicons/react/16/solid";
 
 import Link from "next/link";
 
