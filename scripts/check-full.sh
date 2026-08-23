@@ -1,6 +1,10 @@
 #!/bin/sh
 set -u
 
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+cd "$root" || exit 1
+. "$root/scripts/lib.sh"
+
 with_build=1
 [ "${1:-}" = "--no-build" ] && with_build=0
 
@@ -20,28 +24,18 @@ run() {
   label="$1"
   scope="${2:-}"
   [ -n "$scope" ] || scope=$(scope_of "$label")
-  printf '\n\033[1m▶ %s\033[0m \033[2m— %s\033[0m\n' "$label" "$scope"
-  if ! npm run --silent "$label"; then
-    printf '\n\033[31m✖ %s failed\033[0m\n' "$label"
-    case "$label" in
-      format:check) printf '  Fix with: \033[1mnpm run format\033[0m\n' ;;
-      lint)         printf '  Fix with: \033[1mnpm run lint:fix\033[0m\n' ;;
-      lint:deprecations) printf '  Each finding names its replacement; there is no autofix.\n' ;;
-    esac
-    if [ -n "${BYPASS_HINT:-}" ]; then
-      printf '  Bypass with: \033[1m%s\033[0m\n' "$BYPASS_HINT"
-    fi
-    printf '\n'
-    exit 1
-  fi
+  try_step "$label" "$scope" npm run --silent "$label"
 }
 
 run format:check "root, $(scope_of format:check)"
 run lint
 run typecheck
 run lint:deprecations "root + all workspaces"
+run test
 if [ "$with_build" -eq 1 ]; then
   run build
+else
+  skip build "--no-build"
 fi
 
-printf '\n\033[32m✔ all checks passed\033[0m\n\n'
+summarize "all checks passed"
