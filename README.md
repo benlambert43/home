@@ -21,7 +21,7 @@ npm run dev:server
 
 home-shared must be built before web client and server are run.
 
-`npm run dev` and `npm run dev:server` build it first via their `pre` scripts.
+`npm run dev` and `npm run dev:server` build it first.
 
 ## Linting
 

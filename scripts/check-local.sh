@@ -5,7 +5,7 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
-WORKSPACES="home-shared home-server home-web-ui"
+WORKSPACES=$(node -p 'require("./package.json").workspaces.join(" ")')
 LINTABLE='\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$'
 TYPECHECK_ALL='^(package\.json|package-lock\.json|tsconfig[^/]*\.json|home-shared/)'
 EMPTY_TREE=4b825dc642cb6eb9a060e54bf8d69288fbee4904

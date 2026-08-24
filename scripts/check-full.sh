@@ -27,7 +27,7 @@ run() {
   try_step "$label" "$scope" npm run --silent "$label"
 }
 
-run format:check "root, $(scope_of format:check)"
+run format:check "root, covers every workspace"
 run lint
 run typecheck
 run lint:deprecations "root + all workspaces"
