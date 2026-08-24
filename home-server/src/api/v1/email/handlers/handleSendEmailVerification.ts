@@ -7,17 +7,14 @@ import { encodeUrlSafeB64 } from "./encodeUrlSafeB64";
 const generateSecurePIN = () => {
   const randomValues = new Uint32Array(1);
   crypto.getRandomValues(randomValues);
-  const pin = (randomValues[0] % 1000000).toString().padStart(6, "0");
-  return pin;
+  return (randomValues[0] % 1000000).toString().padStart(6, "0");
 };
 
 export const handleSendEmailVerification = async (user: User) => {
   const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
-  const emailVerificationCode = generateSecurePIN().toString();
+  const emailVerificationCode = generateSecurePIN();
   const encodedUsername = encodeUrlSafeB64(user.username);
   const encodedEmail = encodeUrlSafeB64(user.email);
-  const createdDate = dayjs();
-  const expiresAt = dayjs().add(10, "minute");
 
   const pendingSendEmailVerification = new EmailVerificationModel({
     userId: user._id,
@@ -27,9 +24,9 @@ export const handleSendEmailVerification = async (user: User) => {
     error: true,
     pendingSend: true,
     gmailApiResponse: "Pending.",
-    createdDate: createdDate,
+    createdDate: dayjs(),
     confirmedDate: undefined,
-    expiresDate: expiresAt,
+    expiresDate: dayjs().add(10, "minute"),
   });
   const pendingSendEmailVerificationId = (
     await pendingSendEmailVerification.save()

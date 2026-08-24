@@ -1,14 +1,10 @@
 import VerificationComplete from "@/app/profile/accountManagement/verifyEmail/VerificationComplete";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
-import { UserNoPassword, VerifyEmailResponse } from "@home/shared";
+import { SessionPayload, VerifyEmailResponse } from "@home/shared";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 
 type VerificationResult =
-  | {
-      status: "complete";
-      message: string;
-      session?: { jwt: string; user: UserNoPassword };
-    }
+  | { status: "complete"; message: string; session?: SessionPayload }
   | { status: "failed"; message: string }
   | { status: "missingParams" }
   | { status: "unreachable"; error: string };
@@ -27,31 +23,19 @@ const resolveVerification = async (
     return { status: "missingParams" };
   }
 
-  const VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${username}/${email}/${code}`;
-  const verificationLinkResponse = await fetch(VERIFICATION_LINK_URL, {
-    cache: "no-store",
-    next: { revalidate: 0 },
-  });
+  const verificationLinkResponse = await fetch(
+    `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${username}/${email}/${code}`,
+    { cache: "no-store", next: { revalidate: 0 } },
+  );
   const verificationStatus: VerifyEmailResponse =
     await verificationLinkResponse.json();
 
-  if (
-    verificationStatus.error === false &&
-    verificationStatus.message &&
-    verificationStatus.jwt &&
-    verificationStatus.user
-  ) {
-    return {
-      status: "complete",
-      message: verificationStatus.message,
-      session: {
-        jwt: verificationStatus.jwt,
-        user: verificationStatus.user,
-      },
-    };
+  if (verificationStatus.error) {
+    return { status: "failed", message: verificationStatus.message };
   }
 
-  return { status: "failed", message: verificationStatus.message };
+  const { message, jwt, user: verifiedUser } = verificationStatus;
+  return { status: "complete", message, session: { jwt, user: verifiedUser } };
 };
 
 const VerifyEmail = async ({

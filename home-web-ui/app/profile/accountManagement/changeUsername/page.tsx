@@ -1,8 +1,8 @@
 import ChangeUsernameForm from "@/app/profile/accountManagement/changeUsername/ChangeUsernameForm";
-import { requireSessionUser } from "@/app/auth/requireSessionUser";
+import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 
 const ChangeUsername = async () => {
-  const user = await requireSessionUser();
+  const user = await requireBffSessionUser();
 
   return (
     <div className="flex flex-col gap-4 p-5">

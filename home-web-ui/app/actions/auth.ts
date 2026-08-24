@@ -2,7 +2,7 @@
 
 import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
-import { apiFetch, errorMessage, requireSession } from "@/app/lib/api";
+import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
   RequestNewEmailVerificationFormState,
   SignInFormState,
@@ -58,12 +58,11 @@ export const createAccount = async (
   }
 
   try {
-    const { jwt, user } = requireSession(
-      await apiFetch<CreateAccountResponse, CreateAccountRequestBody>(
-        CREATE_ACCOUNT_URL,
-        { method: "POST", body: validatedFields.data },
-      ),
-    );
+    const { jwt, user } = await apiFetch<
+      CreateAccountResponse,
+      CreateAccountRequestBody
+    >(CREATE_ACCOUNT_URL, { method: "POST", body: validatedFields.data });
+
     await createSession(jwt, user);
   } catch (error) {
     return { values, errors: [errorMessage(error)] };
@@ -84,12 +83,11 @@ export const signIn = async (
   }
 
   try {
-    const { jwt, user } = requireSession(
-      await apiFetch<SignInResponse, SignInRequestBody>(SIGN_IN_URL, {
-        method: "POST",
-        body: validatedFields.data,
-      }),
+    const { jwt, user } = await apiFetch<SignInResponse, SignInRequestBody>(
+      SIGN_IN_URL,
+      { method: "POST", body: validatedFields.data },
     );
+
     await createSession(jwt, user);
   } catch (error) {
     return { values, errors: [errorMessage(error)] };

@@ -1,10 +1,10 @@
 import { Response } from "express";
-import { ApiResponse } from "@home/shared";
+import { ApiFailure, ApiResponse, SuccessOf } from "@home/shared";
 import { ApiMessage } from "./messages";
 
-export const sendSuccess = <T extends ApiResponse>(
+export const sendSuccess = <Result extends ApiResponse>(
   res: Response,
-  body: Omit<T, "error">,
+  body: Omit<SuccessOf<Result>, "error">,
   status = 200,
 ) => {
   res.status(status).send({ ...body, error: false });
@@ -15,7 +15,7 @@ export const sendFailure = (
   message: string = ApiMessage.UNEXPECTED,
   status = 400,
 ) => {
-  const body: ApiResponse = { error: true, message };
+  const body: ApiFailure = { error: true, message };
   res.status(status).send(body);
 };
 

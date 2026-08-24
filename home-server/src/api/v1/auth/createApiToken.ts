@@ -8,14 +8,9 @@ export const createApiToken = (user: SerializableUser) => {
     throw new Error("Could not create token, TOKEN_ISSUER is not defined.");
   }
 
-  const encodedAccountJwtData: EncodedAccountJwt = {
-    usage: "API",
-    user: serializeUser(user),
-  };
-
-  const token = jwt.sign(encodedAccountJwtData, jwtTokenIssuer, {
-    expiresIn: "7d",
-  });
-
-  return token;
+  return jwt.sign(
+    { usage: "API", user: serializeUser(user) } satisfies EncodedAccountJwt,
+    jwtTokenIssuer,
+    { expiresIn: "7d" },
+  );
 };

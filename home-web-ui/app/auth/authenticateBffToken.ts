@@ -12,7 +12,6 @@ export const authenticateBffToken = async (
   JwtStr?: string,
 ): Promise<AuthenticatedBffToken> => {
   const BFF_SESSION_SECRET = process.env.BFF_SESSION_SECRET;
-  const encodedBffKey = new TextEncoder().encode(BFF_SESSION_SECRET);
 
   if (!JwtStr) {
     return { valid: false, message: "No JWT was provided." };
@@ -26,10 +25,11 @@ export const authenticateBffToken = async (
       throw new Error("Failed to parse environment variable secret.");
     }
 
-    const decodedJwt = await jwtVerify(JwtStr, encodedBffKey, {
-      algorithms: ["HS256"],
-    });
-    const encodedAccountJwtData = decodedJwt.payload as EncodedAccountJwt;
+    const encodedAccountJwtData = (
+      await jwtVerify(JwtStr, new TextEncoder().encode(BFF_SESSION_SECRET), {
+        algorithms: ["HS256"],
+      })
+    ).payload as EncodedAccountJwt;
 
     if (encodedAccountJwtData.usage !== "BFF" || !encodedAccountJwtData.user) {
       throw new Error("The JWT is not a BFF session token.");

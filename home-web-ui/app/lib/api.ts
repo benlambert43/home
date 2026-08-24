@@ -1,5 +1,5 @@
 import "server-only";
-import { ApiResponse, AuthenticatedUserResponse } from "@home/shared";
+import { ApiFailure, ApiResponse, SuccessOf } from "@home/shared";
 
 type ApiRequest<Body> = {
   method?: "GET" | "POST";
@@ -7,10 +7,10 @@ type ApiRequest<Body> = {
   body?: Body;
 };
 
-export const apiFetch = async <Payload extends ApiResponse, Body = undefined>(
+export const apiFetch = async <Result extends ApiResponse, Body = undefined>(
   url: string,
   { method = "GET", authorization, body }: ApiRequest<Body> = {},
-): Promise<Payload> => {
+): Promise<SuccessOf<Result>> => {
   const response = await fetch(url, {
     method,
     headers: {
@@ -20,7 +20,7 @@ export const apiFetch = async <Payload extends ApiResponse, Body = undefined>(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
-  const payload: Partial<Payload> | null = await response
+  const payload: SuccessOf<Result> | ApiFailure | null = await response
     .json()
     .catch(() => null);
 
@@ -28,18 +28,11 @@ export const apiFetch = async <Payload extends ApiResponse, Body = undefined>(
     throw new Error(payload?.message ?? `response.status ${response.status}`);
   }
 
-  if (!payload || payload.error !== false) {
+  if (!payload || payload.error) {
     throw new Error(payload?.message ?? "Unknown error.");
   }
 
-  return payload as Payload;
-};
-
-export const requireSession = ({ jwt, user }: AuthenticatedUserResponse) => {
-  if (!jwt || !user) {
-    throw new Error("The response did not include a session.");
-  }
-  return { jwt, user };
+  return payload;
 };
 
 export const errorMessage = (error: unknown) =>

@@ -21,6 +21,5 @@ export const createNewNotification = async (n: {
     canBeDeleted: n.canBeDeleted,
     timestamp: new Date(),
   });
-  const saveNewNotification = await newNotification.save();
-  return serializeNotification(saveNewNotification);
+  return serializeNotification(await newNotification.save());
 };

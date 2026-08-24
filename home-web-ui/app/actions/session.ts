@@ -9,8 +9,7 @@ export const createSession = async (
   encodedApiJwtSession: string,
   user: UserNoPassword,
 ) => {
-  const decodedJwt = jwtDecode(encodedApiJwtSession);
-  const { exp } = decodedJwt;
+  const { exp } = jwtDecode(encodedApiJwtSession);
   if (typeof exp !== "number") throw new Error("No exp on token.");
 
   const expiresAt = new Date(exp * 1000);

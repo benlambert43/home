@@ -18,11 +18,9 @@ notificationRouter.get("/", async (req, res) => {
 });
 
 notificationRouter.patch("/:id/read", (req, res) => {
-  const notificationId = req.params.id;
-
   res
     .status(200)
-    .send({ message: `Mark notification ${notificationId} as read.` });
+    .send({ message: `Mark notification ${req.params.id} as read.` });
 });
 
 notificationRouter.get("/stream", (req, res) => {

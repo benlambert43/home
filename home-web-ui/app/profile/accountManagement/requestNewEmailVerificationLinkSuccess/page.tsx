@@ -1,11 +1,9 @@
 import { EnvelopeIcon } from "@heroicons/react/16/solid";
-import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
+import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 const requestNewEmailVerificationLinkSuccess = async () => {
-  const user = await getBffSessionUser();
-  if (!user) redirect("/signin");
+  await requireBffSessionUser();
 
   return (
     <div className="mx-4 flex flex-col gap-2 py-8">

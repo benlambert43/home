@@ -1,3 +1,25 @@
+workspaces() {
+  node -e '
+const fs = require("node:fs");
+const label = process.argv[1] || "";
+const patterns = require("./package.json").workspaces || [];
+const dirs = [...new Set(patterns.flatMap((pattern) => fs.globSync(pattern)))]
+  .filter((dir) => fs.existsSync(`${dir}/package.json`))
+  .sort();
+const covered = label
+  ? dirs.filter((dir) => {
+      const { scripts } = JSON.parse(fs.readFileSync(`${dir}/package.json`, "utf8"));
+      return Boolean(scripts && scripts[label]);
+    })
+  : dirs;
+process.stdout.write(covered.join(" "));
+' "${1:-}"
+}
+
+workspace_list() {
+  workspaces "${1:-}" | sed 's/ /, /g'
+}
+
 fix_hint() {
   case "$1" in
     format:check)      printf '  Fix with: \033[1mnpm run format\033[0m\n' ;;

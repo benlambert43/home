@@ -3,6 +3,7 @@
 import { signIn } from "@/app/actions/auth";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
+import TextField from "@/app/ui/TextField";
 import { useActionState } from "react";
 
 export const SignInForm = () => {
@@ -10,33 +11,23 @@ export const SignInForm = () => {
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="email">Email</label>
-        <input
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-          autoComplete="email"
-          id="email"
-          name="email"
-          type="email"
-          placeholder="Email"
-          defaultValue={state?.values?.email}
-        />
-      </div>
+      <TextField
+        name="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        placeholder="Email"
+        defaultValue={state?.values?.email}
+      />
 
       <FieldError errors={state?.properties?.email?.errors} />
 
-      <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="password">Password</label>
-        <input
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-          placeholder="Enter your password"
-          id="password"
-          name="password"
-          type="password"
-        />
-      </div>
+      <TextField
+        name="password"
+        label="Password"
+        type="password"
+        placeholder="Enter your password"
+      />
 
       <FieldError errors={state?.properties?.password?.errors} />
 

@@ -22,7 +22,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "sh scripts/check-full.sh",
-    "clean:untracked": "git clean -xdf -e '.env' -e '*.env' -e '**/.env'",
+    "clean:untracked": "sh scripts/clean-untracked.sh",
     "prepare": "husky"
   },
   "devDependencies": {

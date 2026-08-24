@@ -8,29 +8,20 @@ cd "$root" || exit 1
 with_build=1
 [ "${1:-}" = "--no-build" ] && with_build=0
 
-scope_of() {
-  node -e '
-const fs = require("fs");
-const label = process.argv[1];
-const covered = require("./package.json").workspaces.filter((dir) => {
-  const pkg = JSON.parse(fs.readFileSync(`${dir}/package.json`, "utf8"));
-  return Boolean(pkg.scripts?.[label]);
-});
-process.stdout.write(covered.join(", ") || "no workspaces define this");
-' "$1"
-}
-
 run() {
   label="$1"
   scope="${2:-}"
-  [ -n "$scope" ] || scope=$(scope_of "$label")
+  if [ -z "$scope" ]; then
+    scope=$(workspace_list "$label")
+    [ -n "$scope" ] || scope="no workspaces define this"
+  fi
   try_step "$label" "$scope" npm run --silent "$label"
 }
 
-run format:check "root, covers every workspace"
+run format:check "root, $(workspace_list)"
 run lint
 run typecheck
-run lint:deprecations "root + all workspaces"
+run lint:deprecations "root, $(workspace_list)"
 run test
 if [ "$with_build" -eq 1 ]; then
   run build

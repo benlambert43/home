@@ -6,14 +6,11 @@ const errorResponseSchema = z.object({ message: z.string() });
 export const handleVerifyCaptcha = async (
   providedUnverifiedCaptchaToken: string,
 ) => {
-  const recaptchaPrivateKey = process.env.CAPTCHA_SECRET;
-
-  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaPrivateKey}&response=${providedUnverifiedCaptchaToken}`;
-
   try {
-    const response = await fetch(url, {
-      method: "POST",
-    });
+    const response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.CAPTCHA_SECRET}&response=${providedUnverifiedCaptchaToken}`,
+      { method: "POST" },
+    );
     if (!response.ok) {
       const errorResponse = errorResponseSchema.safeParse(
         await response.json(),

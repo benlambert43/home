@@ -2,7 +2,7 @@
 
 import { updateSessionTokens } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
-import { apiFetch, errorMessage, requireSession } from "@/app/lib/api";
+import { apiFetch, errorMessage } from "@/app/lib/api";
 import { ChangeUsernameFormState } from "@/app/lib/definitions";
 import { FieldNames, readFormValues, treeifyFormError } from "@/app/lib/forms";
 import {
@@ -30,16 +30,15 @@ export const changeUsername = async (
   }
 
   try {
-    const { jwt, user } = requireSession(
-      await apiFetch<ChangeUsernameResponse, ChangeUsernameRequestBody>(
-        CHANGE_USERNAME_LINK_URL,
-        {
-          method: "POST",
-          authorization: await getApiSessionToken(),
-          body: validatedFields.data,
-        },
-      ),
-    );
+    const { jwt, user } = await apiFetch<
+      ChangeUsernameResponse,
+      ChangeUsernameRequestBody
+    >(CHANGE_USERNAME_LINK_URL, {
+      method: "POST",
+      authorization: await getApiSessionToken(),
+      body: validatedFields.data,
+    });
+
     await updateSessionTokens({ encodedApiJwtSession: jwt, user });
   } catch (error) {
     return { values, errors: [errorMessage(error)] };

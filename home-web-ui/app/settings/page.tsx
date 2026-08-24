@@ -1,7 +1,7 @@
-import { requireSessionUser } from "@/app/auth/requireSessionUser";
+import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 
 const Settings = async () => {
-  await requireSessionUser();
+  await requireBffSessionUser();
 
   return (
     <div className="flex flex-col gap-4 p-5">

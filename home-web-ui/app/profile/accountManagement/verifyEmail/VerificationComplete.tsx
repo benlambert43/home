@@ -1,13 +1,13 @@
 "use client";
 
 import { updateSessionTokens } from "@/app/actions/session";
-import { UserNoPassword } from "@home/shared";
+import { SessionPayload } from "@home/shared";
 import { redirect } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 const VerificationComplete = (props: {
   message: string;
-  session?: { jwt: string; user: UserNoPassword };
+  session?: SessionPayload;
 }) => {
   const { message, session } = props;
   const hasCompleted = useRef(false);

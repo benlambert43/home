@@ -15,10 +15,8 @@ interface NewAccount {
   password: string;
 }
 
-const saltPassword = async (plaintextpassword: string) => {
-  const salt = await bcrypt.genSalt(5);
-  return bcrypt.hash(plaintextpassword, salt);
-};
+const saltPassword = async (plaintextpassword: string) =>
+  bcrypt.hash(plaintextpassword, await bcrypt.genSalt(5));
 
 const shouldCreateAdminAccount = (email: string, password: string) =>
   email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD;

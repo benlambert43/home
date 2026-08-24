@@ -8,14 +8,12 @@ export type ApiTokenAuthentication =
 export const authenticateApiToken = (
   unverifiedToken?: string,
 ): ApiTokenAuthentication => {
-  const secret = process.env.TOKEN_ISSUER || "";
-
   try {
     if (typeof unverifiedToken === "undefined") {
       throw new Error("No authorization token provided.");
     }
 
-    const decoded = jwt.verify(unverifiedToken, secret);
+    const decoded = jwt.verify(unverifiedToken, process.env.TOKEN_ISSUER || "");
 
     return {
       error: false,

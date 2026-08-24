@@ -1,26 +1,35 @@
 import { Notification } from "./notification";
 import { UserNoPassword } from "./user";
 
-export interface ApiResponse {
-  error: boolean;
+export interface ApiFailure {
+  error: true;
   message: string;
 }
 
-export interface AuthenticatedUserResponse extends ApiResponse {
-  jwt?: string;
-  user?: UserNoPassword;
+export type ApiSuccess<Payload = unknown> = {
+  error: false;
+  message: string;
+} & Payload;
+
+export type ApiResponse<Payload = unknown> = ApiSuccess<Payload> | ApiFailure;
+
+export type SuccessOf<Result> = Extract<Result, { error: false }>;
+
+export interface SessionPayload {
+  jwt: string;
+  user: UserNoPassword;
 }
 
-export type CreateAccountResponse = AuthenticatedUserResponse;
+export type CreateAccountResponse = ApiResponse<SessionPayload>;
 
-export type SignInResponse = AuthenticatedUserResponse;
+export type SignInResponse = ApiResponse<SessionPayload>;
 
-export type ChangeUsernameResponse = AuthenticatedUserResponse;
+export type ChangeUsernameResponse = ApiResponse<SessionPayload>;
 
-export type VerifyEmailResponse = AuthenticatedUserResponse;
+export type VerifyEmailResponse = ApiResponse<SessionPayload>;
 
 export type RequestNewEmailVerificationLinkResponse = ApiResponse;
 
-export interface GetNotificationsResponse extends ApiResponse {
-  notifications?: Notification[];
-}
+export type GetNotificationsResponse = ApiResponse<{
+  notifications: Notification[];
+}>;

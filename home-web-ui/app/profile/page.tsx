@@ -1,10 +1,10 @@
 import { removeSession } from "@/app/actions/session";
-import { requireSessionUser } from "@/app/auth/requireSessionUser";
+import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import ProfileBanner from "@/app/profile/ProfileBanner";
 import Button from "@/app/ui/Button";
 
 const Profile = async () => {
-  const user = await requireSessionUser();
+  const user = await requireBffSessionUser();
 
   return (
     <div className="flex flex-col gap-4 p-5">

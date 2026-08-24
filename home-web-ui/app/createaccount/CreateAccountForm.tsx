@@ -4,14 +4,16 @@ import { createAccount } from "@/app/actions/auth";
 import { SignUpFormState } from "@/app/lib/definitions";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
+import TextField from "@/app/ui/TextField";
 import { useActionState, useEffect, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 const hasFormErrors = (state: SignUpFormState): boolean => {
   if (!state) return false;
   if (state.errors.length > 0) return true;
-  const fields = state.properties ? Object.values(state.properties) : [];
-  return fields.some((field) => Boolean(field?.errors.length));
+  return (state.properties ? Object.values(state.properties) : []).some(
+    (field) => Boolean(field?.errors.length),
+  );
 };
 
 export const CreateAccountForm = () => {
@@ -28,84 +30,55 @@ export const CreateAccountForm = () => {
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className="flex flex-row flex-wrap items-center justify-start gap-4">
-        <div
-          className="flex w-full max-w-78 flex-col items-start justify-center
-            gap-2"
-        >
-          <label htmlFor="firstname">First Name</label>
-          <input
-            className="w-full max-w-78 rounded-xl px-4 py-2 outline-1
-              outline-slate-400 focus:outline-slate-50"
-            autoComplete="given-name"
-            id="firstname"
-            name="firstname"
-            placeholder="First Name"
-            defaultValue={state?.values?.firstname}
-          />
-        </div>
-        <div
-          className="flex w-full max-w-78 flex-col items-start justify-center
-            gap-2"
-        >
-          <label htmlFor="lastname">Last Name</label>
-          <input
-            className="w-full max-w-78 rounded-xl px-4 py-2 outline-1
-              outline-slate-400 focus:outline-slate-50"
-            autoComplete="family-name"
-            id="lastname"
-            name="lastname"
-            placeholder="Last Name"
-            defaultValue={state?.values?.lastname}
-          />
-        </div>
+        <TextField
+          name="firstname"
+          label="First Name"
+          width="paired"
+          autoComplete="given-name"
+          placeholder="First Name"
+          defaultValue={state?.values?.firstname}
+        />
+        <TextField
+          name="lastname"
+          label="Last Name"
+          width="paired"
+          autoComplete="family-name"
+          placeholder="Last Name"
+          defaultValue={state?.values?.lastname}
+        />
       </div>
       <div>
         <FieldError errors={state?.properties?.firstname?.errors} />
         <FieldError errors={state?.properties?.lastname?.errors} />
       </div>
-      <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="email">Email</label>
-        <input
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-          autoComplete="email"
-          id="email"
-          name="email"
-          type="email"
-          placeholder="Email"
-          defaultValue={state?.values?.email}
-        />
-      </div>
+      <TextField
+        name="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        placeholder="Email"
+        defaultValue={state?.values?.email}
+      />
       <div>
         <FieldError errors={state?.properties?.email?.errors} />
       </div>
-      <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="password">Password</label>
-        <input
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-          autoComplete="new-password"
-          placeholder="Enter your password"
-          id="password"
-          name="password"
-          type="password"
-        />
-      </div>
+      <TextField
+        name="password"
+        label="Password"
+        type="password"
+        autoComplete="new-password"
+        placeholder="Enter your password"
+      />
       <div>
         <FieldError errors={state?.properties?.password?.errors} />
       </div>
-      <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="confirmPassword">Confirm Password</label>
-        <input
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-          autoComplete="new-password"
-          placeholder="Enter your password again"
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-        />
-      </div>
+      <TextField
+        name="confirmPassword"
+        label="Confirm Password"
+        type="password"
+        autoComplete="new-password"
+        placeholder="Enter your password again"
+      />
       <div>
         <FieldError errors={state?.properties?.confirmPassword?.errors} />
       </div>
