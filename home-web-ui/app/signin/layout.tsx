@@ -1,16 +1,5 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/app/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "ben lambert - sign in",
-  description: "ben lamberts personal website 🧑‍💻",
-};
+export const metadata = pageMetadata("sign in");
 
-const SignInLayout = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  return <div>{children}</div>;
-};
-
-export default SignInLayout;
+export { default } from "@/app/ui/PassthroughLayout";

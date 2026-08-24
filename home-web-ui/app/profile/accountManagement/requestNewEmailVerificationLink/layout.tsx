@@ -1,9 +1,1 @@
-const RequestNewEmailVerificationLinkLayout = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  return <div>{children}</div>;
-};
-
-export default RequestNewEmailVerificationLinkLayout;
+export { default } from "@/app/ui/PassthroughLayout";

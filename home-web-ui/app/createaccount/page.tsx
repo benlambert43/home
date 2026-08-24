@@ -1,10 +1,8 @@
-import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import { redirect } from "next/navigation";
+import { redirectSignedInUser } from "@/app/auth/redirectSignedInUser";
 import { CreateAccountForm } from "@/app/createaccount/CreateAccountForm";
 
 const CreateAccount = async () => {
-  const user = await getBffSessionUser();
-  if (user) redirect("/profile");
+  await redirectSignedInUser();
 
   return (
     <div className="flex flex-col gap-4 p-5">

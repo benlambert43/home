@@ -1,9 +1,1 @@
-const VerifyEmailLayout = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  return <div>{children}</div>;
-};
-
-export default VerifyEmailLayout;
+export { default } from "@/app/ui/PassthroughLayout";

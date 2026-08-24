@@ -1,10 +1,8 @@
 import { RequestNewEmailVerificationLinkForm } from "@/app/profile/accountManagement/requestNewEmailVerificationLink/RequestNewEmailVerificationLinkForm";
-import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import { redirect } from "next/navigation";
+import { requireSessionUser } from "@/app/auth/requireSessionUser";
 
 const RequestNewEmailVerificationLink = async () => {
-  const user = await getBffSessionUser();
-  if (!user) redirect("/signin");
+  await requireSessionUser();
 
   return (
     <div className="mx-4 py-8">

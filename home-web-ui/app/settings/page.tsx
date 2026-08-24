@@ -1,9 +1,7 @@
-import { redirect } from "next/navigation";
-import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
+import { requireSessionUser } from "@/app/auth/requireSessionUser";
 
 const Settings = async () => {
-  const user = await getBffSessionUser();
-  if (!user) redirect("/signin");
+  await requireSessionUser();
 
   return (
     <div className="flex flex-col gap-4 p-5">
