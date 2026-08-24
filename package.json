@@ -14,7 +14,7 @@
     "predev": "npm run build:shared",
     "dev": "npm run dev --workspace home-web-ui",
     "predev:server": "npm run build:shared",
-    "dev:server": "npm start --workspace home-server",
+    "dev:server": "npm run dev --workspace home-server",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
@@ -39,7 +39,6 @@
   "allowScripts": {
     "bcrypt@6.0.0": true,
     "fsevents@2.3.3": true,
-    "sharp@0.34.5": true,
     "unrs-resolver@1.12.2": true,
     "esbuild@0.28.2": true
   }

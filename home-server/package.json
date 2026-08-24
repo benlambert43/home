@@ -1,12 +1,14 @@
 {
   "name": "home-server",
   "version": "1.0.0",
-  "main": "build/index.js",
+  "description": "Express + mongoose API.",
+  "license": "ISC",
+  "private": true,
+  "type": "commonjs",
   "scripts": {
-    "start": "npm run start:dev",
-    "start:dev": "tsx watch --env-file=.env src/index.ts",
-    "start:prod": "npm run build && node --env-file=.env build/index.js",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "rimraf ./build && tsc",
+    "start": "node --env-file=.env build/index.js",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
@@ -14,11 +16,6 @@
     "format:check": "prettier --check . --ignore-path ../.prettierignore",
     "test": "echo \"No tests yet.\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "description": "",
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
     "@home/shared": "*",

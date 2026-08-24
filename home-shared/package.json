@@ -12,13 +12,9 @@
       "default": "./build/index.js"
     }
   },
-  "files": [
-    "build",
-    "src"
-  ],
   "scripts": {
-    "build": "rimraf ./build && tsc",
     "dev": "tsc --watch --preserveWatchOutput",
+    "build": "rimraf ./build && tsc",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",

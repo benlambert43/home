@@ -1,6 +1,13 @@
 .env
 node_modules
+.DS_Store
+*.pem
 
+home-server/build/
+home-shared/build/
+home-web-ui/.next/
+home-web-ui/out/
+coverage/
 
-home-server/**/build/
-home-shared/**/build/
+*.tsbuildinfo
+next-env.d.ts

@@ -20,24 +20,16 @@ export const sharedTsRules = {
   },
 };
 
-export const typescriptBase = ({
-  typeChecked = false,
-  tsconfigRootDir,
-} = {}) => {
-  const tsConfigs = typeChecked
-    ? [
-        ...tseslint.configs.recommendedTypeChecked,
-        {
-          languageOptions: {
-            parserOptions: { projectService: true, tsconfigRootDir },
-          },
-        },
-        {
-          files: ["**/*.mjs", "**/*.js"],
-          ...tseslint.configs.disableTypeChecked,
-        },
-      ]
-    : [...tseslint.configs.recommended];
-
-  return defineConfig([js.configs.recommended, ...tsConfigs, sharedTsRules]);
-};
+export const typescriptBase = (tsconfigRootDir) =>
+  defineConfig([
+    { ignores: ["build/**"] },
+    js.configs.recommended,
+    ...tseslint.configs.recommendedTypeChecked,
+    {
+      languageOptions: {
+        parserOptions: { projectService: true, tsconfigRootDir },
+      },
+    },
+    { files: ["**/*.mjs", "**/*.js"], ...tseslint.configs.disableTypeChecked },
+    sharedTsRules,
+  ]);
