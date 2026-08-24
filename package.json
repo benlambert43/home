@@ -10,7 +10,10 @@
     "home-web-ui"
   ],
   "scripts": {
+    "build:shared": "npm run build --workspace home-shared",
+    "predev": "npm run build:shared",
     "dev": "npm run dev --workspace home-web-ui",
+    "predev:server": "npm run build:shared",
     "dev:server": "npm start --workspace home-server",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

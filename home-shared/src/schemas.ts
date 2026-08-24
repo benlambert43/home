@@ -16,6 +16,13 @@ const captchaField = z.string().min(1, {
     "Please complete the ReCAPTCHA challenge, or reload the page and try again.",
 });
 
+const usernameField = z
+  .string()
+  .min(2, { message: "Username must be at least 2 characters long." })
+  .regex(/^[a-zA-Z0-9_-]+$/, {
+    message: "Only letters, numbers, dashes, and underscores are allowed.",
+  });
+
 const urlSafeField = z
   .string()
   .min(1)
@@ -28,6 +35,13 @@ export const createAccountBodySchema = z.object({
   password: passwordField,
   grecaptcharesponse: captchaField,
 });
+
+export const createAccountFormSchema = createAccountBodySchema
+  .extend({ confirmPassword: passwordField })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
 
 export const signInBodySchema = z.object({
   email: emailField,
@@ -45,5 +59,5 @@ export const requestNewEmailVerificationLinkBodySchema = z.object({
 });
 
 export const changeUsernameBodySchema = z.object({
-  newUsername: z.string().min(1),
+  newUsername: usernameField,
 });

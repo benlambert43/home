@@ -1,3 +1,9 @@
 import { typescriptBase } from "../eslint.config.base.mjs";
 
-export default typescriptBase();
+export default [
+  { ignores: ["build/**"] },
+  ...typescriptBase({
+    typeChecked: true,
+    tsconfigRootDir: import.meta.dirname,
+  }),
+];

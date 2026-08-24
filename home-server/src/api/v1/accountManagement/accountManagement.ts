@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { CreateAccountResponse } from "@home/shared";
+import {
+  changeUsernameBodySchema,
+  CreateAccountResponse,
+  createAccountBodySchema,
+  requestNewEmailVerificationLinkBodySchema,
+  verifyEmailParamsSchema,
+} from "@home/shared";
 import { parseRequest } from "../http/parseRequest";
 import {
   sendFailure,
@@ -8,12 +14,6 @@ import {
   sendUnauthenticated,
 } from "../http/respond";
 import { accountAlreadyExists, ApiMessage } from "../http/messages";
-import {
-  changeUsernameBodySchema,
-  createAccountBodySchema,
-  requestNewEmailVerificationLinkBodySchema,
-  verifyEmailParamsSchema,
-} from "../http/requestSchemas";
 import {
   createNewUniqueRandomUsername,
   handleCreateAccount,

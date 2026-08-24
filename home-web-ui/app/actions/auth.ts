@@ -2,22 +2,22 @@
 
 import { createSession } from "@/app/actions/session";
 import {
-  RequestNewEmailVerificationFormSchema,
   RequestNewEmailVerificationFormState,
-  SignInFormSchema,
   SignInFormState,
-  SignUpFormSchema,
   SignUpFormState,
 } from "@/app/lib/definitions";
+import { treeifyFormError } from "@/app/lib/formErrors";
 import {
+  createAccountFormSchema,
   CreateAccountRequestBody,
   CreateAccountResponse,
+  requestNewEmailVerificationLinkBodySchema,
   RequestNewEmailVerificationLinkResponse,
   RequestNewEmailVerificationRequestBody,
+  signInBodySchema,
   SignInRequestBody,
   SignInResponse,
 } from "@home/shared";
-import * as z from "zod";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
@@ -64,7 +64,7 @@ export const createAccount = async (
     properties: {},
   };
 
-  const validatedFields = SignUpFormSchema.safeParse({
+  const validatedFields = createAccountFormSchema.safeParse({
     firstname: formData.get("firstname"),
     lastname: formData.get("lastname"),
     email: formData.get("email"),
@@ -74,7 +74,7 @@ export const createAccount = async (
   });
 
   if (!validatedFields.success) {
-    const errors = z.treeifyError(validatedFields.error);
+    const errors = treeifyFormError(validatedFields.error);
     return { ...signUpReturn, ...errors };
   }
 
@@ -139,7 +139,7 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
       : undefined,
   };
 
-  const validatedFields = SignInFormSchema.safeParse({
+  const validatedFields = signInBodySchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
@@ -154,7 +154,7 @@ export const signIn = async (state: SignInFormState, formData: FormData) => {
   };
 
   if (!validatedFields.success) {
-    const errors = z.treeifyError(validatedFields.error);
+    const errors = treeifyFormError(validatedFields.error);
     return { ...signInReturn, ...errors };
   }
 
@@ -212,12 +212,12 @@ export const requestNewEmailVerificationLinkAction = async (
   const cookieStore = await cookies();
   const apiSessionCookie = cookieStore.get("apisession");
 
-  const validatedFields = RequestNewEmailVerificationFormSchema.safeParse({
+  const validatedFields = requestNewEmailVerificationLinkBodySchema.safeParse({
     grecaptcharesponse: formData.get("g-recaptcha-response"),
   });
 
   if (!validatedFields.success) {
-    const errors = z.treeifyError(validatedFields.error);
+    const errors = treeifyFormError(validatedFields.error);
     return { ...errors, success: false };
   }
 

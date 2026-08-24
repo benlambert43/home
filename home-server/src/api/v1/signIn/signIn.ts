@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { SignInResponse } from "@home/shared";
+import { SignInResponse, signInBodySchema } from "@home/shared";
 import { parseRequest } from "../http/parseRequest";
-import { signInBodySchema } from "../http/requestSchemas";
 import { ApiMessage } from "../http/messages";
 import { sendFailure, sendSuccess } from "../http/respond";
 import { handleSignIn } from "./handlers/handleSignIn";

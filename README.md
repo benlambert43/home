@@ -3,11 +3,11 @@
 Ben Lambert's personal website.
 Uses npm workspace.
 
-| Package       |                                  |
-| ------------- | -------------------------------- |
-| `home-web-ui` | Next.js site.                    |
-| `home-server` | Express + mongoose API.          |
-| `home-shared` | Shared frontend + backend types. |
+| Package       |                                                   |
+| ------------- | ------------------------------------------------- |
+| `home-web-ui` | Next.js site.                                     |
+| `home-server` | Express + mongoose API.                           |
+| `home-shared` | Shared frontend + backend types and runtime code. |
 
 ## Commands
 
@@ -16,6 +16,12 @@ docker compose up -d
 npm run dev
 
 npm run dev:server
+
+## home-shared
+
+home-shared must be built before web client and server are run.
+
+`npm run dev` and `npm run dev:server` build it first via their `pre` scripts.
 
 ## Linting
 

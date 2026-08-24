@@ -1,13 +1,11 @@
 "use server";
 
-import * as z from "zod";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { ChangeUsernameFormState } from "@/app/lib/definitions";
+import { treeifyFormError } from "@/app/lib/formErrors";
 import {
-  ChangeUsernameFormSchema,
-  ChangeUsernameFormState,
-} from "@/app/lib/definitions";
-import {
+  changeUsernameBodySchema,
   ChangeUsernameRequestBody,
   ChangeUsernameResponse,
 } from "@home/shared";
@@ -35,12 +33,12 @@ export const changeUsername = async (
     properties: {},
   };
 
-  const validatedFields = ChangeUsernameFormSchema.safeParse({
+  const validatedFields = changeUsernameBodySchema.safeParse({
     newUsername: formData.get("newUsername"),
   });
 
   if (!validatedFields.success) {
-    const errors = z.treeifyError(validatedFields.error);
+    const errors = treeifyFormError(validatedFields.error);
     return { ...changeUsernameReturn, ...errors };
   }
 
