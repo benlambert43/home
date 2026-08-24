@@ -31,12 +31,8 @@ export const Notifications = () => {
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const maybeNotifications = await getNotifications();
-      const realNotifications =
-        typeof maybeNotifications.notifications !== "undefined"
-          ? maybeNotifications.notifications
-          : [];
-      setNotifications([...realNotifications]);
+      const { notifications: fetched } = await getNotifications();
+      setNotifications(fetched ?? []);
       setNotificationsRefreshing(false);
     };
     fetchNotifications();

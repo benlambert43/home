@@ -2,6 +2,7 @@
 
 import { changeUsername } from "@/app/actions/profile";
 import Button from "@/app/ui/Button";
+import FieldError from "@/app/ui/FieldError";
 import { useActionState } from "react";
 
 const ChangeUsernameForm = () => {
@@ -23,22 +24,14 @@ const ChangeUsernameForm = () => {
         />
       </div>
 
-      {state?.properties?.newUsername?.errors && (
-        <div>
-          <div>
-            {state?.properties?.newUsername?.errors?.map((e) => (
-              <p key={e}>{e}</p>
-            ))}
-          </div>
-        </div>
-      )}
+      <FieldError errors={state?.properties?.newUsername?.errors} />
 
       <div className="mt-4 flex flex-col items-start justify-center gap-2">
         <Button size="large" disabled={pending} type="submit">
           Change Username
         </Button>
       </div>
-      <div>{state?.errors?.toString()}</div>
+      <FieldError errors={state?.errors} />
     </form>
   );
 };

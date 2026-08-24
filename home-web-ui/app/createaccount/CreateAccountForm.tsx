@@ -3,16 +3,15 @@
 import { createAccount } from "@/app/actions/auth";
 import { SignUpFormState } from "@/app/lib/definitions";
 import Button from "@/app/ui/Button";
+import FieldError from "@/app/ui/FieldError";
 import { useActionState, useEffect, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 const hasFormErrors = (state: SignUpFormState): boolean => {
   if (!state) return false;
-  if (state.errors?.length) return true;
-  if (state.properties) {
-    return Object.values(state.properties).some((p) => p?.errors?.length > 0);
-  }
-  return false;
+  if (state.errors.length > 0) return true;
+  const fields = state.properties ? Object.values(state.properties) : [];
+  return fields.some((field) => Boolean(field?.errors.length));
 };
 
 export const CreateAccountForm = () => {
@@ -61,12 +60,8 @@ export const CreateAccountForm = () => {
         </div>
       </div>
       <div>
-        {state?.properties?.firstname?.errors && (
-          <p>{state?.properties?.firstname?.errors}</p>
-        )}
-        {state?.properties?.lastname?.errors && (
-          <p>{state?.properties?.lastname?.errors}</p>
-        )}
+        <FieldError errors={state?.properties?.firstname?.errors} />
+        <FieldError errors={state?.properties?.lastname?.errors} />
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="email">Email</label>
@@ -82,9 +77,7 @@ export const CreateAccountForm = () => {
         />
       </div>
       <div>
-        {state?.properties?.email?.errors && (
-          <p>{state?.properties?.email?.errors}</p>
-        )}
+        <FieldError errors={state?.properties?.email?.errors} />
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="password">Password</label>
@@ -99,9 +92,7 @@ export const CreateAccountForm = () => {
         />
       </div>
       <div>
-        {state?.properties?.password?.errors && (
-          <p>{state?.properties?.password?.errors}</p>
-        )}
+        <FieldError errors={state?.properties?.password?.errors} />
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="confirmPassword">Confirm Password</label>
@@ -116,13 +107,7 @@ export const CreateAccountForm = () => {
         />
       </div>
       <div>
-        {state?.properties?.confirmPassword?.errors && (
-          <div>
-            {state?.properties?.confirmPassword?.errors.map((e) => (
-              <p key={e}>{e}</p>
-            ))}
-          </div>
-        )}
+        <FieldError errors={state?.properties?.confirmPassword?.errors} />
       </div>
       <div className="flex flex-col items-start justify-center gap-2">
         <ReCAPTCHA
@@ -131,15 +116,13 @@ export const CreateAccountForm = () => {
           ref={recaptchaRef}
         />
       </div>
-      {state?.properties?.grecaptcharesponse?.errors && (
-        <p>{state?.properties?.grecaptcharesponse?.errors}</p>
-      )}
+      <FieldError errors={state?.properties?.grecaptcharesponse?.errors} />
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <Button size="large" disabled={pending} type="submit">
           Create Account
         </Button>
       </div>
-      <div>{state?.errors?.toString()}</div>
+      <FieldError errors={state?.errors} />
     </form>
   );
 };

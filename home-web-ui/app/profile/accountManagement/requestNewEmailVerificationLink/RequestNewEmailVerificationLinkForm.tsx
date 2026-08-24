@@ -2,6 +2,7 @@
 
 import { requestNewEmailVerificationLinkAction } from "@/app/actions/auth";
 import Button from "@/app/ui/Button";
+import FieldError from "@/app/ui/FieldError";
 import { useActionState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -20,16 +21,14 @@ export const RequestNewEmailVerificationLinkForm = () => {
       <div className="flex flex-col items-start justify-center gap-2">
         <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
       </div>
-      {state?.properties?.grecaptcharesponse?.errors && (
-        <p>{state?.properties?.grecaptcharesponse?.errors}</p>
-      )}
+      <FieldError errors={state?.properties?.grecaptcharesponse?.errors} />
 
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <Button size="large" disabled={pending} type="submit">
           Send Me a New Email Verification Link
         </Button>
       </div>
-      <div>{state?.errors?.toString()}</div>
+      <FieldError errors={state?.errors} />
     </form>
   );
 };

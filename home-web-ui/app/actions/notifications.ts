@@ -1,58 +1,18 @@
 "use server";
 
+import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import { apiFetch, errorMessage } from "@/app/lib/api";
 import { GetNotificationsResponse } from "@home/shared";
-import { cookies } from "next/headers";
 
 const NOTIFICATION_URL = `${process.env.BASE_API_URL}/notifications`;
 
-export const getNotifications = async () => {
-  const cookieStore = await cookies();
-  const apiSessionCookie = cookieStore.get("apisession");
-
+export const getNotifications = async (): Promise<GetNotificationsResponse> => {
   try {
-    const response = await fetch(NOTIFICATION_URL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: apiSessionCookie?.value || "",
-      },
+    return await apiFetch<GetNotificationsResponse>(NOTIFICATION_URL, {
+      authorization: await getApiSessionToken(),
     });
-    if (!response.ok) {
-      const maybeResponse = await response.json();
-      const maybeResponseMessage = maybeResponse?.message;
-      throw new Error(
-        maybeResponseMessage
-          ? maybeResponseMessage
-          : `response.status ${response.status}`,
-      );
-    }
-
-    const json = await response.json();
-
-    const getNotificationsResponse: GetNotificationsResponse = {
-      error: json.error,
-      message: json.message,
-      notifications: json.notifications,
-    };
-
-    if (
-      getNotificationsResponse.error === false &&
-      typeof getNotificationsResponse.notifications !== "undefined"
-    ) {
-      return getNotificationsResponse;
-    } else {
-      throw new Error(getNotificationsResponse.message);
-    }
   } catch (error) {
-    const errorString =
-      error instanceof Error ? error.message : "Unknown error.";
-
-    const getNotificationsErrorResponse: GetNotificationsResponse = {
-      error: true,
-      message: errorString,
-    };
-
-    return getNotificationsErrorResponse;
+    return { error: true, message: errorMessage(error) };
   }
 };
 

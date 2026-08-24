@@ -1,12 +1,14 @@
 "use server";
 
 import { createSession } from "@/app/actions/session";
+import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import { apiFetch, errorMessage, requireSession } from "@/app/lib/api";
 import {
   RequestNewEmailVerificationFormState,
   SignInFormState,
   SignUpFormState,
 } from "@/app/lib/definitions";
-import { treeifyFormError } from "@/app/lib/formErrors";
+import { FieldNames, readFormValues, treeifyFormError } from "@/app/lib/forms";
 import {
   createAccountFormSchema,
   CreateAccountRequestBody,
@@ -19,252 +21,110 @@ import {
   SignInResponse,
 } from "@home/shared";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 const CREATE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/createAccount`;
 const SIGN_IN_URL = `${process.env.BASE_API_URL}/signIn`;
 const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/requestNewEmailVerificationLink`;
 
+const CREATE_ACCOUNT_FIELDS = {
+  firstname: "firstname",
+  lastname: "lastname",
+  email: "email",
+  password: "password",
+  confirmPassword: "confirmPassword",
+  grecaptcharesponse: "g-recaptcha-response",
+} as const satisfies FieldNames<typeof createAccountFormSchema>;
+
+const SIGN_IN_FIELDS = {
+  email: "email",
+  password: "password",
+} as const satisfies FieldNames<typeof signInBodySchema>;
+
+const REQUEST_NEW_EMAIL_VERIFICATION_FIELDS = {
+  grecaptcharesponse: "g-recaptcha-response",
+} as const satisfies FieldNames<
+  typeof requestNewEmailVerificationLinkBodySchema
+>;
+
 export const createAccount = async (
   state: SignUpFormState,
   formData: FormData,
-) => {
-  const unvalidatedInputs = {
-    unvalidatedFirstname: formData.get("firstname")
-      ? formData.get("firstname")?.toString()
-      : undefined,
-    unvalidatedLastname: formData.get("lastname")
-      ? formData.get("lastname")?.toString()
-      : undefined,
-    unvalidatedEmail: formData.get("email")
-      ? formData.get("email")?.toString()
-      : undefined,
-    unvalidatedPassword: formData.get("password")
-      ? formData.get("password")?.toString()
-      : undefined,
-    unvalidatedConfirmPassword: formData.get("confirmPassword")
-      ? formData.get("confirmPassword")?.toString()
-      : undefined,
-    unvalidatedGrecaptcharesponse: formData.get("g-recaptcha-response")
-      ? formData.get("g-recaptcha-response")?.toString()
-      : undefined,
-  };
-
-  const signUpReturn: SignUpFormState = {
-    errors: [],
-    values: {
-      firstname: unvalidatedInputs.unvalidatedFirstname,
-      lastname: unvalidatedInputs.unvalidatedLastname,
-      email: unvalidatedInputs.unvalidatedEmail,
-      password: unvalidatedInputs.unvalidatedPassword,
-      confirmPassword: unvalidatedInputs.unvalidatedConfirmPassword,
-      grecaptcharesponse: unvalidatedInputs.unvalidatedGrecaptcharesponse,
-    },
-    properties: {},
-  };
-
-  const validatedFields = createAccountFormSchema.safeParse({
-    firstname: formData.get("firstname"),
-    lastname: formData.get("lastname"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    confirmPassword: formData.get("confirmPassword"),
-    grecaptcharesponse: formData.get("g-recaptcha-response"),
-  });
+): Promise<SignUpFormState> => {
+  const values = readFormValues(formData, CREATE_ACCOUNT_FIELDS);
+  const validatedFields = createAccountFormSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    const errors = treeifyFormError(validatedFields.error);
-    return { ...signUpReturn, ...errors };
+    return { values, ...treeifyFormError(validatedFields.error) };
   }
-
-  const createAccountRequestBody: CreateAccountRequestBody =
-    validatedFields.data;
 
   try {
-    const response = await fetch(CREATE_ACCOUNT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(createAccountRequestBody),
-    });
-    if (!response.ok) {
-      const maybeResponse = await response.json();
-      const maybeResponseMessage = maybeResponse?.message;
-      throw new Error(
-        maybeResponseMessage
-          ? maybeResponseMessage
-          : `response.status ${response.status}`,
-      );
-    }
-
-    const json = await response.json();
-
-    const createAccountResponse: CreateAccountResponse = {
-      error: json.error,
-      jwt: json.jwt,
-      message: json.message,
-      user: json.user,
-    };
-
-    if (
-      createAccountResponse.error === false &&
-      createAccountResponse.jwt &&
-      createAccountResponse.user
-    ) {
-      await createSession(
-        createAccountResponse.jwt,
-        createAccountResponse.user,
-      );
-      redirect("/profile");
-    } else {
-      throw new Error("createAccountResponse error.");
-    }
+    const { jwt, user } = requireSession(
+      await apiFetch<CreateAccountResponse, CreateAccountRequestBody>(
+        CREATE_ACCOUNT_URL,
+        { method: "POST", body: validatedFields.data },
+      ),
+    );
+    await createSession(jwt, user);
   } catch (error) {
-    const errorString =
-      error instanceof Error ? error.message : "Unknown error.";
-
-    return { ...signUpReturn, errors: [errorString] };
+    return { values, errors: [errorMessage(error)] };
   }
+
+  redirect("/profile");
 };
 
-export const signIn = async (state: SignInFormState, formData: FormData) => {
-  const unvalidatedInputs = {
-    unvalidatedEmail: formData.get("email")
-      ? formData.get("email")?.toString()
-      : undefined,
-    unvalidatedPassword: formData.get("password")
-      ? formData.get("password")?.toString()
-      : undefined,
-  };
-
-  const validatedFields = signInBodySchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
-
-  const signInReturn: SignInFormState = {
-    errors: [],
-    values: {
-      email: unvalidatedInputs.unvalidatedEmail || undefined,
-      password: unvalidatedInputs.unvalidatedPassword || undefined,
-    },
-    properties: {},
-  };
+export const signIn = async (
+  state: SignInFormState,
+  formData: FormData,
+): Promise<SignInFormState> => {
+  const values = readFormValues(formData, SIGN_IN_FIELDS);
+  const validatedFields = signInBodySchema.safeParse(values);
 
   if (!validatedFields.success) {
-    const errors = treeifyFormError(validatedFields.error);
-    return { ...signInReturn, ...errors };
+    return { values, ...treeifyFormError(validatedFields.error) };
   }
-
-  const signInRequestBody: SignInRequestBody = validatedFields.data;
 
   try {
-    const response = await fetch(SIGN_IN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(signInRequestBody),
-    });
-    if (!response.ok) {
-      const maybeResponse = await response.json();
-      const maybeResponseMessage = maybeResponse?.message;
-      throw new Error(
-        maybeResponseMessage
-          ? maybeResponseMessage
-          : `response.status ${response.status}`,
-      );
-    }
-
-    const json = await response.json();
-
-    const signInResponse: SignInResponse = {
-      error: json.error,
-      jwt: json.jwt,
-      message: json.message,
-      user: json.user,
-    };
-
-    if (
-      signInResponse.error === false &&
-      signInResponse.jwt &&
-      signInResponse.user
-    ) {
-      await createSession(signInResponse.jwt, signInResponse.user);
-      redirect("/profile");
-    } else {
-      throw new Error("signInResponse error.");
-    }
+    const { jwt, user } = requireSession(
+      await apiFetch<SignInResponse, SignInRequestBody>(SIGN_IN_URL, {
+        method: "POST",
+        body: validatedFields.data,
+      }),
+    );
+    await createSession(jwt, user);
   } catch (error) {
-    const errorString =
-      error instanceof Error ? error.message : "Unknown error.";
-
-    return { ...signInReturn, errors: [errorString] };
+    return { values, errors: [errorMessage(error)] };
   }
+
+  redirect("/profile");
 };
 
 export const requestNewEmailVerificationLinkAction = async (
   state: RequestNewEmailVerificationFormState,
   formData: FormData,
-) => {
-  const cookieStore = await cookies();
-  const apiSessionCookie = cookieStore.get("apisession");
-
-  const validatedFields = requestNewEmailVerificationLinkBodySchema.safeParse({
-    grecaptcharesponse: formData.get("g-recaptcha-response"),
-  });
+): Promise<RequestNewEmailVerificationFormState> => {
+  const values = readFormValues(
+    formData,
+    REQUEST_NEW_EMAIL_VERIFICATION_FIELDS,
+  );
+  const validatedFields =
+    requestNewEmailVerificationLinkBodySchema.safeParse(values);
 
   if (!validatedFields.success) {
-    const errors = treeifyFormError(validatedFields.error);
-    return { ...errors, success: false };
+    return { success: false, ...treeifyFormError(validatedFields.error) };
   }
-
-  const requestNewEmailVerificationRequestBody: RequestNewEmailVerificationRequestBody =
-    validatedFields.data;
 
   try {
-    const response = await fetch(REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL, {
+    await apiFetch<
+      RequestNewEmailVerificationLinkResponse,
+      RequestNewEmailVerificationRequestBody
+    >(REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: apiSessionCookie?.value || "",
-      },
-      body: JSON.stringify(requestNewEmailVerificationRequestBody),
+      authorization: await getApiSessionToken(),
+      body: validatedFields.data,
     });
-    if (!response.ok) {
-      const maybeResponse = await response.json();
-      const maybeResponseMessage = maybeResponse?.message;
-      throw new Error(
-        maybeResponseMessage
-          ? maybeResponseMessage
-          : `response.status ${response.status}`,
-      );
-    }
-
-    const json = await response.json();
-
-    const requestNewEmailVerificationResponse: RequestNewEmailVerificationLinkResponse =
-      {
-        error: json.error,
-        message: json.message,
-      };
-
-    if (requestNewEmailVerificationResponse.error === true) {
-      throw new Error("requestNewEmailVerificationResponse error.");
-    } else if (requestNewEmailVerificationResponse.error === false) {
-      redirect(
-        "/profile/accountManagement/requestNewEmailVerificationLinkSuccess",
-      );
-    }
   } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
-    }
-    const errorString =
-      error instanceof Error ? error.message : "Unknown error.";
-
-    return { success: false, errors: [errorString] };
+    return { success: false, errors: [errorMessage(error)] };
   }
+
+  redirect("/profile/accountManagement/requestNewEmailVerificationLinkSuccess");
 };

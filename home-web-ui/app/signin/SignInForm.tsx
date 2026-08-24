@@ -2,6 +2,7 @@
 
 import { signIn } from "@/app/actions/auth";
 import Button from "@/app/ui/Button";
+import FieldError from "@/app/ui/FieldError";
 import { useActionState } from "react";
 
 export const SignInForm = () => {
@@ -23,11 +24,7 @@ export const SignInForm = () => {
         />
       </div>
 
-      {state?.properties?.email?.errors && (
-        <div>
-          <p>{state?.properties?.email?.errors}</p>
-        </div>
-      )}
+      <FieldError errors={state?.properties?.email?.errors} />
 
       <div className="flex flex-col items-start justify-center gap-2">
         <label htmlFor="password">Password</label>
@@ -41,17 +38,9 @@ export const SignInForm = () => {
         />
       </div>
 
-      {state?.properties?.password?.errors && (
-        <div>
-          <p>{state?.properties?.password?.errors}</p>
-        </div>
-      )}
+      <FieldError errors={state?.properties?.password?.errors} />
 
-      {state?.errors && (
-        <div>
-          <p>{state?.errors.toString()}</p>
-        </div>
-      )}
+      <FieldError errors={state?.errors} />
 
       <div className="mt-4 flex flex-col items-start justify-center gap-2">
         <Button size="large" disabled={pending} type="submit">

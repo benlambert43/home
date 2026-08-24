@@ -1,102 +1,32 @@
-export type SignUpFormState =
-  | {
-      errors: string[];
-      values: {
-        firstname?: string;
-        lastname?: string;
-        email?: string;
-        password?: string;
-        confirmPassword?: string;
-        grecaptcharesponse?: string;
-      };
-      properties?:
-        | {
-            firstname?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            lastname?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            email?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            password?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            confirmPassword?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            grecaptcharesponse?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-          }
-        | undefined;
-    }
-  | undefined;
+import * as z from "zod";
+import {
+  changeUsernameBodySchema,
+  createAccountFormSchema,
+  requestNewEmailVerificationLinkBodySchema,
+  signInBodySchema,
+} from "@home/shared";
 
-export type SignInFormState =
-  | {
-      errors: string[];
-      values: {
-        email?: string;
-        password?: string;
-      };
-      properties?:
-        | {
-            email?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-            password?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-          }
-        | undefined;
-    }
-  | undefined;
+type FieldErrors<Values> = {
+  [Field in keyof Values]?: { errors: string[] };
+};
 
-export type RequestNewEmailVerificationFormState =
+export type FormState<Schema extends z.ZodType> =
   | {
       errors: string[];
+      values?: Partial<Record<keyof z.output<Schema>, string>>;
+      properties?: FieldErrors<z.output<Schema>>;
       success?: boolean;
-      properties?:
-        | {
-            grecaptcharesponse?:
-              | {
-                  errors: string[];
-                }
-              | undefined;
-          }
-        | undefined;
     }
   | undefined;
 
-export type ChangeUsernameFormState =
-  | {
-      errors: string[];
-      values: {
-        newUsername?: string;
-      };
-      success?: boolean;
-      properties: {
-        newUsername?: {
-          errors: string[];
-        };
-      };
-    }
-  | undefined;
+export type SignUpFormState = FormState<typeof createAccountFormSchema>;
+
+export type SignInFormState = FormState<typeof signInBodySchema>;
+
+export type RequestNewEmailVerificationFormState = FormState<
+  typeof requestNewEmailVerificationLinkBodySchema
+>;
+
+export type ChangeUsernameFormState = FormState<
+  typeof changeUsernameBodySchema
+>;
