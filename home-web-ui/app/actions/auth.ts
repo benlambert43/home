@@ -2,7 +2,7 @@
 
 import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
-import { apiFetch, errorMessage } from "@/app/lib/api";
+import { apiFetch, apiRequest, errorMessage } from "@/app/lib/api";
 import {
   CreateAccountFormState,
   FieldNames,
@@ -140,9 +140,7 @@ export const verifyEmail = async (
 ): Promise<VerifyEmailResponse> => {
   const path = [username, email, code].map(encodeURIComponent).join("/");
 
-  const response = await fetch(`${VERIFY_EMAIL_URL}/${path}`, {
+  return apiRequest<VerifyEmailResponse>(`${VERIFY_EMAIL_URL}/${path}`, {
     cache: "no-store",
   });
-
-  return response.json() as Promise<VerifyEmailResponse>;
 };

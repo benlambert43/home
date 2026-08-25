@@ -22,7 +22,7 @@ const VerificationComplete = (props: {
       }
       redirect("/profile");
     };
-    complete();
+    void complete();
   }, [session]);
 
   return <div className="p-5 py-5">{message}</div>;

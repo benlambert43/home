@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 
 const TS_FILES = ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"];
 
-export const sharedTsRules = {
+const sharedTsRules = {
   files: TS_FILES,
   rules: {
     "@typescript-eslint/no-unused-vars": [
@@ -17,19 +17,36 @@ export const sharedTsRules = {
         varsIgnorePattern: "^_",
       },
     ],
+
+    "@typescript-eslint/no-floating-promises": [
+      "error",
+      {
+        allowForKnownSafeCalls: [
+          {
+            from: "package",
+            package: "node:test",
+            name: ["describe", "it", "test"],
+          },
+        ],
+      },
+    ],
   },
 };
+
+export const typeChecked = (tsconfigRootDir) => [
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir },
+    },
+  },
+  { files: ["**/*.mjs", "**/*.js"], ...tseslint.configs.disableTypeChecked },
+  sharedTsRules,
+];
 
 export const typescriptBase = (tsconfigRootDir) =>
   defineConfig([
     { ignores: ["build/**"] },
     js.configs.recommended,
-    ...tseslint.configs.recommendedTypeChecked,
-    {
-      languageOptions: {
-        parserOptions: { projectService: true, tsconfigRootDir },
-      },
-    },
-    { files: ["**/*.mjs", "**/*.js"], ...tseslint.configs.disableTypeChecked },
-    sharedTsRules,
+    ...typeChecked(tsconfigRootDir),
   ]);

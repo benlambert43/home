@@ -46,7 +46,9 @@ export const Notifications = () => {
       setNotifications(result.error ? [] : result.notifications);
     };
 
-    loadNotifications();
+    loadNotifications().catch(() => {
+      if (active) setNotifications([]);
+    });
 
     return () => {
       active = false;

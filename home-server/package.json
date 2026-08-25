@@ -9,10 +9,10 @@
     "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "rimraf ./build && tsc",
     "start": "node --env-file=.env build/index.js",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"No tests yet.\""
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

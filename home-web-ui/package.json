@@ -8,10 +8,10 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"No tests yet.\""
+    "test": "node --import tsx --test \"app/**/*.test.ts\" \"app/**/*.test.tsx\""
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -37,6 +37,7 @@
     "prettier-plugin-merge": "^0.10.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^7"
   }
 }

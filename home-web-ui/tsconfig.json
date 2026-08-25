@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "server-only": ["./test/emptyModule.ts"],
+      "client-only": ["./test/emptyModule.ts"]
     }
   },
   "include": [
