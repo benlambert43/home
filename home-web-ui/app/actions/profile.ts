@@ -3,8 +3,12 @@
 import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { apiFetch, errorMessage } from "@/app/lib/api";
-import { ChangeUsernameFormState } from "@/app/lib/definitions";
-import { FieldNames, readFormValues, treeifyFormError } from "@/app/lib/forms";
+import {
+  ChangeUsernameFormState,
+  FieldNames,
+  readFormValues,
+  treeifyFormError,
+} from "@/app/lib/forms";
 import {
   changeUsernameBodySchema,
   ChangeUsernameRequestBody,

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { EmailVerificationModel } from "../model/emailVerificationModel";
-import { User } from "../types/db";
+import { UserDocument } from "../types/db";
 import { sendMail } from "./mailTransporter";
 import { encodeUrlSafeB64 } from "../http/urlSafeB64";
 import { frontendUrl } from "../http/frontendUrl";
@@ -19,7 +19,7 @@ const generateSecurePIN = () => {
   return (randomValues[0] % PIN_RANGE).toString().padStart(6, "0");
 };
 
-const buildVerificationLink = (user: User, code: string) => {
+const buildVerificationLink = (user: UserDocument, code: string) => {
   const link = frontendUrl("profile/accountManagement/verifyEmail");
   link.searchParams.set("username", encodeUrlSafeB64(user.username));
   link.searchParams.set("email", encodeUrlSafeB64(user.email));
@@ -27,7 +27,7 @@ const buildVerificationLink = (user: User, code: string) => {
   return link;
 };
 
-export const handleSendEmailVerification = async (user: User) => {
+export const handleSendEmailVerification = async (user: UserDocument) => {
   const emailVerificationCode = generateSecurePIN();
   const verificationLink = buildVerificationLink(user, emailVerificationCode);
 

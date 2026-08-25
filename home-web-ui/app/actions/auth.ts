@@ -4,11 +4,13 @@ import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
+  CreateAccountFormState,
+  FieldNames,
+  readFormValues,
   RequestNewEmailVerificationLinkFormState,
   SignInFormState,
-  CreateAccountFormState,
-} from "@/app/lib/definitions";
-import { FieldNames, readFormValues, treeifyFormError } from "@/app/lib/forms";
+  treeifyFormError,
+} from "@/app/lib/forms";
 import {
   createAccountFormSchema,
   CreateAccountRequestBody,

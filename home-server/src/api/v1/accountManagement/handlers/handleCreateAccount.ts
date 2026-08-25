@@ -2,7 +2,7 @@ import * as bcrypt from "bcrypt";
 import { generateUsername } from "unique-username-generator";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
-import { User } from "../../types/db";
+import { UserDocument } from "../../types/db";
 import { checkUniqueUsername } from "../../user/userQueries";
 
 const MAX_USERNAME_ATTEMPTS = 10;
@@ -59,7 +59,7 @@ const handleCreateUser = async ({
     role: shouldCreateAdminAccount(email, password) ? "admin" : "user",
   });
 
-  return (await newUser.save()) as User;
+  return (await newUser.save()) as UserDocument;
 };
 
 export const handleCreateAccount = async (newAccount: NewAccount) => {
