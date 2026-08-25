@@ -24,7 +24,7 @@ const sharedTsRules = {
         allowForKnownSafeCalls: [
           {
             from: "package",
-            package: "node:test",
+            package: "vitest",
             name: ["describe", "it", "test"],
           },
         ],
