@@ -1,14 +1,10 @@
-import { Router } from "express";
 import accountManagementRouter from "./accountManagement/accountManagement";
 import signInRouter from "./signIn/signIn";
 import userRouter from "./user/user";
 import notificationRouter from "./notification/notification";
+import { namedRouter } from "./http/router";
 
-const v1Router = Router();
-
-v1Router.get("/", (req, res) => {
-  res.status(200).send({ message: "v1 Router" });
-});
+const v1Router = namedRouter("v1 Router");
 
 v1Router.use("/accountManagement", accountManagementRouter);
 v1Router.use("/signIn", signInRouter);

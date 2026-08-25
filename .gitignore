@@ -11,3 +11,6 @@ coverage/
 
 *.tsbuildinfo
 next-env.d.ts
+
+home-web-ui/AGENTS.md
+home-web-ui/CLAUDE.md

@@ -3,36 +3,26 @@
 import { getNotifications } from "@/app/actions/notifications";
 import NotificationIcon from "@/app/components/NotificationIcon";
 import { Notification } from "@home/shared";
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 
 type NotificationContextValue = {
   drawer: {
-    notificationDrawerOpen: boolean;
+    open: boolean;
     isClosing: boolean;
-    handleSetNotificationDrawerOpen: () => void;
-    handleSetNotificationDrawerClosed: () => void;
-    handleAnimatedClose: () => void;
+    toggle: () => void;
+    close: () => void;
   };
-  content: {
-    notifications: Notification[];
-    notificationsRefreshing: boolean;
-    handleRefreshNotifications: () => void;
-  };
+  notifications: Notification[];
 };
 
 const defaultNotificationContext: NotificationContextValue = {
   drawer: {
-    notificationDrawerOpen: false,
+    open: false,
     isClosing: false,
-    handleSetNotificationDrawerOpen: () => {},
-    handleSetNotificationDrawerClosed: () => {},
-    handleAnimatedClose: () => {},
+    toggle: () => {},
+    close: () => {},
   },
-  content: {
-    notifications: [],
-    notificationsRefreshing: false,
-    handleRefreshNotifications: () => {},
-  },
+  notifications: [],
 };
 
 export const NotificationContext = createContext(defaultNotificationContext);
@@ -40,22 +30,20 @@ export const NotificationContext = createContext(defaultNotificationContext);
 const CLOSE_ANIMATION_MS = 200;
 
 export const Notifications = () => {
-  const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [notificationsRefreshing, setNotificationsRefreshing] = useState(true);
   const [refreshCount, setRefreshCount] = useState(0);
+  const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     let active = true;
 
     const loadNotifications = async () => {
-      setNotificationsRefreshing(true);
       const result = await getNotifications();
       if (!active) return;
 
       setNotifications(result.error ? [] : result.notifications);
-      setNotificationsRefreshing(false);
     };
 
     loadNotifications();
@@ -65,42 +53,28 @@ export const Notifications = () => {
     };
   }, [refreshCount]);
 
-  const handleRefreshNotifications = useCallback(
-    () => setRefreshCount((count) => count + 1),
-    [],
-  );
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
 
-  const handleSetNotificationDrawerOpen = () => {
-    setNotificationDrawerOpen(true);
-    handleRefreshNotifications();
-  };
-  const handleSetNotificationDrawerClosed = () => {
-    setNotificationDrawerOpen(false);
-  };
-  const handleAnimatedClose = () => {
+  const close = useCallback(() => {
     setIsClosing(true);
-    setTimeout(() => {
-      setNotificationDrawerOpen(false);
+    closeTimer.current = setTimeout(() => {
+      setOpen(false);
       setIsClosing(false);
     }, CLOSE_ANIMATION_MS);
-  };
+  }, []);
+
+  const toggle = useCallback(() => {
+    if (open) {
+      close();
+      return;
+    }
+    setOpen(true);
+    setRefreshCount((count) => count + 1);
+  }, [open, close]);
 
   return (
     <NotificationContext.Provider
-      value={{
-        drawer: {
-          notificationDrawerOpen,
-          isClosing,
-          handleSetNotificationDrawerClosed,
-          handleSetNotificationDrawerOpen,
-          handleAnimatedClose,
-        },
-        content: {
-          notifications,
-          notificationsRefreshing,
-          handleRefreshNotifications,
-        },
-      }}
+      value={{ drawer: { open, isClosing, toggle, close }, notifications }}
     >
       <NotificationIcon />
     </NotificationContext.Provider>

@@ -1,5 +1,10 @@
 import { Types } from "mongoose";
-import { Notification, UserNoPassword, UserRole } from "@home/shared";
+import {
+  Notification,
+  NotificationFields,
+  UserNoPassword,
+  UserFields,
+} from "@home/shared";
 
 type MaybeId = Types.ObjectId | string;
 type MaybeDate = Date | string;
@@ -9,30 +14,9 @@ const toId = (value: MaybeId): string => value.toString();
 const toIsoDate = (value: MaybeDate): string =>
   typeof value === "string" ? value : value.toISOString();
 
-export interface SerializableUser {
-  _id: MaybeId;
-  firstname: string;
-  lastname: string;
-  email: string;
-  username: string;
-  confirmedEmail: boolean;
-  userBanned: boolean;
-  createdDate: MaybeDate;
-  modifiedDate: MaybeDate;
-  role: UserRole;
-}
+export type SerializableUser = UserFields<MaybeId, MaybeDate>;
 
-export interface SerializableNotification {
-  _id: MaybeId;
-  recipientUserId: MaybeId;
-  subtype: string;
-  message: string;
-  referenceLink: string;
-  markedAsRead: boolean;
-  canBeMarkedAsRead: boolean;
-  canBeDeleted: boolean;
-  timestamp: MaybeDate;
-}
+export type SerializableNotification = NotificationFields<MaybeId, MaybeDate>;
 
 export const serializeUser = (user: SerializableUser): UserNoPassword => ({
   _id: toId(user._id),

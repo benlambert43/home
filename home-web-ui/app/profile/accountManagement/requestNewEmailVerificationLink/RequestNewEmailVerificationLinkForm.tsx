@@ -2,12 +2,11 @@
 
 import { requestNewEmailVerificationLink } from "@/app/actions/auth";
 import Button from "@/app/ui/Button";
+import Captcha from "@/app/ui/Captcha";
 import FieldError from "@/app/ui/FieldError";
 import { useActionState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
 
 export const RequestNewEmailVerificationLinkForm = () => {
-  const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(
     requestNewEmailVerificationLink,
     undefined,
@@ -16,11 +15,9 @@ export const RequestNewEmailVerificationLinkForm = () => {
   return (
     <form action={action} className="flex flex-col gap-4">
       <div>
-        First complete the captcha, then click the button to recieve a new link.
+        First complete the captcha, then click the button to receive a new link.
       </div>
-      <div className="flex flex-col items-start justify-center gap-2">
-        <ReCAPTCHA id="publicCaptcha" sitekey={publicCaptchaKey} />
-      </div>
+      <Captcha state={state} />
       <FieldError errors={state?.properties?.grecaptcharesponse?.errors} />
 
       <div className="flex flex-col items-start justify-center gap-2 py-6">

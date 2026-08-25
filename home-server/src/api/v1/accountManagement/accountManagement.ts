@@ -1,4 +1,3 @@
-import { Router } from "express";
 import {
   changeUsernameBodySchema,
   CreateAccountResponse,
@@ -14,35 +13,40 @@ import {
   sendUnauthenticated,
 } from "../http/respond";
 import { accountAlreadyExists, ApiMessage } from "../http/messages";
+import { namedRouter, route } from "../http/router";
 import {
   createNewUniqueRandomUsername,
   handleCreateAccount,
 } from "./handlers/handleCreateAccount";
 import { checkUniqueEmail, checkUniqueUsername } from "../user/userQueries";
 import { serializeUser } from "../types/serialize";
-import { handleSendEmailVerification } from "../email/handlers/handleSendEmailVerification";
-import { decodeUrlSafeB64 } from "../email/handlers/encodeUrlSafeB64";
+import { handleSendEmailVerification } from "../email/handleSendEmailVerification";
+import { decodeUrlSafeB64 } from "../http/urlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
-import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
+import { verifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
 import { handleChangeUsername } from "./handlers/handleChangeUsername";
 import { frontendUrl } from "../http/frontendUrl";
 
-const accountManagementRouter = Router();
+interface VerifyEmailParams {
+  username: string;
+  email: string;
+  code: string;
+}
 
-accountManagementRouter.get("/", (req, res) => {
-  res.status(200).send({ message: "Account Management Router" });
-});
+const accountManagementRouter = namedRouter("Account Management Router");
 
-accountManagementRouter.post("/createAccount", async (req, res) => {
-  try {
+accountManagementRouter.post(
+  "/createAccount",
+  route(async (req, res) => {
     const body = parseRequest(createAccountBodySchema, req.body, res);
     if (!body) return;
 
-    const captcha = await handleVerifyCaptcha(body.grecaptcharesponse);
-    if (!captcha.success) return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
+    if (!(await verifyCaptcha(body.grecaptcharesponse))) {
+      return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
+    }
 
     const emailAvailable = await checkUniqueEmail(body.email);
     if (!emailAvailable) return sendFailure(res, accountAlreadyExists("email"));
@@ -71,64 +75,56 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       jwt: token,
       user: serializeUser(user),
     });
-  } catch {
-    sendFailure(res);
-  }
-});
+  }),
+);
 
 accountManagementRouter.get(
   "/verifyEmail/:username/:email/:code",
-  async (req, res) => {
-    try {
-      const params = parseRequest(
-        verifyEmailParamsSchema,
-        {
-          username: decodeUrlSafeB64(req.params.username),
-          email: decodeUrlSafeB64(req.params.email),
-          code: req.params.code,
-        },
-        res,
-      );
-      if (!params) return;
+  route<VerifyEmailParams>(async (req, res) => {
+    const username = decodeUrlSafeB64(req.params.username);
+    const email = decodeUrlSafeB64(req.params.email);
 
-      sendResult(res, await handleVerifyEmailCallback(params));
-    } catch {
-      sendFailure(res, ApiMessage.VERIFICATION_LINK_INVALID);
+    if (!username || !email) {
+      return sendFailure(res, ApiMessage.VERIFICATION_LINK_INVALID);
     }
-  },
+
+    const params = parseRequest(
+      verifyEmailParamsSchema,
+      { username, email, code: req.params.code },
+      res,
+    );
+    if (!params) return;
+
+    sendResult(res, await handleVerifyEmailCallback(params));
+  }),
 );
 
 accountManagementRouter.post(
   "/requestNewEmailVerificationLink",
-  async (req, res) => {
-    try {
-      const verifiedToken = authenticateApiToken(req.headers?.authorization);
-      if (verifiedToken.error) return sendUnauthenticated(res);
+  route(async (req, res) => {
+    const token = authenticateApiToken(req.headers?.authorization);
+    if (!token) return sendUnauthenticated(res);
 
-      const body = parseRequest(
-        requestNewEmailVerificationLinkBodySchema,
-        req.body,
-        res,
-      );
-      if (!body) return;
+    const body = parseRequest(
+      requestNewEmailVerificationLinkBodySchema,
+      req.body,
+      res,
+    );
+    if (!body) return;
 
-      const captcha = await handleVerifyCaptcha(body.grecaptcharesponse);
-      if (!captcha.success) return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
-
-      sendResult(
-        res,
-        await handleRequestNewEmailVerificationLink(verifiedToken.decodedToken),
-      );
-    } catch {
-      sendFailure(res);
+    if (!(await verifyCaptcha(body.grecaptcharesponse))) {
+      return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
     }
-  },
+
+    sendResult(res, await handleRequestNewEmailVerificationLink(token));
+  }),
 );
 
-accountManagementRouter.post("/changeUsername", async (req, res) => {
-  try {
-    const verifiedToken = authenticateApiToken(req.headers?.authorization);
-    if (verifiedToken.error) return sendUnauthenticated(res);
+accountManagementRouter.post(
+  "/changeUsername",
+  route(async (req, res) => {
+    const token = authenticateApiToken(req.headers?.authorization);
+    if (!token) return sendUnauthenticated(res);
 
     const body = parseRequest(changeUsernameBodySchema, req.body, res);
     if (!body) return;
@@ -136,13 +132,8 @@ accountManagementRouter.post("/changeUsername", async (req, res) => {
     const available = await checkUniqueUsername(body.newUsername);
     if (!available) return sendFailure(res, accountAlreadyExists("username"));
 
-    sendResult(
-      res,
-      await handleChangeUsername(verifiedToken.decodedToken, body.newUsername),
-    );
-  } catch {
-    sendFailure(res);
-  }
-});
+    sendResult(res, await handleChangeUsername(token, body.newUsername));
+  }),
+);
 
 export default accountManagementRouter;

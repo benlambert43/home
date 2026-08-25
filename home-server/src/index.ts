@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import apiRouter from "./api/api";
+import { sendSuccess } from "./api/v1/http/respond";
 
 const app = express();
 app.use(express.json());
@@ -17,15 +18,15 @@ const API_PORT = process.env.API_PORT;
 
 mongoose
   .set("strictQuery", false)
-  .connect(process.env.MONGO_URI_ENV || "", {})
+  .connect(process.env.MONGO_URI || "", {})
   .then(() => {
     console.log("MongoDB connected.");
   })
-  .catch((err) => console.log(err));
+  .catch((err: unknown) => console.error("MongoDB connection failed:", err));
 
-app.get("/", (req, res) => {
-  res.status(200).send({ message: "Welcome to home-server" });
-});
+app.get("/", (req, res) =>
+  sendSuccess(res, { message: "Welcome to home-server." }),
+);
 
 app.use("/api", apiRouter);
 

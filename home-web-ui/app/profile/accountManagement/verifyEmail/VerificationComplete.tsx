@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 const VerificationComplete = (props: {
-  message: string;
+  message?: string;
   session?: SessionPayload;
 }) => {
   const { message, session } = props;

@@ -1,30 +1,22 @@
 import "@/app/globals.css";
-import type { Metadata } from "next";
 import Navbar from "@/app/components/Navbar";
+import { siteMetadata } from "@/app/lib/metadata";
+import { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  title: "ben lambert",
-  description: "ben lamberts personal website 🧑‍💻",
-};
+export const metadata = siteMetadata;
 
-const RootLayout = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  return (
-    <html
-      lang="en"
-      className="min-h-screen min-w-screen bg-slate-800 text-slate-50"
-    >
-      <body>
-        <div className="py-8">
-          <Navbar />
-          {children}
-        </div>
-      </body>
-    </html>
-  );
-};
+const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
+  <html
+    lang="en"
+    className="min-h-screen min-w-screen bg-slate-800 text-slate-50"
+  >
+    <body>
+      <div className="py-8">
+        <Navbar />
+        {children}
+      </div>
+    </body>
+  </html>
+);
 
 export default RootLayout;

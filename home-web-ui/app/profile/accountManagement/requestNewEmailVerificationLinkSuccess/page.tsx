@@ -1,8 +1,7 @@
-import { EnvelopeIcon } from "@heroicons/react/16/solid";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
-import Link from "next/link";
+import OpenGmailButton from "@/app/ui/OpenGmailButton";
 
-const requestNewEmailVerificationLinkSuccess = async () => {
+const RequestNewEmailVerificationLinkSuccess = async () => {
   await requireBffSessionUser();
 
   return (
@@ -12,21 +11,10 @@ const requestNewEmailVerificationLinkSuccess = async () => {
         spam folders.
       </div>
       <div>
-        <Link
-          href={"http://google.com/gmail"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex max-w-80 gap-x-2 rounded-sm bg-slate-500 px-2 py-1
-            hover:cursor-pointer hover:bg-slate-400 focus:outline-slate-100"
-        >
-          <div className="flex items-center justify-center px-1">
-            <EnvelopeIcon className="size-6" />
-          </div>
-          Open Gmail
-        </Link>
+        <OpenGmailButton />
       </div>
     </div>
   );
 };
 
-export default requestNewEmailVerificationLinkSuccess;
+export default RequestNewEmailVerificationLinkSuccess;

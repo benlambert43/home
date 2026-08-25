@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
 import Mail from "nodemailer/lib/mailer";
-import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { TZDate } from "@date-fns/tz";
+import { EmailVerificationModel } from "../model/emailVerificationModel";
 
 const EMAIL_OUTGOING_ADDRESS = process.env.EMAIL_OUTGOING_ADDRESS;
 const EMAIL_OUTGOING_CLIENT_ID = process.env.EMAIL_OUTGOING_CLIENT_ID;
@@ -10,35 +10,27 @@ const EMAIL_OUTGOING_CLIENT_SECRET = process.env.EMAIL_OUTGOING_CLIENT_SECRET;
 const EMAIL_OUTGOING_REFRESH_TOKEN = process.env.EMAIL_OUTGOING_REFRESH_TOKEN;
 const EMAIL_OUTGOING_APP_PASSWORD = process.env.EMAIL_OUTGOING_APP_PASSWORD;
 
-const emailCountMidnightPacificTime = async () => {
-  const PACIFIC_TZ = "America/Los_Angeles";
+const PACIFIC_TZ = "America/Los_Angeles";
 
-  function getPacificDayRange(baseDate: Date = new Date()): {
-    start: Date;
-    end: Date;
-  } {
-    const zonedNow = new TZDate(baseDate, PACIFIC_TZ);
+const pacificDayRange = (baseDate: Date = new Date()) => {
+  const zonedNow = new TZDate(baseDate, PACIFIC_TZ);
 
-    const year = zonedNow.getFullYear();
-    const month = zonedNow.getMonth();
-    const day = zonedNow.getDate();
+  const year = zonedNow.getFullYear();
+  const month = zonedNow.getMonth();
+  const day = zonedNow.getDate();
 
-    const start = new TZDate(year, month, day, 0, 0, 0, 0, PACIFIC_TZ);
-    const end = new TZDate(year, month, day + 1, 0, 0, 0, 0, PACIFIC_TZ);
+  const start = new TZDate(year, month, day, 0, 0, 0, 0, PACIFIC_TZ);
+  const end = new TZDate(year, month, day + 1, 0, 0, 0, 0, PACIFIC_TZ);
 
-    return {
-      start: new Date(start.valueOf()),
-      end: new Date(end.valueOf()),
-    };
-  }
+  return { start: new Date(start.valueOf()), end: new Date(end.valueOf()) };
+};
 
-  const { start, end } = getPacificDayRange();
+const countEmailsSentToday = async () => {
+  const { start, end } = pacificDayRange();
 
-  const emailCount = await EmailVerificationModel.countDocuments({
+  return EmailVerificationModel.countDocuments({
     createdDate: { $gte: start, $lt: end },
   });
-
-  return emailCount;
 };
 
 const createTransporter = async () => {
@@ -62,7 +54,7 @@ const createTransporter = async () => {
     });
   });
 
-  const transporter = nodemailer.createTransport({
+  return nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
@@ -75,12 +67,10 @@ const createTransporter = async () => {
       accessToken: accessToken ? (accessToken as string) : "",
     },
   });
-
-  return transporter;
 };
 
-const createBackupTransporter = () => {
-  const backupTransporter = nodemailer.createTransport({
+const createBackupTransporter = () =>
+  nodemailer.createTransport({
     service: "Gmail",
     host: "smtp.gmail.com",
     port: 465,
@@ -90,27 +80,27 @@ const createBackupTransporter = () => {
       pass: EMAIL_OUTGOING_APP_PASSWORD,
     },
   });
-  return backupTransporter;
-};
+
+const describe = (value: unknown) =>
+  value instanceof Error ? value.message : JSON.stringify(value);
 
 const fireBackupTransporter = async (safeMailOptions: Mail.Options) => {
   console.error("Transporter Error!");
   console.log("Attempting to send with backup transporter...");
-  const backupTransporter = createBackupTransporter();
 
   try {
-    const res = await backupTransporter.sendMail(safeMailOptions);
+    const res = await createBackupTransporter().sendMail(safeMailOptions);
     console.log(JSON.stringify(res, undefined, "  "));
     if (res.response.includes("OK")) {
       console.log(
         "Backup send appears to have been successful. Update the primary API key ASAP.",
       );
     }
-    return { code: 0, error: undefined, response: res };
+    return { ok: true, response: describe(res) };
   } catch (e) {
     console.error("Backup Mail Send Error!");
     console.error(e);
-    return { code: 1, error: e, response: e };
+    return { ok: false, response: describe(e) };
   }
 };
 
@@ -123,18 +113,13 @@ export const sendMail = async ({
   subject: string;
   text: string;
 }) => {
-  const safeMailOptions: Mail.Options = {
-    to: to,
-    subject: subject,
-    text: text,
-  };
+  const safeMailOptions: Mail.Options = { to, subject, text };
 
   try {
     const transporter = await createTransporter();
     const res = await transporter.sendMail(safeMailOptions);
-    const emailRateLimitCount = await emailCountMidnightPacificTime();
-    console.log("Emails sent today: " + emailRateLimitCount);
-    return { code: 0, error: undefined, response: res };
+    console.log(`Emails sent today: ${await countEmailsSentToday()}`);
+    return { ok: true, response: describe(res) };
   } catch {
     return fireBackupTransporter(safeMailOptions);
   }

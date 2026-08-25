@@ -1,31 +1,14 @@
 "use client";
 
 import { createAccount } from "@/app/actions/auth";
-import { CreateAccountFormState } from "@/app/lib/definitions";
 import Button from "@/app/ui/Button";
+import Captcha from "@/app/ui/Captcha";
 import FieldError from "@/app/ui/FieldError";
 import TextField from "@/app/ui/TextField";
-import { useActionState, useEffect, useRef } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
-
-const hasFormErrors = (state: CreateAccountFormState): boolean => {
-  if (!state) return false;
-  if (state.errors.length > 0) return true;
-  return (state.properties ? Object.values(state.properties) : []).some(
-    (field) => Boolean(field?.errors.length),
-  );
-};
+import { useActionState } from "react";
 
 export const CreateAccountForm = () => {
-  const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(createAccount, undefined);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-  useEffect(() => {
-    if (hasFormErrors(state)) {
-      recaptchaRef.current?.reset();
-    }
-  }, [state]);
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -82,13 +65,7 @@ export const CreateAccountForm = () => {
       <div>
         <FieldError errors={state?.properties?.confirmPassword?.errors} />
       </div>
-      <div className="flex flex-col items-start justify-center gap-2">
-        <ReCAPTCHA
-          id="publicCaptcha"
-          sitekey={publicCaptchaKey}
-          ref={recaptchaRef}
-        />
-      </div>
+      <Captcha state={state} />
       <FieldError errors={state?.properties?.grecaptcharesponse?.errors} />
       <div className="flex flex-col items-start justify-center gap-2 py-6">
         <Button size="large" disabled={pending} type="submit">

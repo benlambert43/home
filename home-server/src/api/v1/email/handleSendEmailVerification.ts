@@ -1,12 +1,13 @@
 import dayjs from "dayjs";
-import { EmailVerificationModel } from "../../model/emailVerificationModel";
-import { User } from "../../types/db";
+import { EmailVerificationModel } from "../model/emailVerificationModel";
+import { User } from "../types/db";
 import { sendMail } from "./mailTransporter";
-import { encodeUrlSafeB64 } from "./encodeUrlSafeB64";
-import { frontendUrl } from "../../http/frontendUrl";
+import { encodeUrlSafeB64 } from "../http/urlSafeB64";
+import { frontendUrl } from "../http/frontendUrl";
 
 const PIN_RANGE = 1000000;
 const PIN_CEILING = Math.floor(2 ** 32 / PIN_RANGE) * PIN_RANGE;
+const LINK_LIFETIME_MINUTES = 10;
 
 const generateSecurePIN = () => {
   const randomValues = new Uint32Array(1);
@@ -18,15 +19,17 @@ const generateSecurePIN = () => {
   return (randomValues[0] % PIN_RANGE).toString().padStart(6, "0");
 };
 
+const buildVerificationLink = (user: User, code: string) => {
+  const link = frontendUrl("profile/accountManagement/verifyEmail");
+  link.searchParams.set("username", encodeUrlSafeB64(user.username));
+  link.searchParams.set("email", encodeUrlSafeB64(user.email));
+  link.searchParams.set("code", code);
+  return link;
+};
+
 export const handleSendEmailVerification = async (user: User) => {
   const emailVerificationCode = generateSecurePIN();
-  const verificationLink = frontendUrl("profile/accountManagement/verifyEmail");
-  verificationLink.searchParams.set(
-    "username",
-    encodeUrlSafeB64(user.username),
-  );
-  verificationLink.searchParams.set("email", encodeUrlSafeB64(user.email));
-  verificationLink.searchParams.set("code", emailVerificationCode);
+  const verificationLink = buildVerificationLink(user, emailVerificationCode);
 
   const pendingSendEmailVerification = new EmailVerificationModel({
     userId: user._id,
@@ -38,7 +41,7 @@ export const handleSendEmailVerification = async (user: User) => {
     gmailApiResponse: "Pending.",
     createdDate: dayjs(),
     confirmedDate: undefined,
-    expiresDate: dayjs().add(10, "minute"),
+    expiresDate: dayjs().add(LINK_LIFETIME_MINUTES, "minute"),
   });
   const pendingSendEmailVerificationId = (
     await pendingSendEmailVerification.save()
@@ -53,10 +56,9 @@ export const handleSendEmailVerification = async (user: User) => {
   await EmailVerificationModel.findByIdAndUpdate(
     pendingSendEmailVerificationId,
     {
-      error: sendMailRes.code !== 0,
+      error: !sendMailRes.ok,
       pendingSend: false,
-      gmailApiResponse:
-        JSON.stringify(sendMailRes.response) || "empty gmailApiResponse.",
+      gmailApiResponse: sendMailRes.response || "empty gmailApiResponse.",
     },
   );
 };

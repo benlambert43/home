@@ -5,6 +5,11 @@ export type FieldNames<Schema extends z.ZodType> = Record<
   string
 >;
 
+export type SubmittedFormErrors = {
+  errors: string[];
+  properties?: Record<string, { errors: string[] } | undefined>;
+};
+
 export const readFormValues = <Field extends string>(
   formData: FormData,
   fieldNames: Readonly<Record<Field, string>>,
@@ -18,3 +23,12 @@ export const readFormValues = <Field extends string>(
 
 export const treeifyFormError = <T>(error: z.ZodError<T>) =>
   z.treeifyError(error, (issue) => `⚠️ ${issue.message}`);
+
+export const hasFormErrors = (state: SubmittedFormErrors | undefined) =>
+  Boolean(
+    state &&
+    (state.errors.length > 0 ||
+      Object.values(state.properties ?? {}).some((field) =>
+        Boolean(field?.errors.length),
+      )),
+  );

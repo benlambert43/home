@@ -1,14 +1,16 @@
 export type UserRole = "user" | "admin";
 
-export interface UserNoPassword {
-  _id: string;
+export interface UserFields<Id = string, Timestamp = string> {
+  _id: Id;
   firstname: string;
   lastname: string;
   email: string;
   username: string;
   confirmedEmail: boolean;
   userBanned: boolean;
-  createdDate: string;
-  modifiedDate: string;
+  createdDate: Timestamp;
+  modifiedDate: Timestamp;
   role: UserRole;
 }
+
+export type UserNoPassword = UserFields;

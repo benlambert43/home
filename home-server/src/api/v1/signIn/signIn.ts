@@ -1,19 +1,16 @@
-import { Router } from "express";
 import { SignInResponse, signInBodySchema } from "@home/shared";
 import { parseRequest } from "../http/parseRequest";
 import { ApiMessage } from "../http/messages";
+import { namedRouter, route } from "../http/router";
 import { sendFailure, sendSuccess } from "../http/respond";
 import { handleSignIn } from "./handlers/handleSignIn";
 import { serializeUser } from "../types/serialize";
 
-const signInRouter = Router();
+const signInRouter = namedRouter("Sign In Router");
 
-signInRouter.get("/", (req, res) => {
-  res.status(200).send({ message: "Sign In Router" });
-});
-
-signInRouter.post("/", async (req, res) => {
-  try {
+signInRouter.post(
+  "/",
+  route(async (req, res) => {
     const body = parseRequest(signInBodySchema, req.body, res);
     if (!body) return;
 
@@ -25,9 +22,7 @@ signInRouter.post("/", async (req, res) => {
       jwt: signInResult.token,
       user: serializeUser(signInResult.user),
     });
-  } catch {
-    sendFailure(res);
-  }
-});
+  }),
+);
 
 export default signInRouter;

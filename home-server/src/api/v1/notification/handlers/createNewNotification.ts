@@ -1,24 +1,19 @@
-import { Types } from "mongoose";
 import { Notification } from "@home/shared";
-import { notificationModel } from "../../model/notificationModel";
+import { NotificationModel } from "../../model/notificationModel";
+import { NotificationDocument } from "../../types/db";
 import { serializeNotification } from "../../types/serialize";
 
-export const createNewNotification = async (n: {
-  recipientUserId: Types.ObjectId;
-  subtype: string;
-  message: string;
-  referenceLink: string;
-  canBeMarkedAsRead: boolean;
-  canBeDeleted: boolean;
-}): Promise<Notification> => {
-  const newNotification = new notificationModel({
-    recipientUserId: n.recipientUserId,
-    subtype: n.subtype,
-    message: n.message,
-    referenceLink: n.referenceLink,
+type NewNotification = Omit<
+  NotificationDocument,
+  "_id" | "markedAsRead" | "timestamp"
+>;
+
+export const createNewNotification = async (
+  n: NewNotification,
+): Promise<Notification> => {
+  const newNotification = new NotificationModel({
+    ...n,
     markedAsRead: false,
-    canBeMarkedAsRead: n.canBeMarkedAsRead,
-    canBeDeleted: n.canBeDeleted,
     timestamp: new Date(),
   });
   return serializeNotification(await newNotification.save());

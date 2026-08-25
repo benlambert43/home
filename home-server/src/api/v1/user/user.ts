@@ -1,9 +1,5 @@
-import { Router } from "express";
+import { namedRouter } from "../http/router";
 
-const userRouter = Router();
-
-userRouter.get("/", (req, res) => {
-  res.status(200).send({ message: "User Router" });
-});
+const userRouter = namedRouter("User Router");
 
 export default userRouter;

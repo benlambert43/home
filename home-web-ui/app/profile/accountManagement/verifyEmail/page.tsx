@@ -1,10 +1,13 @@
 import VerificationComplete from "@/app/profile/accountManagement/verifyEmail/VerificationComplete";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
-import { SessionPayload, VerifyEmailResponse } from "@home/shared";
+import { SessionPayload } from "@home/shared";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
+import { verifyEmail } from "@/app/actions/auth";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type VerificationResult =
-  | { status: "complete"; message: string; session?: SessionPayload }
+  | { status: "complete"; message?: string; session?: SessionPayload }
   | { status: "failed"; message: string }
   | { status: "missingParams" }
   | { status: "unreachable"; error: string };
@@ -13,27 +16,20 @@ const paramFilled = (value: string | string[] | undefined): value is string =>
   typeof value === "string" && value.length > 0;
 
 const resolveVerification = async (
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>,
+  searchParams: SearchParams,
 ): Promise<VerificationResult> => {
   const user = await getBffSessionUser();
   if (user?._id && user.confirmedEmail === true) {
-    return { status: "complete", message: "" };
+    return { status: "complete" };
   }
 
   const { username, email, code } = await searchParams;
-  const params = [username, email, code];
 
-  if (!params.every(paramFilled)) {
+  if (!paramFilled(username) || !paramFilled(email) || !paramFilled(code)) {
     return { status: "missingParams" };
   }
-  const path = params.map(encodeURIComponent).join("/");
 
-  const verificationLinkResponse = await fetch(
-    `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${path}`,
-    { cache: "no-store", next: { revalidate: 0 } },
-  );
-  const verificationStatus: VerifyEmailResponse =
-    await verificationLinkResponse.json();
+  const verificationStatus = await verifyEmail(username, email, code);
 
   if (verificationStatus.error) {
     return { status: "failed", message: verificationStatus.message };
@@ -46,7 +42,7 @@ const resolveVerification = async (
 const VerifyEmail = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: SearchParams;
 }) => {
   let result: VerificationResult;
 

@@ -1,20 +1,19 @@
-export interface CreateAccountRequestBody {
-  firstname: string;
-  lastname: string;
-  email: string;
-  password: string;
-  grecaptcharesponse: string;
-}
+import * as z from "zod";
+import {
+  changeUsernameBodySchema,
+  createAccountBodySchema,
+  requestNewEmailVerificationLinkBodySchema,
+  signInBodySchema,
+} from "./schemas";
 
-export interface SignInRequestBody {
-  email: string;
-  password: string;
-}
+export type CreateAccountRequestBody = z.infer<typeof createAccountBodySchema>;
 
-export interface RequestNewEmailVerificationRequestBody {
-  grecaptcharesponse: string;
-}
+export type SignInRequestBody = z.infer<typeof signInBodySchema>;
 
-export interface ChangeUsernameRequestBody {
-  newUsername: string;
-}
+export type RequestNewEmailVerificationLinkRequestBody = z.infer<
+  typeof requestNewEmailVerificationLinkBodySchema
+>;
+
+export type ChangeUsernameRequestBody = z.infer<
+  typeof changeUsernameBodySchema
+>;

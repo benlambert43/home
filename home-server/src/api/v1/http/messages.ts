@@ -3,6 +3,7 @@ export const ApiMessage = {
   UNEXPECTED: "Something went wrong. Please try again.",
   UNAUTHENTICATED:
     "Unable to authenticate request. Please sign in and try again.",
+  NOT_IMPLEMENTED: "This endpoint is not implemented yet.",
 
   ACCOUNT_CREATED: "New account created.",
   SIGNED_IN: "Sign in successful.",
@@ -12,6 +13,7 @@ export const ApiMessage = {
   EMAIL_ALREADY_CONFIRMED: "You have already confirmed your email address.",
   EMAIL_CONFIRMED:
     "Thank you for confirming your email address! You can now close this window.",
+  USERNAME_CHANGED: "Username updated.",
   VERIFICATION_LINK_EXPIRED:
     "Email verification link has expired. Please request a new email verification link.",
   VERIFICATION_LINK_INVALID:

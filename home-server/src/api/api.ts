@@ -1,11 +1,7 @@
-import { Router } from "express";
 import v1Router from "./v1/v1";
+import { namedRouter } from "./v1/http/router";
 
-const apiRouter = Router();
-
-apiRouter.get("/", (req, res) => {
-  res.status(200).send({ message: "API Router" });
-});
+const apiRouter = namedRouter("API Router");
 
 apiRouter.use("/v1", v1Router);
 

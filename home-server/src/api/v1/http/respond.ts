@@ -22,6 +22,9 @@ export const sendFailure = (
 export const sendUnauthenticated = (res: Response) =>
   sendFailure(res, ApiMessage.UNAUTHENTICATED, 401);
 
+export const sendNotImplemented = (res: Response) =>
+  sendFailure(res, ApiMessage.NOT_IMPLEMENTED, 501);
+
 export const sendResult = (res: Response, result: ApiResponse) => {
   res.status(result.error ? 400 : 200).send(result);
 };

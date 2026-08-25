@@ -8,7 +8,7 @@ export interface ApiFailure {
 
 export type ApiSuccess<Payload = unknown> = {
   error: false;
-  message: string;
+  message?: string;
 } & Payload;
 
 export type ApiResponse<Payload = unknown> = ApiSuccess<Payload> | ApiFailure;
@@ -20,13 +20,15 @@ export interface SessionPayload {
   user: UserNoPassword;
 }
 
-export type CreateAccountResponse = ApiResponse<SessionPayload>;
+export type SessionResponse = ApiResponse<SessionPayload>;
 
-export type SignInResponse = ApiResponse<SessionPayload>;
+export type CreateAccountResponse = SessionResponse;
 
-export type ChangeUsernameResponse = ApiResponse<SessionPayload>;
+export type SignInResponse = SessionResponse;
 
-export type VerifyEmailResponse = ApiResponse<SessionPayload>;
+export type ChangeUsernameResponse = SessionResponse;
+
+export type VerifyEmailResponse = SessionResponse;
 
 export type RequestNewEmailVerificationLinkResponse = ApiResponse;
 

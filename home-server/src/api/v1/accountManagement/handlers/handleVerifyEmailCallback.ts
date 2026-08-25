@@ -16,12 +16,17 @@ export const handleVerifyEmailCallback = async ({
   code: string;
 }): Promise<VerifyEmailResponse> => {
   const user = await UserModel.findOne({ username, email }).lean();
+
+  if (!user) {
+    return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
+  }
+
   const emailVerification = await EmailVerificationModel.findOne({
-    email,
+    userId: user._id,
     verificationCode: code,
   }).lean();
 
-  if (!user || !emailVerification) {
+  if (!emailVerification) {
     return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
   }
 
@@ -35,11 +40,12 @@ export const handleVerifyEmailCallback = async ({
 
   await EmailVerificationModel.findByIdAndUpdate(emailVerification._id, {
     verificationCodeClickedOn: true,
+    confirmedDate: new Date(),
   });
 
   const updatedUser = await UserModel.findByIdAndUpdate(
     user._id,
-    { confirmedEmail: true },
+    { confirmedEmail: true, modifiedDate: new Date() },
     { returnDocument: "after" },
   ).lean();
 

@@ -1,9 +1,7 @@
-const Content = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  return <div className="flex items-start justify-around">{children}</div>;
-};
+import { ReactNode } from "react";
+
+const Content = ({ children }: Readonly<{ children: ReactNode }>) => (
+  <div className="flex items-start justify-around">{children}</div>
+);
 
 export default Content;

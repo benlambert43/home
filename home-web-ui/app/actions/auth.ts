@@ -15,16 +15,18 @@ import {
   CreateAccountResponse,
   requestNewEmailVerificationLinkBodySchema,
   RequestNewEmailVerificationLinkResponse,
-  RequestNewEmailVerificationRequestBody,
+  RequestNewEmailVerificationLinkRequestBody,
   signInBodySchema,
   SignInRequestBody,
   SignInResponse,
+  VerifyEmailResponse,
 } from "@home/shared";
 import { redirect } from "next/navigation";
 
 const CREATE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/createAccount`;
 const SIGN_IN_URL = `${process.env.BASE_API_URL}/signIn`;
 const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/requestNewEmailVerificationLink`;
+const VERIFY_EMAIL_URL = `${process.env.BASE_API_URL}/accountManagement/verifyEmail`;
 
 const CREATE_ACCOUNT_FIELDS = {
   firstname: "firstname",
@@ -110,21 +112,35 @@ export const requestNewEmailVerificationLink = async (
     requestNewEmailVerificationLinkBodySchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { success: false, ...treeifyFormError(validatedFields.error) };
+    return treeifyFormError(validatedFields.error);
   }
 
   try {
     await apiFetch<
       RequestNewEmailVerificationLinkResponse,
-      RequestNewEmailVerificationRequestBody
+      RequestNewEmailVerificationLinkRequestBody
     >(REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL, {
       method: "POST",
       authorization: await getApiSessionToken(),
       body: validatedFields.data,
     });
   } catch (error) {
-    return { success: false, errors: [errorMessage(error)] };
+    return { errors: [errorMessage(error)] };
   }
 
   redirect("/profile/accountManagement/requestNewEmailVerificationLinkSuccess");
+};
+
+export const verifyEmail = async (
+  username: string,
+  email: string,
+  code: string,
+): Promise<VerifyEmailResponse> => {
+  const path = [username, email, code].map(encodeURIComponent).join("/");
+
+  const response = await fetch(`${VERIFY_EMAIL_URL}/${path}`, {
+    cache: "no-store",
+  });
+
+  return response.json() as Promise<VerifyEmailResponse>;
 };

@@ -5,7 +5,7 @@ import {
 } from "@home/shared";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
-import { handleSendEmailVerification } from "../../email/handlers/handleSendEmailVerification";
+import { handleSendEmailVerification } from "../../email/handleSendEmailVerification";
 import { ApiMessage, pendingEmailVerification } from "../../http/messages";
 
 export const handleRequestNewEmailVerificationLink = async (
@@ -32,13 +32,11 @@ export const handleRequestNewEmailVerificationLink = async (
     userId: foundUser._id,
   }).sort({ createdDate: -1 });
 
-  if (!mostRecentEmailVerification) {
-    return { error: true, message: ApiMessage.UNEXPECTED };
-  }
+  const expiresAtDateTime = mostRecentEmailVerification
+    ? dayjs(mostRecentEmailVerification.expiresDate)
+    : undefined;
 
-  const expiresAtDateTime = dayjs(mostRecentEmailVerification.expiresDate);
-
-  if (!dayjs().isAfter(expiresAtDateTime)) {
+  if (expiresAtDateTime && !dayjs().isAfter(expiresAtDateTime)) {
     return {
       error: true,
       message: pendingEmailVerification(
@@ -52,5 +50,5 @@ export const handleRequestNewEmailVerificationLink = async (
     console.error("Failed to send account verification email:", e);
   });
 
-  return { error: false, message: "" };
+  return { error: false };
 };

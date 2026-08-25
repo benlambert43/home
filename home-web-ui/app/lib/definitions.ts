@@ -15,7 +15,6 @@ export type FormState<Schema extends z.ZodType> =
       errors: string[];
       values?: Partial<Record<keyof z.output<Schema>, string>>;
       properties?: FieldErrors<z.output<Schema>>;
-      success?: boolean;
     }
   | undefined;
 

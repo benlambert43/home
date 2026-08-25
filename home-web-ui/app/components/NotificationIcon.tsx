@@ -4,47 +4,37 @@ import { BellIcon } from "@heroicons/react/16/solid";
 import { useContext, useEffect, useRef } from "react";
 
 const NotificationIcon = () => {
-  const { content, drawer } = useContext(NotificationContext);
-  const {
-    notificationDrawerOpen,
-    handleSetNotificationDrawerClosed,
-    handleSetNotificationDrawerOpen,
-    handleAnimatedClose,
-  } = drawer;
+  const { notifications, drawer } = useContext(NotificationContext);
+  const { open, toggle, close } = drawer;
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!notificationDrawerOpen) return;
+    if (!open) return;
 
     const handleMouseDown = (e: MouseEvent) => {
       if (
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        handleAnimatedClose();
+        close();
       }
     };
 
     document.addEventListener("mousedown", handleMouseDown);
     return () => document.removeEventListener("mousedown", handleMouseDown);
-  }, [notificationDrawerOpen, handleAnimatedClose]);
+  }, [open, close]);
+
+  const hasUnread = notifications.some(
+    (notification) => !notification.markedAsRead,
+  );
 
   return (
     <div ref={containerRef} className="flex items-center">
-      <button
-        className="hover:cursor-pointer"
-        onClick={() => {
-          if (notificationDrawerOpen) {
-            handleSetNotificationDrawerClosed();
-          } else {
-            handleSetNotificationDrawerOpen();
-          }
-        }}
-      >
+      <button className="hover:cursor-pointer" onClick={toggle}>
         <div className="relative">
           <BellIcon className="size-6" />
-          {content.notifications.length > 0 && (
+          {hasUnread && (
             <span
               className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full
                 bg-red-500"

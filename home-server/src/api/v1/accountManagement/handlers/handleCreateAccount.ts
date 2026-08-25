@@ -6,6 +6,7 @@ import { User } from "../../types/db";
 import { checkUniqueUsername } from "../../user/userQueries";
 
 const MAX_USERNAME_ATTEMPTS = 10;
+const SALT_ROUNDS = 10;
 
 interface NewAccount {
   firstname: string;
@@ -15,11 +16,18 @@ interface NewAccount {
   password: string;
 }
 
-const saltPassword = async (plaintextpassword: string) =>
-  bcrypt.hash(plaintextpassword, await bcrypt.genSalt(5));
+const saltPassword = async (plaintextPassword: string) =>
+  bcrypt.hash(plaintextPassword, await bcrypt.genSalt(SALT_ROUNDS));
 
-const shouldCreateAdminAccount = (email: string, password: string) =>
-  email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD;
+const shouldCreateAdminAccount = (email: string, password: string) => {
+  const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
+  return Boolean(
+    ADMIN_EMAIL &&
+    ADMIN_PASSWORD &&
+    email === ADMIN_EMAIL &&
+    password === ADMIN_PASSWORD,
+  );
+};
 
 export const createNewUniqueRandomUsername = async () => {
   for (let attempt = 0; attempt < MAX_USERNAME_ATTEMPTS; attempt++) {

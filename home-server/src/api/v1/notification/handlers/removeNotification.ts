@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { notificationModel } from "../../model/notificationModel";
+import { NotificationModel } from "../../model/notificationModel";
 
 export const removeNotification = async ({
   recipientUserId,
@@ -8,7 +8,7 @@ export const removeNotification = async ({
   recipientUserId: Types.ObjectId;
   subtype: string;
 }) => {
-  await notificationModel.deleteMany({
+  await NotificationModel.deleteMany({
     recipientUserId,
     subtype,
   });

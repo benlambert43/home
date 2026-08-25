@@ -2,6 +2,7 @@ import { ChangeUsernameResponse, EncodedAccountJwt } from "@home/shared";
 import { createApiToken } from "../../auth/createApiToken";
 import { UserModel } from "../../model/userModel";
 import { serializeUser } from "../../types/serialize";
+import { ApiMessage } from "../../http/messages";
 
 export const handleChangeUsername = async (
   decodedToken: EncodedAccountJwt,
@@ -19,7 +20,7 @@ export const handleChangeUsername = async (
 
   return {
     error: false,
-    message: "",
+    message: ApiMessage.USERNAME_CHANGED,
     jwt: createApiToken(updatedUser),
     user: serializeUser(updatedUser),
   };
