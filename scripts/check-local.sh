@@ -6,17 +6,9 @@ cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
 WORKSPACES=$(workspaces)
+IN_WORKSPACE="^($(printf '%s' "$WORKSPACES" | tr ' ' '|'))/"
 LINTABLE='\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$'
 TYPECHECK_ALL='^(package\.json|package-lock\.json|tsconfig[^/]*\.json|home-shared/)'
-EMPTY_TREE=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-
-is_zero() {
-  case "$1" in
-    "")     return 1 ;;
-    *[!0]*) return 1 ;;
-    *)      return 0 ;;
-  esac
-}
 
 count() {
   printf '%s\n' "$1" | sed '/^$/d' | wc -l | tr -d ' '
@@ -28,6 +20,12 @@ matching() {
 
 touches() {
   printf '%s\n' "$changed" | grep -qE "$1"
+}
+
+surviving() {
+  printf '%s\n' "$1" | while IFS= read -r file; do
+    [ -n "$file" ] && [ -e "$file" ] && printf '%s\n' "$file"
+  done
 }
 
 run_on() {
@@ -43,77 +41,35 @@ run_on() {
   fi
 }
 
-staged_files() {
-  git diff --cached --name-only --diff-filter=ACMR
-}
-
-pushed_files() {
-  found=0
-  if [ ! -t 0 ]; then
-    while read -r _local_ref local_sha _remote_ref remote_sha; do
-      is_zero "$local_sha" && continue
-      found=1
-      if is_zero "$remote_sha"; then
-        oldest=$(git rev-list "$local_sha" --not --remotes | tail -n 1)
-        [ -n "$oldest" ] || continue
-        base=$(git rev-parse -q --verify "$oldest^") || base="$EMPTY_TREE"
-      else
-        base="$remote_sha"
-      fi
-      git diff --name-only --diff-filter=ACMR "$base" "$local_sha"
-    done
-  fi
-
-  if [ "$found" -eq 0 ]; then
-    base=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null) ||
-      base=$(git rev-parse -q --verify origin/main >/dev/null 2>&1 && printf 'origin/main')
-    [ -n "${base:-}" ] || return 0
-    git diff --name-only --diff-filter=ACMR "$base...HEAD"
-  fi
-}
-
-mode="${1:---staged}"
-case "$mode" in
-  --staged)
-    what="staged changes"
-    changed=$(staged_files)
-    ;;
-  --pre-push)
-    what="commits being pushed"
-    changed=$(pushed_files)
-    ;;
-  *)
-    printf 'usage: %s [--staged|--pre-push]\n' "$0" >&2
-    exit 2
-    ;;
-esac
-
-changed=$(printf '%s\n' "$changed" | sed '/^$/d' | sort -u)
+changed=$(git diff --cached --name-only --diff-filter=ACMRD | sed '/^$/d' | sort -u)
 
 if [ -z "$changed" ]; then
-  printf '\n\033[2mNothing to check — no %s.\033[0m\n\n' "$what"
+  printf '\n\033[2mNothing to check — no staged changes.\033[0m\n\n'
   exit 0
 fi
 
-printf '\n\033[2mChecking %s file(s) from %s.\033[0m\n' "$(count "$changed")" "$what"
+printf '\n\033[2mChecking %s staged file(s).\033[0m\n' "$(count "$changed")"
 
-
-
-if [ "$mode" = "--staged" ]; then
-  dirty=$(git diff --name-only --diff-filter=ACM)
-  overlap=$(printf '%s\n' "$changed" | while IFS= read -r f; do
-    printf '%s\n' "$dirty" | grep -qxF "$f" && printf '%s\n' "$f"
-  done)
-  if [ -n "$overlap" ]; then
-    printf '\033[2m%s staged file(s) also have unstaged edits; the working tree is what gets checked.\033[0m\n' \
-      "$(count "$overlap")"
-  fi
+dirty=$(git diff --name-only --diff-filter=ACM)
+overlap=$(printf '%s\n' "$changed" | while IFS= read -r file; do
+  printf '%s\n' "$dirty" | grep -qxF "$file" && printf '%s\n' "$file"
+done)
+if [ -n "$overlap" ]; then
+  printf '\033[2m%s staged file(s) also have unstaged edits; the working tree is what gets checked.\033[0m\n' \
+    "$(count "$overlap")"
 fi
 
-run_on format:check "$(count "$changed") changed file(s)" "$changed" \
-  ./node_modules/.bin/prettier --check --ignore-unknown --no-error-on-unmatched-pattern
 
-lintable=$(matching "$LINTABLE")
+formattable=$(surviving "$(matching "$IN_WORKSPACE")")
+
+if [ -n "$formattable" ]; then
+  run_on format:check "$(count "$formattable") changed file(s)" "$formattable" \
+    ./node_modules/.bin/prettier --check --ignore-unknown --no-error-on-unmatched-pattern
+else
+  skip format:check "no changed files live in a workspace"
+fi
+
+lintable=$(printf '%s\n' "$formattable" | grep -E "$LINTABLE")
 linted=0
 for ws in $WORKSPACES; do
   ws_files=$(printf '%s\n' "$lintable" | grep "^$ws/" | sed "s|^$ws/||")
@@ -142,7 +98,13 @@ else
 fi
 
 skip lint:deprecations "full check only"
+
+run_step build:shared "home-shared — tests import its build output" \
+  npm run --silent build:shared
 skip build "full check only"
 
-pass "checks passed for $what"
+
+run_step test "$(workspace_list test)" npm run --silent test
+
+pass "checks passed for staged changes"
 printf '\033[2mThe full check runs in CI — run it here with \033[0m\033[1mnpm run check\033[0m\n\n'

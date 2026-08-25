@@ -1,1 +1,0 @@
-BYPASS_HINT="git push --no-verify" sh scripts/check-local.sh --pre-push

@@ -19,8 +19,8 @@
     "lint:deprecations": "sh scripts/check-deprecations.sh",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "sh scripts/format.sh --write",
+    "format:check": "sh scripts/format.sh --check",
     "check": "sh scripts/check-full.sh",
     "clean": "sh scripts/clean.sh",
     "prepare": "husky"

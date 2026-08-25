@@ -18,10 +18,10 @@ run() {
   try_step "$label" "$scope" npm run --silent "$label"
 }
 
-run format:check "root, $(workspace_list)"
+run format:check "$(workspace_list)"
 run lint
 run typecheck
-run lint:deprecations "root, $(workspace_list)"
+run lint:deprecations "$(workspace_list)"
 
 if [ "$with_build" -eq 1 ]; then
   run build

@@ -1,1 +1,1 @@
-BYPASS_HINT="git commit --no-verify" sh scripts/check-local.sh --staged
+BYPASS_HINT="git commit --no-verify" sh scripts/check-local.sh
