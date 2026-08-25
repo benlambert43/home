@@ -39,13 +39,13 @@ export type FieldNames<Schema extends z.ZodType> = Record<
 export const readFormValues = <Field extends string>(
   formData: FormData,
   fieldNames: Readonly<Record<Field, string>>,
-): Partial<Record<Field, string>> =>
+): Record<Field, string> =>
   Object.fromEntries(
     Object.entries<string>(fieldNames).map(([field, inputName]) => {
       const value = formData.get(inputName);
-      return [field, typeof value === "string" ? value : undefined];
+      return [field, typeof value === "string" ? value : ""];
     }),
-  ) as Partial<Record<Field, string>>;
+  ) as Record<Field, string>;
 
 export const treeifyFormError = <T>(error: z.ZodError<T>) =>
   z.treeifyError(error, (issue) => `⚠️ ${issue.message}`);
