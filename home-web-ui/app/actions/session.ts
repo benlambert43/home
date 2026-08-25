@@ -41,13 +41,3 @@ export const removeSession = async () => {
   cookieStore.delete("bffsession");
   redirect("/signin");
 };
-
-export const updateSessionTokens = async ({
-  encodedApiJwtSession,
-  user,
-}: {
-  encodedApiJwtSession: string;
-  user: UserNoPassword;
-}) => {
-  await createSession(encodedApiJwtSession, user);
-};

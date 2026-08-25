@@ -3,18 +3,30 @@ import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { User } from "../../types/db";
 import { sendMail } from "./mailTransporter";
 import { encodeUrlSafeB64 } from "./encodeUrlSafeB64";
+import { frontendUrl } from "../../http/frontendUrl";
+
+const PIN_RANGE = 1000000;
+const PIN_CEILING = Math.floor(2 ** 32 / PIN_RANGE) * PIN_RANGE;
 
 const generateSecurePIN = () => {
   const randomValues = new Uint32Array(1);
-  crypto.getRandomValues(randomValues);
-  return (randomValues[0] % 1000000).toString().padStart(6, "0");
+
+  do {
+    crypto.getRandomValues(randomValues);
+  } while (randomValues[0] >= PIN_CEILING);
+
+  return (randomValues[0] % PIN_RANGE).toString().padStart(6, "0");
 };
 
 export const handleSendEmailVerification = async (user: User) => {
-  const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
   const emailVerificationCode = generateSecurePIN();
-  const encodedUsername = encodeUrlSafeB64(user.username);
-  const encodedEmail = encodeUrlSafeB64(user.email);
+  const verificationLink = frontendUrl("profile/accountManagement/verifyEmail");
+  verificationLink.searchParams.set(
+    "username",
+    encodeUrlSafeB64(user.username),
+  );
+  verificationLink.searchParams.set("email", encodeUrlSafeB64(user.email));
+  verificationLink.searchParams.set("code", emailVerificationCode);
 
   const pendingSendEmailVerification = new EmailVerificationModel({
     userId: user._id,
@@ -35,25 +47,16 @@ export const handleSendEmailVerification = async (user: User) => {
   const sendMailRes = await sendMail({
     to: user.email,
     subject: "benlambert dot tech email verification",
-    text: `Here is your link to verify your new account: \n\n${
-      BASE_FRONTEND_URL +
-      "profile/accountManagement/verifyEmail" +
-      "?username=" +
-      encodedUsername +
-      "&email=" +
-      encodedEmail +
-      "&code=" +
-      emailVerificationCode
-    }`,
+    text: `Here is your link to verify your new account: \n\n${verificationLink.toString()}`,
   });
 
   await EmailVerificationModel.findByIdAndUpdate(
     pendingSendEmailVerificationId,
     {
-      error: sendMailRes.code === 0 ? false : true,
+      error: sendMailRes.code !== 0,
       pendingSend: false,
       gmailApiResponse:
-        JSON.stringify(sendMailRes?.response) || "empty gmailApiResponse.",
+        JSON.stringify(sendMailRes.response) || "empty gmailApiResponse.",
     },
   );
 };

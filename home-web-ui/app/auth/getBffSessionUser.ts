@@ -4,9 +4,9 @@ import { UserNoPassword } from "@home/shared";
 import { authenticateBffToken } from "@/app/auth/authenticateBffToken";
 
 export const getBffSessionUser = async (): Promise<UserNoPassword | null> => {
-  const { valid, authenticatedUser } = await authenticateBffToken(
+  const authenticated = await authenticateBffToken(
     (await cookies()).get("bffsession")?.value,
   );
 
-  return valid && authenticatedUser ? authenticatedUser.user : null;
+  return authenticated.valid ? authenticated.authenticatedUser.user : null;
 };

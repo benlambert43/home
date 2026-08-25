@@ -15,19 +15,19 @@ const Profile = async () => {
       <div className="flex flex-col gap-2">
         <div>
           <p>First Name:</p>
-          <p>{user.firstname.toString()}</p>
+          <p>{user.firstname}</p>
         </div>
         <div>
           <p>Last Name:</p>
-          <p>{user.lastname.toString()}</p>
+          <p>{user.lastname}</p>
         </div>
         <div>
           <p>Email:</p>
-          <p>{user.email.toString()}</p>
+          <p>{user.email}</p>
         </div>
         <div>
           <p>Username:</p>
-          <p>{user.username.toString()}</p>
+          <p>{user.username}</p>
           <Button
             type="link"
             linkProps={{ href: "/profile/accountManagement/changeUsername" }}

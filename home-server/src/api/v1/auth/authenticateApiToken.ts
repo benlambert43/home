@@ -13,7 +13,12 @@ export const authenticateApiToken = (
       throw new Error("No authorization token provided.");
     }
 
-    const decoded = jwt.verify(unverifiedToken, process.env.TOKEN_ISSUER || "");
+    const apiSessionSecret = process.env.API_SESSION_SECRET;
+    if (typeof apiSessionSecret !== "string" || apiSessionSecret.length < 1) {
+      throw new Error("API_SESSION_SECRET is not defined.");
+    }
+
+    const decoded = jwt.verify(unverifiedToken, apiSessionSecret);
 
     return {
       error: false,

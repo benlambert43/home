@@ -2,18 +2,16 @@ import "server-only";
 import { jwtVerify } from "jose";
 import { EncodedAccountJwt } from "@home/shared";
 
-export type AuthenticatedBffToken = {
-  valid: boolean;
-  message?: string;
-  authenticatedUser?: EncodedAccountJwt;
-};
+export type AuthenticatedBffToken =
+  | { valid: true; authenticatedUser: EncodedAccountJwt }
+  | { valid: false; message: string };
 
 export const authenticateBffToken = async (
-  JwtStr?: string,
+  jwtStr?: string,
 ): Promise<AuthenticatedBffToken> => {
   const BFF_SESSION_SECRET = process.env.BFF_SESSION_SECRET;
 
-  if (!JwtStr) {
+  if (!jwtStr) {
     return { valid: false, message: "No JWT was provided." };
   }
 
@@ -26,7 +24,7 @@ export const authenticateBffToken = async (
     }
 
     const encodedAccountJwtData = (
-      await jwtVerify(JwtStr, new TextEncoder().encode(BFF_SESSION_SECRET), {
+      await jwtVerify(jwtStr, new TextEncoder().encode(BFF_SESSION_SECRET), {
         algorithms: ["HS256"],
       })
     ).payload as EncodedAccountJwt;

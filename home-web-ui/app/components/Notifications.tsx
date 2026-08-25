@@ -18,7 +18,6 @@ type NotificationContextValue = {
     notificationsRefreshing: boolean;
     handleRefreshNotifications: () => void;
   };
-  stream: Record<string, never>;
 };
 
 const defaultNotificationContext: NotificationContextValue = {
@@ -34,7 +33,6 @@ const defaultNotificationContext: NotificationContextValue = {
     notificationsRefreshing: false,
     handleRefreshNotifications: () => {},
   },
-  stream: {},
 };
 
 export const NotificationContext = createContext(defaultNotificationContext);
@@ -102,7 +100,6 @@ export const Notifications = () => {
           notificationsRefreshing,
           handleRefreshNotifications,
         },
-        stream: {},
       }}
     >
       <NotificationIcon />

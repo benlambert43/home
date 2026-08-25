@@ -27,7 +27,7 @@ const NotificationDrawer = () => {
           ) : (
             content.notifications.map((n) => (
               <button
-                key={n._id.toString()}
+                key={n._id}
                 className="rounded-lg bg-slate-600 px-3 py-2 text-left text-sm
                   text-white hover:cursor-pointer hover:bg-slate-500"
                 onClick={() => {

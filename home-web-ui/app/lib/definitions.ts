@@ -19,11 +19,11 @@ export type FormState<Schema extends z.ZodType> =
     }
   | undefined;
 
-export type SignUpFormState = FormState<typeof createAccountFormSchema>;
+export type CreateAccountFormState = FormState<typeof createAccountFormSchema>;
 
 export type SignInFormState = FormState<typeof signInBodySchema>;
 
-export type RequestNewEmailVerificationFormState = FormState<
+export type RequestNewEmailVerificationLinkFormState = FormState<
   typeof requestNewEmailVerificationLinkBodySchema
 >;
 

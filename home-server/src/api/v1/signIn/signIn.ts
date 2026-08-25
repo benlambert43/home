@@ -17,13 +17,13 @@ signInRouter.post("/", async (req, res) => {
     const body = parseRequest(signInBodySchema, req.body, res);
     if (!body) return;
 
-    const signIn = await handleSignIn(body);
-    if (signIn.error) return sendFailure(res, signIn.message, 401);
+    const signInResult = await handleSignIn(body);
+    if (signInResult.error) return sendFailure(res, signInResult.message, 401);
 
     sendSuccess<SignInResponse>(res, {
       message: ApiMessage.SIGNED_IN,
-      jwt: signIn.token,
-      user: serializeUser(signIn.user),
+      jwt: signInResult.token,
+      user: serializeUser(signInResult.user),
     });
   } catch {
     sendFailure(res);

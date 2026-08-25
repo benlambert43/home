@@ -5,7 +5,13 @@ import apiRouter from "./api/api";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.BASE_FRONTEND_URL
+      ? new URL(process.env.BASE_FRONTEND_URL).origin
+      : false,
+  }),
+);
 
 const API_PORT = process.env.API_PORT;
 
@@ -15,8 +21,7 @@ mongoose
   .then(() => {
     console.log("MongoDB connected.");
   })
-  .catch((err) => console.log(err))
-  .finally(() => {});
+  .catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
   res.status(200).send({ message: "Welcome to home-server" });

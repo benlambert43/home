@@ -1,6 +1,6 @@
 "use server";
 
-import { updateSessionTokens } from "@/app/actions/session";
+import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import { ChangeUsernameFormState } from "@/app/lib/definitions";
@@ -12,7 +12,7 @@ import {
 } from "@home/shared";
 import { redirect } from "next/navigation";
 
-const CHANGE_USERNAME_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/changeUsername`;
+const CHANGE_USERNAME_URL = `${process.env.BASE_API_URL}/accountManagement/changeUsername`;
 
 const CHANGE_USERNAME_FIELDS = {
   newUsername: "newUsername",
@@ -33,13 +33,13 @@ export const changeUsername = async (
     const { jwt, user } = await apiFetch<
       ChangeUsernameResponse,
       ChangeUsernameRequestBody
-    >(CHANGE_USERNAME_LINK_URL, {
+    >(CHANGE_USERNAME_URL, {
       method: "POST",
       authorization: await getApiSessionToken(),
       body: validatedFields.data,
     });
 
-    await updateSessionTokens({ encodedApiJwtSession: jwt, user });
+    await createSession(jwt, user);
   } catch (error) {
     return { values, errors: [errorMessage(error)] };
   }

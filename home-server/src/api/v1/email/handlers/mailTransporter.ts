@@ -56,7 +56,7 @@ const createTransporter = async () => {
     oauth2Client.getAccessToken((err, token) => {
       if (err) {
         console.error(err);
-        reject(err);
+        return reject(err);
       }
       resolve(token);
     });
@@ -97,28 +97,20 @@ const fireBackupTransporter = async (safeMailOptions: Mail.Options) => {
   console.error("Transporter Error!");
   console.log("Attempting to send with backup transporter...");
   const backupTransporter = createBackupTransporter();
-  if (backupTransporter) {
-    try {
-      const res = await backupTransporter.sendMail(safeMailOptions);
-      console.log(JSON.stringify(res, undefined, "  "));
-      if (res.response.includes("OK")) {
-        console.log(
-          "Backup send appears to have been successful. Update the primary API key ASAP.",
-        );
-      }
-      return { code: 0, error: undefined, response: res };
-    } catch (e) {
-      console.error("Backup Mail Send Error!");
-      console.error(e);
-      return { code: 1, error: e, response: e };
+
+  try {
+    const res = await backupTransporter.sendMail(safeMailOptions);
+    console.log(JSON.stringify(res, undefined, "  "));
+    if (res.response.includes("OK")) {
+      console.log(
+        "Backup send appears to have been successful. Update the primary API key ASAP.",
+      );
     }
-  } else {
-    console.error("Backup Transporter Error!");
-    return {
-      code: 1,
-      error: "backupTransporter error!",
-      response: "backupTransporter error!",
-    };
+    return { code: 0, error: undefined, response: res };
+  } catch (e) {
+    console.error("Backup Mail Send Error!");
+    console.error(e);
+    return { code: 1, error: e, response: e };
   }
 };
 
@@ -138,22 +130,12 @@ export const sendMail = async ({
   };
 
   try {
-    try {
-      const transporter = await createTransporter();
-      const res = await transporter.sendMail(safeMailOptions);
-      const emailRateLimitCount = await emailCountMidnightPacificTime();
-      console.log("Emails sent today: " + emailRateLimitCount);
-      return { code: 0, error: undefined, response: res };
-    } catch {
-      const backupRes = await fireBackupTransporter(safeMailOptions);
-
-      return {
-        code: backupRes.code,
-        error: backupRes.error,
-        response: backupRes.response,
-      };
-    }
-  } catch (e) {
-    return { code: 1, error: e, response: e };
+    const transporter = await createTransporter();
+    const res = await transporter.sendMail(safeMailOptions);
+    const emailRateLimitCount = await emailCountMidnightPacificTime();
+    console.log("Emails sent today: " + emailRateLimitCount);
+    return { code: 0, error: undefined, response: res };
+  } catch {
+    return fireBackupTransporter(safeMailOptions);
   }
 };

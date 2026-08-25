@@ -27,9 +27,8 @@ import { handleVerifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
-import { handleChangeUsername } from "./handlers/handleChangeUsernameResponse";
-
-const BASE_FRONTEND_URL = process.env.BASE_FRONTEND_URL;
+import { handleChangeUsername } from "./handlers/handleChangeUsername";
+import { frontendUrl } from "../http/frontendUrl";
 
 const accountManagementRouter = Router();
 
@@ -45,11 +44,11 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
     const captcha = await handleVerifyCaptcha(body.grecaptcharesponse);
     if (!captcha.success) return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
 
-    const username = await createNewUniqueRandomUsername();
-    if (!username) return sendFailure(res);
-
     const emailAvailable = await checkUniqueEmail(body.email);
     if (!emailAvailable) return sendFailure(res, accountAlreadyExists("email"));
+
+    const username = await createNewUniqueRandomUsername();
+    if (!username) return sendFailure(res);
 
     const { grecaptcharesponse, ...account } = body;
     const { token, user } = await handleCreateAccount({ ...account, username });
@@ -58,7 +57,7 @@ accountManagementRouter.post("/createAccount", async (req, res) => {
       recipientUserId: user._id,
       subtype: "confirmEmail",
       message: "Please check your inbox to confirm your email.",
-      referenceLink: `${BASE_FRONTEND_URL}profile`,
+      referenceLink: frontendUrl("profile").toString(),
       canBeMarkedAsRead: false,
       canBeDeleted: false,
     });

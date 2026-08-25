@@ -1,6 +1,6 @@
 "use client";
 
-import { requestNewEmailVerificationLinkAction } from "@/app/actions/auth";
+import { requestNewEmailVerificationLink } from "@/app/actions/auth";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import { useActionState } from "react";
@@ -9,7 +9,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 export const RequestNewEmailVerificationLinkForm = () => {
   const publicCaptchaKey = process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC || "";
   const [state, action, pending] = useActionState(
-    requestNewEmailVerificationLinkAction,
+    requestNewEmailVerificationLink,
     undefined,
   );
 

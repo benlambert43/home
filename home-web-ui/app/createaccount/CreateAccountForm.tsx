@@ -1,14 +1,14 @@
 "use client";
 
 import { createAccount } from "@/app/actions/auth";
-import { SignUpFormState } from "@/app/lib/definitions";
+import { CreateAccountFormState } from "@/app/lib/definitions";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import TextField from "@/app/ui/TextField";
 import { useActionState, useEffect, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
-const hasFormErrors = (state: SignUpFormState): boolean => {
+const hasFormErrors = (state: CreateAccountFormState): boolean => {
   if (!state) return false;
   if (state.errors.length > 0) return true;
   return (state.properties ? Object.values(state.properties) : []).some(

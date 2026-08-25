@@ -3,7 +3,6 @@ export interface CreateAccountRequestBody {
   lastname: string;
   email: string;
   password: string;
-  confirmPassword: string;
   grecaptcharesponse: string;
 }
 

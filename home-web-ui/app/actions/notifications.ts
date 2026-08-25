@@ -15,7 +15,3 @@ export const getNotifications = async (): Promise<GetNotificationsResponse> => {
     return { error: true, message: errorMessage(error) };
   }
 };
-
-export const readNotification = async () => {};
-
-export const streamNotification = async () => {};

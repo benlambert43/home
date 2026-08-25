@@ -4,9 +4,9 @@ import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
-  RequestNewEmailVerificationFormState,
+  RequestNewEmailVerificationLinkFormState,
   SignInFormState,
-  SignUpFormState,
+  CreateAccountFormState,
 } from "@/app/lib/definitions";
 import { FieldNames, readFormValues, treeifyFormError } from "@/app/lib/forms";
 import {
@@ -47,9 +47,9 @@ const REQUEST_NEW_EMAIL_VERIFICATION_FIELDS = {
 >;
 
 export const createAccount = async (
-  state: SignUpFormState,
+  state: CreateAccountFormState,
   formData: FormData,
-): Promise<SignUpFormState> => {
+): Promise<CreateAccountFormState> => {
   const values = readFormValues(formData, CREATE_ACCOUNT_FIELDS);
   const validatedFields = createAccountFormSchema.safeParse(values);
 
@@ -57,11 +57,13 @@ export const createAccount = async (
     return { values, ...treeifyFormError(validatedFields.error) };
   }
 
+  const { confirmPassword, ...createAccountBody } = validatedFields.data;
+
   try {
     const { jwt, user } = await apiFetch<
       CreateAccountResponse,
       CreateAccountRequestBody
-    >(CREATE_ACCOUNT_URL, { method: "POST", body: validatedFields.data });
+    >(CREATE_ACCOUNT_URL, { method: "POST", body: createAccountBody });
 
     await createSession(jwt, user);
   } catch (error) {
@@ -96,10 +98,10 @@ export const signIn = async (
   redirect("/profile");
 };
 
-export const requestNewEmailVerificationLinkAction = async (
-  state: RequestNewEmailVerificationFormState,
+export const requestNewEmailVerificationLink = async (
+  state: RequestNewEmailVerificationLinkFormState,
   formData: FormData,
-): Promise<RequestNewEmailVerificationFormState> => {
+): Promise<RequestNewEmailVerificationLinkFormState> => {
   const values = readFormValues(
     formData,
     REQUEST_NEW_EMAIL_VERIFICATION_FIELDS,
