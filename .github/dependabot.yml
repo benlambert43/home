@@ -5,7 +5,21 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # Covers the root manifest and every workspace it declares — home-shared,
+  # home-server, and home-web-ui. All four share the single root
+  # package-lock.json, so Dependabot resolves and updates them together here.
+  #
+  # Do not add per-workspace entries (directory: "/home-web-ui" and friends).
+  # Dependabot would bump that workspace's package.json without regenerating the
+  # root package-lock.json, and `npm ci` in CI fails on the mismatch.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # ci.yml pins actions/checkout, actions/setup-node, and actions/cache by major
+  # version. Nothing else in the repo updates them.
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
