@@ -1,18 +1,12 @@
 export const encodeUrlSafeB64 = (input: string) =>
-  btoa(input)
-    .replace(/\+/g, "PLUS")
-    .replace(/\//g, "SLASH")
-    .replace(/=/g, "EQUALS");
+  Buffer.from(input).toString("base64url");
 
 export const decodeUrlSafeB64 = (encoded: string) => {
-  try {
-    return atob(
-      encoded
-        .replace(/PLUS/g, "+")
-        .replace(/SLASH/g, "/")
-        .replace(/EQUALS/g, "="),
-    );
-  } catch {
+  const decoded = Buffer.from(encoded, "base64url").toString();
+
+  if (Buffer.from(decoded).toString("base64url") !== encoded) {
     throw new Error("Invalid encoded value");
   }
+
+  return decoded;
 };

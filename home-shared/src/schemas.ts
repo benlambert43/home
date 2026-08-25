@@ -23,10 +23,9 @@ const usernameField = z
     message: "Only letters, numbers, dashes, and underscores are allowed.",
   });
 
-const urlSafeField = z
+const verificationCodeField = z
   .string()
-  .min(1)
-  .regex(/^[a-zA-Z0-9-]+$/);
+  .regex(/^\d{6}$/, { message: "Invalid verification code." });
 
 export const createAccountBodySchema = z.object({
   firstname: nameField("First name"),
@@ -49,9 +48,9 @@ export const signInBodySchema = z.object({
 });
 
 export const verifyEmailParamsSchema = z.object({
-  username: urlSafeField,
+  username: usernameField,
   email: emailField,
-  code: urlSafeField,
+  code: verificationCodeField,
 });
 
 export const requestNewEmailVerificationLinkBodySchema = z.object({

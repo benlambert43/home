@@ -9,6 +9,9 @@ type VerificationResult =
   | { status: "missingParams" }
   | { status: "unreachable"; error: string };
 
+const paramFilled = (value: string | string[] | undefined): value is string =>
+  typeof value === "string" && value.length > 0;
+
 const resolveVerification = async (
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>,
 ): Promise<VerificationResult> => {
@@ -18,13 +21,15 @@ const resolveVerification = async (
   }
 
   const { username, email, code } = await searchParams;
+  const params = [username, email, code];
 
-  if (!username || !email || !code) {
+  if (!params.every(paramFilled)) {
     return { status: "missingParams" };
   }
+  const path = params.map(encodeURIComponent).join("/");
 
   const verificationLinkResponse = await fetch(
-    `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${username}/${email}/${code}`,
+    `${process.env.BASE_API_URL}/accountManagement/verifyEmail/${path}`,
     { cache: "no-store", next: { revalidate: 0 } },
   );
   const verificationStatus: VerifyEmailResponse =
