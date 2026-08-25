@@ -22,7 +22,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "sh scripts/check-full.sh",
-    "clean:untracked": "sh scripts/clean-untracked.sh",
+    "clean": "sh scripts/clean.sh",
     "prepare": "husky"
   },
   "devDependencies": {

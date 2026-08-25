@@ -36,7 +36,7 @@ if [ -z "$removals" ]; then
   exit 0
 fi
 
-step clean:untracked "$(count "$removals") path(s)"
+step clean "$(count "$removals") path(s)"
 printf '%s\n' "$removals" | sed 's/^/  /'
 
 if [ -n "$at_risk" ]; then
@@ -45,7 +45,7 @@ if [ -n "$at_risk" ]; then
 
   if [ "$force" -eq 0 ]; then
     printf '\nGit has no copy of these — cleaning loses them for good.\n'
-    printf 'Commit or stash them first, or repeat with: \033[1mnpm run clean:untracked -- --force\033[0m\n\n'
+    printf 'Commit or stash them first, or repeat with: \033[1mnpm run clean -- --force\033[0m\n\n'
     exit 1
   fi
 
