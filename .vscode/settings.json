@@ -1,6 +1,12 @@
 {
   "js/ts.preferences.importModuleSpecifier": "non-relative",
   "editor.tabSize": 2,
+  "eslint.workingDirectories": [
+    { "directory": "home-shared" },
+    { "directory": "home-server" },
+    { "directory": "home-web-ui" },
+    { "directory": "scripts/deprecations" }
+  ],
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
