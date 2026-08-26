@@ -3,7 +3,7 @@ import { EnvelopeIcon } from "@heroicons/react/16/solid";
 
 const GMAIL_URL = "https://mail.google.com";
 
-const OpenGmailButton = () => (
+const OpenGmailButton = ({ centerText }: { centerText?: boolean }) => (
   <Button
     type="link"
     linkProps={{
@@ -13,7 +13,10 @@ const OpenGmailButton = () => (
     }}
     size="small"
   >
-    <div className="flex flex-row items-center gap-1">
+    <div
+      className={`flex flex-row items-center
+        ${centerText ? "justify-center" : undefined} gap-1`}
+    >
       <EnvelopeIcon className="size-6" />
       Open Gmail
     </div>
