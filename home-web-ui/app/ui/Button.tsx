@@ -3,12 +3,17 @@ import Link from "next/link";
 import { HTMLAttributeAnchorTarget, MouseEventHandler, ReactNode } from "react";
 
 type ButtonSize = "large" | "small";
+type ButtonColor = "normal" | "warning" | "danger";
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  large: `w-1/2 max-w-80 min-w-fit rounded-xl bg-slate-500 px-4 py-2
-    hover:cursor-pointer hover:bg-slate-400 focus:outline-slate-100`,
-  small: `w-1/2 max-w-60 min-w-fit rounded-md bg-slate-500 px-1 py-0.5
-    hover:cursor-pointer hover:bg-slate-400 focus:outline-slate-100`,
+  large: "inline-block rounded-md px-8 py-1 hover:cursor-pointer text-lg",
+  small: "inline-block rounded-sm px-2 py-0.5 hover:cursor-pointer text-base",
+};
+
+const COLOR_CLASSES: Record<ButtonColor, string> = {
+  normal: "bg-slate-500 hover:bg-slate-400 focus:outline-slate-100",
+  warning: "bg-amber-500 hover:bg-amber-400 focus:outline-amber-100",
+  danger: "bg-red-500 hover:bg-red-400 focus:outline-red-100",
 };
 
 type LinkProps = {
@@ -19,6 +24,7 @@ type LinkProps = {
 
 type SharedProps = {
   children: ReactNode;
+  color?: ButtonColor;
   size?: ButtonSize;
 };
 
@@ -29,12 +35,15 @@ type ButtonProps = SharedProps &
         disabled?: boolean;
         onClick?: MouseEventHandler<HTMLButtonElement>;
       }
-    | { type: "link"; linkProps: LinkProps }
+    | {
+        type: "link";
+        linkProps: LinkProps;
+      }
   );
 
-const Button = (props: ButtonProps) => {
+const Button = ({ color = "normal", ...props }: ButtonProps) => {
   const { children, size } = props;
-  const className = size ? SIZE_CLASSES[size] : "";
+  const className = `${size ? SIZE_CLASSES[size] : ""} ${COLOR_CLASSES[color]}`;
 
   if (props.type === "link") {
     const { href, target, rel } = props.linkProps;

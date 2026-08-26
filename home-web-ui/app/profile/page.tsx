@@ -46,6 +46,12 @@ const Profile = async () => {
         </div>
       </div>
 
+      <form action={removeSession}>
+        <Button type="submit" size="small" color="danger">
+          Delete Account
+        </Button>
+      </form>
+
       <div className="py-5">
         <form action={removeSession}>
           <Button type="submit" size="large">
