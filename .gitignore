@@ -5,6 +5,8 @@ node_modules
 
 home-server/build/
 home-shared/build/
+home-shared/.build.tmp/
+home-shared/.build.lock/
 home-web-ui/.next/
 home-web-ui/out/
 coverage/

@@ -10,10 +10,10 @@
     "home-web-ui"
   ],
   "scripts": {
-    "build:shared": "npm run build --workspace home-shared",
+    "build:shared": "sh scripts/build-shared.sh",
     "dev": "npm run build:shared && npm run dev --workspace home-web-ui",
     "dev:server": "npm run build:shared && npm run dev --workspace home-server",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspace home-shared && npm run build --workspace home-server && npm run build --workspace home-web-ui",
     "lint": "npm run lint --workspaces --if-present",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
     "lint:deprecations": "sh scripts/check-deprecations.sh",

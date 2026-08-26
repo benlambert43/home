@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "tsc --watch --preserveWatchOutput",
-    "build": "rimraf ./build && tsc -p tsconfig.build.json",
+    "build": "sh ../scripts/build-shared.sh --force",
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
