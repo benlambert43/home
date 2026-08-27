@@ -4,6 +4,7 @@ import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { UserDocument } from "../../types/db";
 import { checkUniqueUsername } from "../../user/userQueries";
+import { usernameHasProfanity } from "../../user/usernameFilter";
 
 const MAX_USERNAME_ATTEMPTS = 10;
 const SALT_ROUNDS = 10;
@@ -32,6 +33,7 @@ const shouldCreateAdminAccount = (email: string, password: string) => {
 export const createNewUniqueRandomUsername = async () => {
   for (let attempt = 0; attempt < MAX_USERNAME_ATTEMPTS; attempt++) {
     const newUsername = generateUsername("-", 4);
+    if (usernameHasProfanity(newUsername)) continue;
     if (await checkUniqueUsername(newUsername)) {
       return newUsername;
     }

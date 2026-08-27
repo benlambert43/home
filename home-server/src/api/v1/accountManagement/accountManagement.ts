@@ -19,6 +19,7 @@ import {
   handleCreateAccount,
 } from "./handlers/handleCreateAccount";
 import { checkUniqueEmail, checkUniqueUsername } from "../user/userQueries";
+import { usernameHasProfanity } from "../user/usernameFilter";
 import { serializeUser } from "../types/serialize";
 import { handleSendEmailVerification } from "../email/handleSendEmailVerification";
 import { decodeUrlSafeB64 } from "../http/urlSafeB64";
@@ -129,6 +130,10 @@ accountManagementRouter.post(
 
     const body = parseRequest(changeUsernameBodySchema, req.body, res);
     if (!body) return;
+
+    if (usernameHasProfanity(body.newUsername)) {
+      return sendFailure(res, ApiMessage.USERNAME_NOT_ALLOWED);
+    }
 
     const available = await checkUniqueUsername(body.newUsername);
     if (!available) return sendFailure(res, accountAlreadyExists("username"));
