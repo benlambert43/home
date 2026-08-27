@@ -27,13 +27,12 @@ const usernameField = z
     message: "Only letters, numbers, dashes, and underscores are allowed.",
   });
 
-const verificationCodeField = z
-  .string()
-  .regex(/^\d{6}$/, { message: "Invalid verification code." });
+const emailedCodeField = (message: string) =>
+  z.string().regex(/^[0-9a-f]{64}$/, { message });
 
-const passwordResetCodeField = z
-  .string()
-  .regex(/^[0-9a-f]{64}$/, { message: "Invalid password reset link." });
+const verificationCodeField = emailedCodeField("Invalid verification code.");
+
+const passwordResetCodeField = emailedCodeField("Invalid password reset link.");
 
 export const createAccountBodySchema = z.object({
   firstname: nameField("First name"),

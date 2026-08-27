@@ -12,7 +12,16 @@ export const handleResetPassword = async ({
   const found = await findPasswordReset(code);
   if (found.error) return found;
 
-  const { userId } = found.passwordReset;
+  const { _id, userId } = found.passwordReset;
+
+  const claimedReset = await PasswordResetModel.findOneAndUpdate(
+    { _id, resetCodeUsed: false },
+    { resetCodeUsed: true, usedDate: new Date() },
+  ).lean();
+
+  if (!claimedReset) {
+    return { error: true, message: ApiMessage.PASSWORD_RESET_LINK_INVALID };
+  }
 
   const updatedUser = await UserModel.findByIdAndUpdate(userId, {
     password: await hashPassword(newPassword),

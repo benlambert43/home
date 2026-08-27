@@ -3,10 +3,7 @@ import { PasswordResetModel } from "../model/passwordResetModel";
 import { UserDocument } from "../types/db";
 import { sendMail } from "./mailTransporter";
 import { frontendUrl } from "../http/frontendUrl";
-import {
-  generatePasswordResetCode,
-  hashPasswordResetCode,
-} from "../auth/passwordResetCode";
+import { generateEmailedCode, hashEmailedCode } from "../auth/emailedCode";
 
 export const PASSWORD_RESET_LIFETIME_MINUTES = 15;
 
@@ -17,13 +14,13 @@ const buildPasswordResetLink = (code: string) => {
 };
 
 export const handleSendPasswordReset = async (user: UserDocument) => {
-  const resetCode = generatePasswordResetCode();
+  const resetCode = generateEmailedCode();
   const passwordResetLink = buildPasswordResetLink(resetCode);
 
   const pendingSendPasswordReset = new PasswordResetModel({
     userId: user._id,
     email: user.email,
-    resetCodeHash: hashPasswordResetCode(resetCode),
+    resetCodeHash: hashEmailedCode(resetCode),
     resetCodeUsed: false,
     error: true,
     pendingSend: true,

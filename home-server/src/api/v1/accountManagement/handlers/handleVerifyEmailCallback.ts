@@ -2,6 +2,7 @@ import { VerifyEmailResponse } from "@home/shared";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
+import { hashEmailedCode } from "../../auth/emailedCode";
 import { serializeUser } from "../../types/serialize";
 import { removeNotification } from "../../notification/handlers/removeNotification";
 import { ApiMessage } from "../../http/messages";
@@ -23,14 +24,23 @@ export const handleVerifyEmailCallback = async ({
 
   const emailVerification = await EmailVerificationModel.findOne({
     userId: user._id,
-    verificationCode: code,
+    verificationCodeHash: hashEmailedCode(code),
   }).lean();
 
   if (!emailVerification) {
     return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
   }
 
-  if (user.confirmedEmail && emailVerification.verificationCodeClickedOn) {
+  if (emailVerification.verificationCodeClickedOn) {
+    return {
+      error: true,
+      message: user.confirmedEmail
+        ? ApiMessage.EMAIL_ALREADY_CONFIRMED
+        : ApiMessage.VERIFICATION_LINK_INVALID,
+    };
+  }
+
+  if (user.confirmedEmail) {
     return { error: true, message: ApiMessage.EMAIL_ALREADY_CONFIRMED };
   }
 
@@ -38,10 +48,19 @@ export const handleVerifyEmailCallback = async ({
     return { error: true, message: ApiMessage.VERIFICATION_LINK_EXPIRED };
   }
 
-  await EmailVerificationModel.findByIdAndUpdate(emailVerification._id, {
-    verificationCodeClickedOn: true,
-    confirmedDate: new Date(),
-  });
+  const claimedVerification = await EmailVerificationModel.findOneAndUpdate(
+    { _id: emailVerification._id, verificationCodeClickedOn: false },
+    { verificationCodeClickedOn: true, confirmedDate: new Date() },
+  ).lean();
+
+  if (!claimedVerification) {
+    return { error: true, message: ApiMessage.EMAIL_ALREADY_CONFIRMED };
+  }
+
+  await EmailVerificationModel.updateMany(
+    { userId: user._id, verificationCodeClickedOn: false },
+    { verificationCodeClickedOn: true },
+  );
 
   const updatedUser = await UserModel.findByIdAndUpdate(
     user._id,

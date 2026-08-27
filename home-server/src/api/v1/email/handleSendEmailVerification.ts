@@ -4,20 +4,9 @@ import { UserDocument } from "../types/db";
 import { sendMail } from "./mailTransporter";
 import { encodeUrlSafeB64 } from "../http/urlSafeB64";
 import { frontendUrl } from "../http/frontendUrl";
+import { generateEmailedCode, hashEmailedCode } from "../auth/emailedCode";
 
-const PIN_RANGE = 1000000;
-const PIN_CEILING = Math.floor(2 ** 32 / PIN_RANGE) * PIN_RANGE;
 const LINK_LIFETIME_MINUTES = 10;
-
-const generateSecurePIN = () => {
-  const randomValues = new Uint32Array(1);
-
-  do {
-    crypto.getRandomValues(randomValues);
-  } while (randomValues[0] >= PIN_CEILING);
-
-  return (randomValues[0] % PIN_RANGE).toString().padStart(6, "0");
-};
 
 const buildVerificationLink = (user: UserDocument, code: string) => {
   const link = frontendUrl("profile/accountManagement/verifyEmail");
@@ -28,13 +17,13 @@ const buildVerificationLink = (user: UserDocument, code: string) => {
 };
 
 export const handleSendEmailVerification = async (user: UserDocument) => {
-  const emailVerificationCode = generateSecurePIN();
+  const emailVerificationCode = generateEmailedCode();
   const verificationLink = buildVerificationLink(user, emailVerificationCode);
 
   const pendingSendEmailVerification = new EmailVerificationModel({
     userId: user._id,
     email: user.email,
-    verificationCode: emailVerificationCode,
+    verificationCodeHash: hashEmailedCode(emailVerificationCode),
     verificationCodeClickedOn: false,
     error: true,
     pendingSend: true,

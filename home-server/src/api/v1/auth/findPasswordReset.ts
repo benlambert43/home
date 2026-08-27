@@ -1,7 +1,7 @@
 import { PasswordResetModel } from "../model/passwordResetModel";
 import { PasswordResetDocument } from "../types/db";
 import { ApiMessage } from "../http/messages";
-import { hashPasswordResetCode } from "./passwordResetCode";
+import { hashEmailedCode } from "./emailedCode";
 
 type FoundPasswordReset =
   | { error: true; message: string }
@@ -11,7 +11,7 @@ export const findPasswordReset = async (
   code: string,
 ): Promise<FoundPasswordReset> => {
   const passwordReset = await PasswordResetModel.findOne({
-    resetCodeHash: hashPasswordResetCode(code),
+    resetCodeHash: hashEmailedCode(code),
   });
 
   if (!passwordReset || passwordReset.resetCodeUsed) {
