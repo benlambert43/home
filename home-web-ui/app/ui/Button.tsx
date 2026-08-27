@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HTMLAttributeAnchorTarget, MouseEventHandler, ReactNode } from "react";
 
 type ButtonSize = "large" | "small";
-type ButtonColor = "normal" | "warning" | "danger";
+export type ButtonColor = "normal" | "warning" | "danger";
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
   large: "inline-block rounded-md px-8 py-1 hover:cursor-pointer text-lg",

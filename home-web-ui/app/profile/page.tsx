@@ -1,5 +1,6 @@
 import { removeSession } from "@/app/actions/session";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import DeleteAccountButton from "@/app/profile/DeleteAccountButton";
 import ProfileBanner from "@/app/profile/ProfileBanner";
 import Button from "@/app/ui/Button";
 
@@ -46,11 +47,9 @@ const Profile = async () => {
         </div>
       </div>
 
-      <form action={removeSession}>
-        <Button type="submit" size="small" color="danger">
-          Delete Account
-        </Button>
-      </form>
+      <div>
+        <DeleteAccountButton />
+      </div>
 
       <div className="py-5">
         <form action={removeSession}>
