@@ -8,16 +8,25 @@ import {
   FieldNames,
   readFormValues,
   RequestNewEmailVerificationLinkFormState,
+  RequestPasswordResetFormState,
+  ResetPasswordFormState,
   SignInFormState,
   treeifyFormError,
 } from "@/app/lib/forms";
 import {
+  CheckPasswordResetLinkResponse,
   createAccountFormSchema,
   CreateAccountRequestBody,
   CreateAccountResponse,
   requestNewEmailVerificationLinkBodySchema,
   RequestNewEmailVerificationLinkResponse,
   RequestNewEmailVerificationLinkRequestBody,
+  requestPasswordResetBodySchema,
+  RequestPasswordResetRequestBody,
+  RequestPasswordResetResponse,
+  resetPasswordFormSchema,
+  ResetPasswordRequestBody,
+  ResetPasswordResponse,
   signInBodySchema,
   SignInRequestBody,
   SignInResponse,
@@ -29,6 +38,9 @@ const CREATE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/create
 const SIGN_IN_URL = `${process.env.BASE_API_URL}/signIn`;
 const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/requestNewEmailVerificationLink`;
 const VERIFY_EMAIL_URL = `${process.env.BASE_API_URL}/accountManagement/verifyEmail`;
+const REQUEST_PASSWORD_RESET_URL = `${process.env.BASE_API_URL}/accountManagement/requestPasswordReset`;
+const PASSWORD_RESET_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/passwordResetLink`;
+const RESET_PASSWORD_URL = `${process.env.BASE_API_URL}/accountManagement/resetPassword`;
 
 const CREATE_ACCOUNT_FIELDS = {
   firstname: "firstname",
@@ -49,6 +61,17 @@ const REQUEST_NEW_EMAIL_VERIFICATION_FIELDS = {
 } as const satisfies FieldNames<
   typeof requestNewEmailVerificationLinkBodySchema
 >;
+
+const REQUEST_PASSWORD_RESET_FIELDS = {
+  email: "email",
+  grecaptcharesponse: "g-recaptcha-response",
+} as const satisfies FieldNames<typeof requestPasswordResetBodySchema>;
+
+const RESET_PASSWORD_FIELDS = {
+  code: "code",
+  newPassword: "newPassword",
+  confirmNewPassword: "confirmNewPassword",
+} as const satisfies FieldNames<typeof resetPasswordFormSchema>;
 
 export const createAccount = async (
   state: CreateAccountFormState,
@@ -143,4 +166,63 @@ export const verifyEmail = async (
   return apiRequest<VerifyEmailResponse>(`${VERIFY_EMAIL_URL}/${path}`, {
     cache: "no-store",
   });
+};
+
+export const requestPasswordReset = async (
+  state: RequestPasswordResetFormState,
+  formData: FormData,
+): Promise<RequestPasswordResetFormState> => {
+  const values = readFormValues(formData, REQUEST_PASSWORD_RESET_FIELDS);
+  const validatedFields = requestPasswordResetBodySchema.safeParse(values);
+
+  if (!validatedFields.success) {
+    return { values, ...treeifyFormError(validatedFields.error) };
+  }
+
+  try {
+    await apiFetch<
+      RequestPasswordResetResponse,
+      RequestPasswordResetRequestBody
+    >(REQUEST_PASSWORD_RESET_URL, {
+      method: "POST",
+      body: validatedFields.data,
+    });
+  } catch (error) {
+    return { values, errors: [errorMessage(error)] };
+  }
+
+  redirect("/forgotpasswordsuccess");
+};
+
+export const checkPasswordResetLink = async (
+  code: string,
+): Promise<CheckPasswordResetLinkResponse> =>
+  apiRequest<CheckPasswordResetLinkResponse>(
+    `${PASSWORD_RESET_LINK_URL}/${encodeURIComponent(code)}`,
+    { cache: "no-store" },
+  );
+
+export const resetPassword = async (
+  state: ResetPasswordFormState,
+  formData: FormData,
+): Promise<ResetPasswordFormState> => {
+  const values = readFormValues(formData, RESET_PASSWORD_FIELDS);
+  const validatedFields = resetPasswordFormSchema.safeParse(values);
+
+  if (!validatedFields.success) {
+    return treeifyFormError(validatedFields.error);
+  }
+
+  const { confirmNewPassword, ...resetPasswordBody } = validatedFields.data;
+
+  try {
+    await apiFetch<ResetPasswordResponse, ResetPasswordRequestBody>(
+      RESET_PASSWORD_URL,
+      { method: "POST", body: resetPasswordBody },
+    );
+  } catch (error) {
+    return { errors: [errorMessage(error)] };
+  }
+
+  redirect("/profile/accountManagement/resetPasswordSuccess");
 };

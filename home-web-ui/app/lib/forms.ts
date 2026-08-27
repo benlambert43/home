@@ -1,8 +1,11 @@
 import * as z from "zod";
 import {
+  changePasswordFormSchema,
   changeUsernameBodySchema,
   createAccountFormSchema,
   requestNewEmailVerificationLinkBodySchema,
+  requestPasswordResetBodySchema,
+  resetPasswordFormSchema,
   signInBodySchema,
 } from "@home/shared";
 
@@ -30,6 +33,16 @@ export type RequestNewEmailVerificationLinkFormState = FormState<
 export type ChangeUsernameFormState = FormState<
   typeof changeUsernameBodySchema
 >;
+
+export type ChangePasswordFormState = FormState<
+  typeof changePasswordFormSchema
+>;
+
+export type RequestPasswordResetFormState = FormState<
+  typeof requestPasswordResetBodySchema
+>;
+
+export type ResetPasswordFormState = FormState<typeof resetPasswordFormSchema>;
 
 export type DeleteAccountState = { errors: string[] };
 
