@@ -32,6 +32,8 @@ export type VerifyEmailResponse = SessionResponse;
 
 export type RequestNewEmailVerificationLinkResponse = ApiResponse;
 
+export type DeleteAccountResponse = ApiResponse;
+
 export type GetNotificationsResponse = ApiResponse<{
   notifications: Notification[];
 }>;

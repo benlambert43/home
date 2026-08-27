@@ -28,6 +28,7 @@ import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
 import { handleChangeUsername } from "./handlers/handleChangeUsername";
+import { handleDeleteAccount } from "./handlers/handleDeleteAccount";
 import { frontendUrl } from "../http/frontendUrl";
 
 interface VerifyEmailParams {
@@ -133,6 +134,16 @@ accountManagementRouter.post(
     if (!available) return sendFailure(res, accountAlreadyExists("username"));
 
     sendResult(res, await handleChangeUsername(token, body.newUsername));
+  }),
+);
+
+accountManagementRouter.post(
+  "/deleteAccount",
+  route(async (req, res) => {
+    const token = authenticateApiToken(req.headers?.authorization);
+    if (!token) return sendUnauthenticated(res);
+
+    sendResult(res, await handleDeleteAccount(token));
   }),
 );
 

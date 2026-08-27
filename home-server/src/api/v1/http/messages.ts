@@ -14,6 +14,7 @@ export const ApiMessage = {
   EMAIL_CONFIRMED:
     "Thank you for confirming your email address! You can now close this window.",
   USERNAME_CHANGED: "Username updated.",
+  ACCOUNT_DELETED: "Your account has been deleted.",
   VERIFICATION_LINK_EXPIRED:
     "Email verification link has expired. Please request a new email verification link.",
   VERIFICATION_LINK_INVALID:

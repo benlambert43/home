@@ -10,7 +10,9 @@ const RequestNewEmailVerificationLinkSuccess = async () => {
         A new verification email has been sent! Be sure to check your junk or
         spam folders.
       </div>
-      <OpenGmailButton centerText={true} />
+      <div>
+        <OpenGmailButton centerText={true} />
+      </div>
     </div>
   );
 };

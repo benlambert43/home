@@ -31,6 +31,8 @@ export type ChangeUsernameFormState = FormState<
   typeof changeUsernameBodySchema
 >;
 
+export type DeleteAccountState = { errors: string[] };
+
 export type FieldNames<Schema extends z.ZodType> = Record<
   keyof z.input<Schema>,
   string

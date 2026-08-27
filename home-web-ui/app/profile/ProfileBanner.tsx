@@ -12,13 +12,17 @@ const ProfileBanner = ({ user }: { user: UserNoPassword }) => {
         verification email.
       </div>
       <div className="flex flex-col gap-1 py-2">
-        <OpenGmailButton />
-        <Link
-          href="/profile/accountManagement/requestNewEmailVerificationLink"
-          className="underline"
-        >
-          Request a New Link
-        </Link>
+        <div>
+          <OpenGmailButton />
+        </div>
+        <div>
+          <Link
+            href="/profile/accountManagement/requestNewEmailVerificationLink"
+            className="underline"
+          >
+            Request a New Link
+          </Link>
+        </div>
       </div>
     </div>
   );
