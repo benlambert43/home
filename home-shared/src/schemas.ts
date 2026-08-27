@@ -11,6 +11,10 @@ const passwordField = z
   .string()
   .min(8, { message: "Password must be at least 8 characters long." });
 
+const currentPasswordField = z
+  .string()
+  .min(1, { message: "Please enter your current password." });
+
 const captchaField = z.string().min(1, {
   message:
     "Please complete the ReCAPTCHA challenge, or reload the page and try again.",
@@ -26,6 +30,10 @@ const usernameField = z
 const verificationCodeField = z
   .string()
   .regex(/^\d{6}$/, { message: "Invalid verification code." });
+
+const passwordResetCodeField = z
+  .string()
+  .regex(/^[0-9a-f]{64}$/, { message: "Invalid password reset link." });
 
 export const createAccountBodySchema = z.object({
   firstname: nameField("First name"),
@@ -60,3 +68,36 @@ export const requestNewEmailVerificationLinkBodySchema = z.object({
 export const changeUsernameBodySchema = z.object({
   newUsername: usernameField,
 });
+
+export const changePasswordBodySchema = z.object({
+  currentPassword: currentPasswordField,
+  newPassword: passwordField,
+});
+
+export const changePasswordFormSchema = changePasswordBodySchema
+  .extend({ confirmNewPassword: passwordField })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmNewPassword"],
+  });
+
+export const requestPasswordResetBodySchema = z.object({
+  email: emailField,
+  grecaptcharesponse: captchaField,
+});
+
+export const passwordResetLinkParamsSchema = z.object({
+  code: passwordResetCodeField,
+});
+
+export const resetPasswordBodySchema = z.object({
+  code: passwordResetCodeField,
+  newPassword: passwordField,
+});
+
+export const resetPasswordFormSchema = resetPasswordBodySchema
+  .extend({ confirmNewPassword: passwordField })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmNewPassword"],
+  });

@@ -32,6 +32,14 @@ export type VerifyEmailResponse = SessionResponse;
 
 export type RequestNewEmailVerificationLinkResponse = ApiResponse;
 
+export type ChangePasswordResponse = SessionResponse;
+
+export type RequestPasswordResetResponse = ApiResponse;
+
+export type CheckPasswordResetLinkResponse = ApiResponse;
+
+export type ResetPasswordResponse = ApiResponse;
+
 export type DeleteAccountResponse = ApiResponse;
 
 export type GetNotificationsResponse = ApiResponse<{
