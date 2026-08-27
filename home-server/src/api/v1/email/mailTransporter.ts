@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import Mail from "nodemailer/lib/mailer";
 import { TZDate } from "@date-fns/tz";
 import { EmailVerificationModel } from "../model/emailVerificationModel";
+import { PasswordResetModel } from "../model/passwordResetModel";
 
 const EMAIL_OUTGOING_ADDRESS = process.env.EMAIL_OUTGOING_ADDRESS;
 const EMAIL_OUTGOING_CLIENT_ID = process.env.EMAIL_OUTGOING_CLIENT_ID;
@@ -27,10 +28,14 @@ const pacificDayRange = (baseDate: Date = new Date()) => {
 
 const countEmailsSentToday = async () => {
   const { start, end } = pacificDayRange();
+  const sentToday = { createdDate: { $gte: start, $lt: end } };
 
-  return EmailVerificationModel.countDocuments({
-    createdDate: { $gte: start, $lt: end },
-  });
+  const counts = await Promise.all([
+    EmailVerificationModel.countDocuments(sentToday),
+    PasswordResetModel.countDocuments(sentToday),
+  ]);
+
+  return counts.reduce((total, count) => total + count, 0);
 };
 
 const createTransporter = async () => {

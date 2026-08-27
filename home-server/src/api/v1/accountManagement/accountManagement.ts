@@ -1,8 +1,12 @@
 import {
+  changePasswordBodySchema,
   changeUsernameBodySchema,
   CreateAccountResponse,
   createAccountBodySchema,
+  passwordResetLinkParamsSchema,
   requestNewEmailVerificationLinkBodySchema,
+  requestPasswordResetBodySchema,
+  resetPasswordBodySchema,
   verifyEmailParamsSchema,
 } from "@home/shared";
 import { parseRequest } from "../http/parseRequest";
@@ -29,12 +33,20 @@ import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
 import { handleChangeUsername } from "./handlers/handleChangeUsername";
+import { handleChangePassword } from "./handlers/handleChangePassword";
+import { handleRequestPasswordReset } from "./handlers/handleRequestPasswordReset";
+import { handleCheckPasswordResetLink } from "./handlers/handleCheckPasswordResetLink";
+import { handleResetPassword } from "./handlers/handleResetPassword";
 import { handleDeleteAccount } from "./handlers/handleDeleteAccount";
 import { frontendUrl } from "../http/frontendUrl";
 
 interface VerifyEmailParams {
   username: string;
   email: string;
+  code: string;
+}
+
+interface PasswordResetLinkParams {
   code: string;
 }
 
@@ -139,6 +151,58 @@ accountManagementRouter.post(
     if (!available) return sendFailure(res, accountAlreadyExists("username"));
 
     sendResult(res, await handleChangeUsername(token, body.newUsername));
+  }),
+);
+
+accountManagementRouter.post(
+  "/changePassword",
+  route(async (req, res) => {
+    const token = authenticateApiToken(req.headers?.authorization);
+    if (!token) return sendUnauthenticated(res);
+
+    const body = parseRequest(changePasswordBodySchema, req.body, res);
+    if (!body) return;
+
+    sendResult(res, await handleChangePassword(token, body));
+  }),
+);
+
+accountManagementRouter.post(
+  "/requestPasswordReset",
+  route(async (req, res) => {
+    const body = parseRequest(requestPasswordResetBodySchema, req.body, res);
+    if (!body) return;
+
+    if (!(await verifyCaptcha(body.grecaptcharesponse))) {
+      return sendFailure(res, ApiMessage.CAPTCHA_FAILED);
+    }
+
+    sendResult(res, await handleRequestPasswordReset(body));
+  }),
+);
+
+accountManagementRouter.get(
+  "/passwordResetLink/:code",
+  route<PasswordResetLinkParams>(async (req, res) => {
+    const params = passwordResetLinkParamsSchema.safeParse({
+      code: req.params.code,
+    });
+
+    if (!params.success) {
+      return sendFailure(res, ApiMessage.PASSWORD_RESET_LINK_INVALID);
+    }
+
+    sendResult(res, await handleCheckPasswordResetLink(params.data.code));
+  }),
+);
+
+accountManagementRouter.post(
+  "/resetPassword",
+  route(async (req, res) => {
+    const body = parseRequest(resetPasswordBodySchema, req.body, res);
+    if (!body) return;
+
+    sendResult(res, await handleResetPassword(body));
   }),
 );
 

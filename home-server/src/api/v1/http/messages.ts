@@ -17,6 +17,17 @@ export const ApiMessage = {
   USERNAME_NOT_ALLOWED:
     "That username isn't allowed. Please choose a different one.",
   ACCOUNT_DELETED: "Your account has been deleted.",
+  PASSWORD_CHANGED: "Your password has been changed.",
+  CURRENT_PASSWORD_INCORRECT:
+    "Your current password is incorrect. Please try again.",
+  NEW_PASSWORD_MUST_DIFFER:
+    "Your new password must be different from your current password.",
+  PASSWORD_RESET_LINK_SENT:
+    "If an account exists for that email, a password reset link is on its way.",
+  PASSWORD_RESET_LINK_INVALID:
+    "This password reset link is not valid. Please request a new password reset link.",
+  PASSWORD_RESET_LINK_EXPIRED:
+    "This password reset link has expired. Please request a new password reset link.",
   VERIFICATION_LINK_EXPIRED:
     "Email verification link has expired. Please request a new email verification link.",
   VERIFICATION_LINK_INVALID:

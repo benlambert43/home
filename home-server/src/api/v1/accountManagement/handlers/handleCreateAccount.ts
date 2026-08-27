@@ -1,13 +1,12 @@
-import * as bcrypt from "bcrypt";
 import { generateUsername } from "unique-username-generator";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { UserDocument } from "../../types/db";
 import { checkUniqueUsername } from "../../user/userQueries";
 import { usernameHasProfanity } from "../../user/usernameFilter";
+import { hashPassword } from "../../auth/password";
 
 const MAX_USERNAME_ATTEMPTS = 10;
-const SALT_ROUNDS = 10;
 
 interface NewAccount {
   firstname: string;
@@ -16,9 +15,6 @@ interface NewAccount {
   email: string;
   password: string;
 }
-
-const saltPassword = async (plaintextPassword: string) =>
-  bcrypt.hash(plaintextPassword, await bcrypt.genSalt(SALT_ROUNDS));
 
 const shouldCreateAdminAccount = (email: string, password: string) => {
   const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
@@ -55,7 +51,7 @@ const handleCreateUser = async ({
     username,
     confirmedEmail: false,
     userBanned: false,
-    password: await saltPassword(password),
+    password: await hashPassword(password),
     createdDate: new Date(),
     modifiedDate: new Date(),
     role: shouldCreateAdminAccount(email, password) ? "admin" : "user",
