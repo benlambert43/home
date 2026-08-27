@@ -42,8 +42,8 @@ const Modal = ({
         e.preventDefault();
         requestClose();
       }}
-      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none
-        overflow-y-auto bg-transparent p-0 text-slate-50 opacity-0
+      className="min-w-site-min fixed inset-0 m-0 h-full max-h-none w-full
+        max-w-none overflow-y-auto bg-transparent p-0 text-slate-50 opacity-0
         transition-[opacity,display,overlay] transition-discrete duration-200
         backdrop:bg-slate-950/70 backdrop:opacity-0
         backdrop:transition-[opacity,display,overlay] backdrop:duration-200

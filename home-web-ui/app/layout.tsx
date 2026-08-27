@@ -8,7 +8,7 @@ export const metadata = siteMetadata;
 const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
   <html
     lang="en"
-    className="min-h-screen min-w-screen bg-slate-800 text-slate-50"
+    className="min-w-site-min min-h-screen bg-slate-800 text-slate-50"
   >
     <body>
       <div className="py-8">
