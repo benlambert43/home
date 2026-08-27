@@ -14,6 +14,7 @@ const Profile = async () => {
         <ProfileBanner user={user} />
       </div>
       <div className="flex flex-col gap-2">
+        <b>Account Details:</b>
         <div>
           <p>First Name:</p>
           <p>{user.firstname}</p>
@@ -35,9 +36,20 @@ const Profile = async () => {
           </p>
         </div>
       </div>
-
-      <div>
-        <DeleteAccountButton />
+      <div className="flex flex-col gap-2">
+        <b>Account Options:</b>
+        <div>
+          <DeleteAccountButton />
+        </div>
+        <div>
+          <Button
+            type="link"
+            linkProps={{ href: "/profile/accountManagement/changePassword" }}
+            size="small"
+          >
+            Change Password
+          </Button>
+        </div>
       </div>
 
       <div className="py-5">
