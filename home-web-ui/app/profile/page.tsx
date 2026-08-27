@@ -27,17 +27,6 @@ const Profile = async () => {
           <p>{user.email}</p>
         </div>
         <div>
-          <p>Username:</p>
-          <p>{user.username}</p>
-          <Button
-            type="link"
-            linkProps={{ href: "/profile/accountManagement/changeUsername" }}
-            size="small"
-          >
-            Change Username
-          </Button>
-        </div>
-        <div>
           <p>Email Verified:</p>
           <p>
             {user.confirmedEmail === true

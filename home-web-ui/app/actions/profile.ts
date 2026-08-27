@@ -51,7 +51,7 @@ export const changeUsername = async (
     return { values, errors: [errorMessage(error)] };
   }
 
-  redirect("/profile");
+  redirect("/settings");
 };
 
 export const deleteAccount = async (): Promise<
