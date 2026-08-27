@@ -11,9 +11,12 @@ const SignIn = async () => {
       <div>
         <SignInForm />
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col items-start gap-2">
         <Link href="/createaccount" className="underline">
           Create Account
+        </Link>
+        <Link href="/forgotpassword" className="underline">
+          Forgot Password?
         </Link>
       </div>
     </div>
