@@ -3,7 +3,7 @@ import * as z from "zod";
 import { ApiMessage } from "./messages";
 import { sendFailure } from "./respond";
 
-export const parseRequest = <Schema extends z.ZodObject>(
+export const parseRequest = <Schema extends z.ZodType>(
   schema: Schema,
   input: unknown,
   res: Response,

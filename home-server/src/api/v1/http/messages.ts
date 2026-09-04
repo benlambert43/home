@@ -4,6 +4,7 @@ export const ApiMessage = {
   UNAUTHENTICATED:
     "Unable to authenticate request. Please sign in and try again.",
   NOT_IMPLEMENTED: "This endpoint is not implemented yet.",
+  FORBIDDEN: "You do not have permission to do that.",
 
   ACCOUNT_CREATED: "New account created.",
   SIGNED_IN: "Sign in successful.",
@@ -32,10 +33,26 @@ export const ApiMessage = {
     "Email verification link has expired. Please request a new email verification link.",
   VERIFICATION_LINK_INVALID:
     "Unable to update email verification status. Please request a new email verification link or try again.",
+  POST_CREATED: "Post published.",
+  POST_UPDATED: "Post updated.",
+  POST_DELETED: "Post deleted.",
+  POST_NOT_FOUND: "That post could not be found.",
+  POST_IMAGE_INVALID:
+    "Header image must be a PNG, JPEG, WebP, GIF, or AVIF image.",
+  POST_FILES_UNAVAILABLE:
+    "This post's files could not be read from storage. Please try again.",
+  POST_HAS_NO_REVISION:
+    "This post has no saved content. Please try again, or edit the post to republish it.",
 } as const;
 
 export const accountAlreadyExists = (field: "email" | "username") =>
   `An account with this ${field} already exists.`;
+
+export const inlineImageNotAnImage = (name: string) =>
+  `${name} is not a PNG, JPEG, WebP, GIF, or AVIF image.`;
+
+export const inlineImageTypeMismatch = (name: string) =>
+  `The contents of ${name} do not match the file extension in its name.`;
 
 export const pendingEmailVerification = (email: string, expiresAt: string) =>
   `You already have a pending email verification. Please check your ${email} account's spam and junk mail folders. You may send another email after ${expiresAt}.`;

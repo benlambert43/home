@@ -3,10 +3,13 @@ import {
   changePasswordBodySchema,
   changeUsernameBodySchema,
   createAccountBodySchema,
+  createPostBodySchema,
+  postListQuerySchema,
   requestNewEmailVerificationLinkBodySchema,
   requestPasswordResetBodySchema,
   resetPasswordBodySchema,
   signInBodySchema,
+  updatePostBodySchema,
 } from "./schemas";
 
 export type CreateAccountRequestBody = z.infer<typeof createAccountBodySchema>;
@@ -30,3 +33,12 @@ export type RequestPasswordResetRequestBody = z.infer<
 >;
 
 export type ResetPasswordRequestBody = z.infer<typeof resetPasswordBodySchema>;
+
+export type CreatePostRequestBody = z.infer<typeof createPostBodySchema>;
+
+export type UpdatePostRequestBody = z.infer<typeof updatePostBodySchema>;
+
+export type PostListQuery = z.infer<typeof postListQuerySchema>;
+
+export type PostInlineImageRequest =
+  CreatePostRequestBody["inlineImages"][number];

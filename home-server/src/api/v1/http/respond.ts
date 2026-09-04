@@ -22,6 +22,12 @@ export const sendFailure = (
 export const sendUnauthenticated = (res: Response) =>
   sendFailure(res, ApiMessage.UNAUTHENTICATED, 401);
 
+export const sendForbidden = (res: Response) =>
+  sendFailure(res, ApiMessage.FORBIDDEN, 403);
+
+export const sendNotFound = (res: Response, message: string) =>
+  sendFailure(res, message, 404);
+
 export const sendNotImplemented = (res: Response) =>
   sendFailure(res, ApiMessage.NOT_IMPLEMENTED, 501);
 

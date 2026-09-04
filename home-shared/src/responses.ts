@@ -1,4 +1,5 @@
 import { Notification } from "./notification";
+import { Post, PostPagination, PostSummary } from "./post";
 import { UserNoPassword } from "./user";
 
 export interface ApiFailure {
@@ -45,3 +46,16 @@ export type DeleteAccountResponse = ApiResponse;
 export type GetNotificationsResponse = ApiResponse<{
   notifications: Notification[];
 }>;
+
+export type CreatePostResponse = ApiResponse<{ post: Post }>;
+
+export type GetPostsResponse = ApiResponse<{
+  posts: PostSummary[];
+  pagination: PostPagination;
+}>;
+
+export type GetPostResponse = ApiResponse<{ post: Post }>;
+
+export type UpdatePostResponse = ApiResponse<{ post: Post }>;
+
+export type DeletePostResponse = ApiResponse;

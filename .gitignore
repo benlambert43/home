@@ -4,6 +4,7 @@ node_modules
 *.pem
 
 home-server/build/
+home-server/storage
 home-shared/build/
 home-shared/.build.tmp/
 home-shared/.build.lock/

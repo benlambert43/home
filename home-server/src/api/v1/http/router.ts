@@ -1,4 +1,6 @@
 import { Request, RequestHandler, Response, Router } from "express";
+import { ApiError } from "./apiError";
+import { ApiMessage } from "./messages";
 import { sendFailure, sendSuccess } from "./respond";
 
 export const route =
@@ -9,8 +11,15 @@ export const route =
     try {
       await handler(req, res);
     } catch (e) {
-      console.error(`${req.method} ${req.originalUrl} failed:`, e);
-      sendFailure(res);
+      const where = `${req.method} ${req.originalUrl} failed`;
+
+      if (e instanceof ApiError) {
+        console.error(`${where}:`, e.detail ?? e.message);
+        return sendFailure(res, e.message, e.status);
+      }
+
+      console.error(`${where}:`, e);
+      sendFailure(res, ApiMessage.UNEXPECTED, 500);
     }
   };
 

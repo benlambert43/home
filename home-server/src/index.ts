@@ -4,8 +4,15 @@ import mongoose from "mongoose";
 import apiRouter from "./api/api";
 import { sendSuccess } from "./api/v1/http/respond";
 
+const POSTS_PATH = "/api/v1/posts";
+
+const parseJsonBody = express.json();
+
 const app = express();
-app.use(express.json());
+
+app.use((req, res, next) =>
+  req.path.startsWith(POSTS_PATH) ? next() : parseJsonBody(req, res, next),
+);
 app.use(
   cors({
     origin: process.env.BASE_FRONTEND_URL
