@@ -3,6 +3,7 @@ import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/Ver
 import { SessionPayload } from "@home/shared";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { verifyEmail } from "@/app/actions/auth";
+import { errorMessage } from "@/app/lib/api";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -51,7 +52,7 @@ const VerifyEmail = async ({
   } catch (e) {
     result = {
       status: "unreachable",
-      error: e instanceof Error ? e.toString() : String(e),
+      error: errorMessage(e),
     };
   }
 

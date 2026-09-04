@@ -1,5 +1,6 @@
 import { checkPasswordResetLink } from "@/app/actions/auth";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import { errorMessage } from "@/app/lib/api";
 import ChangePasswordForm from "@/app/profile/accountManagement/changePassword/ChangePasswordForm";
 import ResetLinkProblem from "@/app/profile/accountManagement/changePassword/ResetLinkProblem";
 import ResetPasswordForm from "@/app/profile/accountManagement/changePassword/ResetPasswordForm";
@@ -19,7 +20,7 @@ const ResetPassword = async ({ code }: { code: string }) => {
     return (
       <ResetLinkProblem
         headline="An error occurred. Unable to reach the password reset service."
-        detail={e instanceof Error ? e.toString() : String(e)}
+        detail={errorMessage(e)}
       />
     );
   }
