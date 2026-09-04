@@ -1,3 +1,4 @@
+import { Router } from "express";
 import {
   changePasswordBodySchema,
   changeUsernameBodySchema,
@@ -17,7 +18,7 @@ import {
   sendUnauthenticated,
 } from "../http/respond";
 import { accountAlreadyExists, ApiMessage } from "../http/messages";
-import { namedRouter, route } from "../http/router";
+import { route } from "../http/router";
 import {
   createNewUniqueRandomUsername,
   handleCreateAccount,
@@ -50,7 +51,7 @@ interface PasswordResetLinkParams {
   code: string;
 }
 
-const accountManagementRouter = namedRouter("Account Management Router");
+const accountManagementRouter = Router();
 
 accountManagementRouter.post(
   "/createAccount",

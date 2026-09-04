@@ -1,7 +1,7 @@
-import { Request, RequestHandler, Response, Router } from "express";
+import { Request, RequestHandler, Response } from "express";
 import { ApiError } from "./apiError";
 import { ApiMessage } from "./messages";
-import { sendFailure, sendSuccess } from "./respond";
+import { sendFailure } from "./respond";
 
 export const route =
   <Params>(
@@ -22,9 +22,3 @@ export const route =
       sendFailure(res, ApiMessage.UNEXPECTED, 500);
     }
   };
-
-export const namedRouter = (name: string) => {
-  const router = Router();
-  router.get("/", (req, res) => sendSuccess(res, { message: `${name}.` }));
-  return router;
-};

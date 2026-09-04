@@ -1,12 +1,13 @@
+import { Router } from "express";
 import { SignInResponse, signInBodySchema } from "@home/shared";
 import { parseRequest } from "../http/parseRequest";
 import { ApiMessage } from "../http/messages";
-import { namedRouter, route } from "../http/router";
+import { route } from "../http/router";
 import { sendFailure, sendSuccess } from "../http/respond";
 import { handleSignIn } from "./handlers/handleSignIn";
 import { serializeUser } from "../types/serialize";
 
-const signInRouter = namedRouter("Sign In Router");
+const signInRouter = Router();
 
 signInRouter.post(
   "/",
