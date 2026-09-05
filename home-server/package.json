@@ -12,8 +12,8 @@
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test": "sh ../scripts/build-shared.sh && vitest run",
+    "test:coverage": "sh ../scripts/build-shared.sh && vitest run --coverage"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

@@ -11,7 +11,7 @@
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "sh ../scripts/build-shared.sh && vitest run"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
