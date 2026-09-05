@@ -12,25 +12,14 @@ import {
   writePostRevision,
 } from "../../storage/postStorage";
 import { serializePost } from "../../types/serialize";
-import { decodeHeaderImage, decodeInlineImages } from "../postImages";
+import { decodePostImages } from "../postImages";
 
 export const handleCreatePost = async (
   author: UserNoPassword,
   body: CreatePostRequestBody,
 ): Promise<CreatePostResponse> => {
-  const headerImage =
-    body.headerImage === undefined
-      ? undefined
-      : decodeHeaderImage(body.headerImage);
-
-  if (body.headerImage !== undefined && !headerImage) {
-    return { error: true, message: ApiMessage.POST_IMAGE_INVALID };
-  }
-
-  const inlineImages = decodeInlineImages(body.inlineImages);
-  if (!inlineImages.ok) {
-    return { error: true, message: inlineImages.message };
-  }
+  const decoded = decodePostImages(body.headerImage, body.inlineImages);
+  if (!decoded.ok) return { error: true, message: decoded.message };
 
   const _id = new Types.ObjectId();
   const createdDate = new Date();
@@ -50,8 +39,7 @@ export const handleCreatePost = async (
       revisions: [
         await writePostRevision(postFingerprint, {
           content: body.content,
-          headerImage,
-          inlineImages: inlineImages.images,
+          ...decoded.value,
         }),
       ],
     }).save();

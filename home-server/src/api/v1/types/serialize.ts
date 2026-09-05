@@ -1,6 +1,4 @@
 import { Types } from "mongoose";
-import { ApiError } from "../http/apiError";
-import { ApiMessage } from "../http/messages";
 import {
   Notification,
   NotificationFields,
@@ -13,7 +11,7 @@ import {
   UserNoPassword,
   UserFields,
 } from "@home/shared";
-import { latestRevision, StoredPost, StoredPostFile } from "./db";
+import { requireLatestRevision, StoredPost, StoredPostFile } from "./db";
 
 type MaybeId = Types.ObjectId | string;
 type MaybeDate = Date | string;
@@ -68,15 +66,7 @@ export const serializePostSummary = (
   authorUsername: string | null,
 ): PostSummary => {
   const _id = toId(post._id);
-  const revision = latestRevision(post.revisions);
-
-  if (!revision) {
-    throw new ApiError(
-      ApiMessage.POST_HAS_NO_REVISION,
-      500,
-      `Post ${_id} has no revision.`,
-    );
-  }
+  const revision = requireLatestRevision(post);
 
   return {
     _id,
@@ -98,12 +88,11 @@ export const serializePost = (
   content: string,
 ): Post => {
   const summary = serializePostSummary(post, authorUsername);
-  const inlineImages = latestRevision(post.revisions)?.inlineImages ?? [];
 
   return {
     ...summary,
     content,
-    inlineImages: inlineImages.map((image) => ({
+    inlineImages: requireLatestRevision(post).inlineImages.map((image) => ({
       ...serializePostImage(
         postInlineImagePath(summary._id, image.name),
         image,

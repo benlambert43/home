@@ -1,5 +1,6 @@
 import { POST_HEADER_IMAGE_NAME, PostInlineImageRequest } from "@home/shared";
 import {
+  ApiMessage,
   inlineImageNotAnImage,
   inlineImageTypeMismatch,
 } from "../http/messages";
@@ -18,27 +19,35 @@ const EXTENSION_CONTENT_TYPES: Record<string, string> = {
 const extensionOf = (name: string) =>
   name.slice(name.lastIndexOf(".") + 1).toLowerCase();
 
-type DecodedInlineImages =
-  { ok: true; images: PostFileContent[] } | { ok: false; message: string };
+export type Decoded<Value> =
+  { ok: true; value: Value } | { ok: false; message: string };
+
+export interface PostImages {
+  headerImage?: PostFileContent;
+  inlineImages: PostFileContent[];
+}
 
 export const decodeHeaderImage = (
   encoded: string,
-): PostFileContent | undefined => {
+): Decoded<PostFileContent> => {
   const data = Buffer.from(encoded, "base64");
   const imageType = detectImageType(data);
 
   return imageType
     ? {
-        name: `${POST_HEADER_IMAGE_NAME}.${imageType.extension}`,
-        contentType: imageType.contentType,
-        data,
+        ok: true,
+        value: {
+          name: `${POST_HEADER_IMAGE_NAME}.${imageType.extension}`,
+          contentType: imageType.contentType,
+          data,
+        },
       }
-    : undefined;
+    : { ok: false, message: ApiMessage.POST_IMAGE_INVALID };
 };
 
 export const decodeInlineImages = (
   images: PostInlineImageRequest[],
-): DecodedInlineImages => {
+): Decoded<PostFileContent[]> => {
   const decoded: PostFileContent[] = [];
 
   for (const image of images) {
@@ -62,5 +71,28 @@ export const decodeInlineImages = (
     });
   }
 
-  return { ok: true, images: decoded };
+  return { ok: true, value: decoded };
+};
+
+export const decodePostImages = (
+  header: string | undefined,
+  inline: PostInlineImageRequest[],
+): Decoded<PostImages> => {
+  const headerImage =
+    header === undefined
+      ? ({ ok: true, value: undefined } as const)
+      : decodeHeaderImage(header);
+
+  if (!headerImage.ok) return headerImage;
+
+  const inlineImages = decodeInlineImages(inline);
+  if (!inlineImages.ok) return inlineImages;
+
+  return {
+    ok: true,
+    value: {
+      headerImage: headerImage.value,
+      inlineImages: inlineImages.value,
+    },
+  };
 };

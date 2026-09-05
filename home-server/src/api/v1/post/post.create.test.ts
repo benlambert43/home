@@ -4,10 +4,10 @@ import { Types } from "mongoose";
 import request, { Response } from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  ApiFailure,
   CreatePostResponse,
   MAX_POST_INLINE_IMAGES,
   MAX_POST_TITLE_CHARACTERS,
+  Post,
   POST_CONTENT_NAME,
   POST_HEADER_IMAGE_NAME,
   postHeaderImagePath,
@@ -46,17 +46,12 @@ const WEBP_IMAGE = Buffer.concat([
   Buffer.alloc(18),
 ]);
 
-const AVIF_IMAGE = Buffer.concat([
-  Buffer.from([0x00, 0x00, 0x00, 0x20]),
-  Buffer.from("ftypavifavifmif1miaf", "latin1"),
-  Buffer.alloc(12),
-]);
-
-const AVIF_SEQUENCE_IMAGE = Buffer.concat([
-  Buffer.from([0x00, 0x00, 0x00, 0x20]),
-  Buffer.from("ftypavisavismif1miaf", "latin1"),
-  Buffer.alloc(12),
-]);
+const avifImage = (brand: string) =>
+  Buffer.concat([
+    Buffer.from([0x00, 0x00, 0x00, 0x20]),
+    Buffer.from(`ftyp${brand}${brand}mif1miaf`, "latin1"),
+    Buffer.alloc(12),
+  ]);
 
 const GIF_IMAGE = Buffer.concat([
   Buffer.from("GIF89a", "latin1"),
@@ -127,19 +122,19 @@ const stubSave = (failure?: Error) =>
     return failure ? Promise.reject(failure) : Promise.resolve(this);
   });
 
-const createPost = (body: object, token?: string) => {
+const createPost = (
+  body: object,
+  token: string | null = createApiToken(admin),
+) => {
   const call = request(app).post("/api/v1/posts");
 
-  return token === undefined
+  return token === null
     ? call.send(body)
     : call.set("Authorization", token).send(body);
 };
 
 const createdPost = (response: Response) =>
   (response.body as SuccessOf<CreatePostResponse>).post;
-
-const failureMessage = (response: Response) =>
-  (response.body as ApiFailure).message;
 
 const validBody = (overrides: Record<string, unknown> = {}) => ({
   title: TITLE,
@@ -158,6 +153,56 @@ const headerImageFile = (post: PostDocument) => {
   if (!file) throw new Error(`Post ${post.fingerprint} has no header image.`);
 
   return file;
+};
+
+const storedFile = (file: string) => readFile(resolveStoragePath(file));
+
+const headerImageResponse = (postId: string) => ({
+  name: `${POST_HEADER_IMAGE_NAME}.png`,
+  contentType: "image/png",
+  byteSize: PNG_IMAGE.byteLength,
+  path: postHeaderImagePath(postId),
+});
+
+const inlineImageResponse = (
+  postId: string,
+  name: string,
+  data: Buffer,
+  contentType: string,
+) => ({
+  name,
+  contentType,
+  byteSize: data.byteLength,
+  path: postInlineImagePath(postId, name),
+  reference: postInlineImageReference(name),
+});
+
+const createdBody = (post: PostDocument, overrides: Partial<Post> = {}) => ({
+  error: false,
+  message: ApiMessage.POST_CREATED,
+  post: {
+    _id: post._id.toString(),
+    title: TITLE,
+    authorUserId: admin._id,
+    authorUsername: admin.username,
+    createdDate: post.createdDate.toISOString(),
+    modifiedDate: post.modifiedDate.toISOString(),
+    revision: post.revisions[0].fingerprint,
+    content: CONTENT,
+    headerImage: headerImageResponse(post._id.toString()),
+    inlineImages: [],
+    ...overrides,
+  },
+});
+
+const expectRejected = (
+  response: Response,
+  status: number,
+  message: string,
+) => {
+  expect(response.status).toBe(status);
+  expect(response.body).toEqual({ error: true, message });
+  expect(savedPosts).toHaveLength(0);
 };
 
 describe("POST /api/v1/posts", () => {
@@ -183,93 +228,14 @@ describe("POST /api/v1/posts", () => {
   });
 
   describe("a published post", () => {
-    it("stores a title, markdown content, and a header image", async () => {
-      const response = await createPost(validBody(), createApiToken(admin));
-
-      const post = savedPosts[0];
-      const revision = post.revisions[0];
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        error: false,
-        message: ApiMessage.POST_CREATED,
-        post: {
-          _id: post._id.toString(),
-          title: TITLE,
-          authorUserId: admin._id,
-          authorUsername: admin.username,
-          createdDate: post.createdDate.toISOString(),
-          modifiedDate: post.modifiedDate.toISOString(),
-          revision: revision.fingerprint,
-          content: CONTENT,
-          headerImage: {
-            name: `${POST_HEADER_IMAGE_NAME}.png`,
-            contentType: "image/png",
-            byteSize: PNG_IMAGE.byteLength,
-            path: postHeaderImagePath(post._id.toString()),
-          },
-          inlineImages: [],
-        },
-      });
-
-      expect(post.createdDate).toEqual(post.modifiedDate);
-      expect(revision.content.name).toBe(`${POST_CONTENT_NAME}.md`);
-      expect(revision.content.contentType).toBe(MARKDOWN_CONTENT_TYPE);
-      expect(revision.inlineImages).toEqual([]);
-
-      await expect(
-        readFile(resolveStoragePath(revision.content.file), "utf8"),
-      ).resolves.toBe(CONTENT);
-      await expect(
-        readFile(resolveStoragePath(headerImageFile(post))),
-      ).resolves.toEqual(PNG_IMAGE);
-    });
-
-    it("stores a post that has only a title and content", async () => {
-      const response = await createPost(
-        { title: "a", content: "a" },
-        createApiToken(admin),
-      );
-
-      const post = savedPosts[0];
-      const revision = post.revisions[0];
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        error: false,
-        message: ApiMessage.POST_CREATED,
-        post: {
-          _id: post._id.toString(),
-          title: "a",
-          authorUserId: admin._id,
-          authorUsername: admin.username,
-          createdDate: post.createdDate.toISOString(),
-          modifiedDate: post.modifiedDate.toISOString(),
-          revision: revision.fingerprint,
-          content: "a\n",
-          headerImage: null,
-          inlineImages: [],
-        },
-      });
-
-      expect(revision.headerImage).toBeUndefined();
-      expect(revision.inlineImages).toEqual([]);
-
-      await expect(
-        readFile(resolveStoragePath(revision.content.file), "utf8"),
-      ).resolves.toBe("a\n");
-    });
-
-    it("stores inline images alongside the header image", async () => {
+    it("stores the title, markdown content, and every image", async () => {
       const response = await createPost(
         validBody({
-          headerImage: `data:image/png;base64,${PNG_IMAGE.toString("base64")}`,
           inlineImages: [
             inlineImage("diagram.png", PNG_IMAGE),
             inlineImage("screenshot.jpg", JPEG_IMAGE),
           ],
         }),
-        createApiToken(admin),
       );
 
       const post = savedPosts[0];
@@ -277,129 +243,136 @@ describe("POST /api/v1/posts", () => {
       const revision = post.revisions[0];
 
       expect(response.status).toBe(200);
-      expect(createdPost(response).headerImage).toEqual({
-        name: `${POST_HEADER_IMAGE_NAME}.png`,
-        contentType: "image/png",
-        byteSize: PNG_IMAGE.byteLength,
-        path: postHeaderImagePath(postId),
-      });
-      expect(createdPost(response).inlineImages).toEqual([
-        {
-          name: "diagram.png",
-          contentType: "image/png",
-          byteSize: PNG_IMAGE.byteLength,
-          path: postInlineImagePath(postId, "diagram.png"),
-          reference: postInlineImageReference("diagram.png"),
-        },
-        {
-          name: "screenshot.jpg",
-          contentType: "image/jpeg",
-          byteSize: JPEG_IMAGE.byteLength,
-          path: postInlineImagePath(postId, "screenshot.jpg"),
-          reference: postInlineImageReference("screenshot.jpg"),
-        },
-      ]);
+      expect(response.body).toEqual(
+        createdBody(post, {
+          inlineImages: [
+            inlineImageResponse(postId, "diagram.png", PNG_IMAGE, "image/png"),
+            inlineImageResponse(
+              postId,
+              "screenshot.jpg",
+              JPEG_IMAGE,
+              "image/jpeg",
+            ),
+          ],
+        }),
+      );
+
+      expect(post.createdDate).toEqual(post.modifiedDate);
+      expect(revision.content.name).toBe(`${POST_CONTENT_NAME}.md`);
+      expect(revision.content.contentType).toBe(MARKDOWN_CONTENT_TYPE);
 
       await expect(
-        readFile(resolveStoragePath(revision.inlineImages[0].file)),
-      ).resolves.toEqual(PNG_IMAGE);
+        readFile(resolveStoragePath(revision.content.file), "utf8"),
+      ).resolves.toBe(CONTENT);
+      await expect(storedFile(headerImageFile(post))).resolves.toEqual(
+        PNG_IMAGE,
+      );
+      await expect(storedFile(revision.inlineImages[0].file)).resolves.toEqual(
+        PNG_IMAGE,
+      );
+      await expect(storedFile(revision.inlineImages[1].file)).resolves.toEqual(
+        JPEG_IMAGE,
+      );
+    });
+
+    it("stores a post that has only a title and content", async () => {
+      const response = await createPost({ title: "a", content: "a" });
+
+      const post = savedPosts[0];
+      const revision = post.revisions[0];
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(
+        createdBody(post, { title: "a", content: "a\n", headerImage: null }),
+      );
+      expect(revision.headerImage).toBeUndefined();
+
       await expect(
-        readFile(resolveStoragePath(revision.inlineImages[1].file)),
-      ).resolves.toEqual(JPEG_IMAGE);
+        readFile(resolveStoragePath(revision.content.file), "utf8"),
+      ).resolves.toBe("a\n");
+    });
+
+    it("accepts a header image sent as a data url", async () => {
+      const response = await createPost(
+        validBody({
+          headerImage: `data:image/png;base64,${PNG_IMAGE.toString("base64")}`,
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(createdPost(response).headerImage).toEqual(
+        headerImageResponse(savedPosts[0]._id.toString()),
+      );
     });
 
     it.each([
       ["diagram.png", PNG_IMAGE, "image/png"],
       ["screenshot.jpg", JPEG_IMAGE, "image/jpeg"],
       ["chart.webp", WEBP_IMAGE, "image/webp"],
-      ["photo.avif", AVIF_IMAGE, "image/avif"],
-      ["sequence.avif", AVIF_SEQUENCE_IMAGE, "image/avif"],
+      ["photo.avif", avifImage("avif"), "image/avif"],
+      ["sequence.avif", avifImage("avis"), "image/avif"],
       ["loop.gif", GIF_IMAGE, "image/gif"],
     ])("stores %s as an inline image", async (name, data, contentType) => {
       const response = await createPost(
         validBody({ inlineImages: [inlineImage(name, data)] }),
-        createApiToken(admin),
       );
 
       expect(response.status).toBe(200);
       expect(createdPost(response).inlineImages).toEqual([
-        {
+        inlineImageResponse(
+          savedPosts[0]._id.toString(),
           name,
+          data,
           contentType,
-          byteSize: data.byteLength,
-          path: postInlineImagePath(savedPosts[0]._id.toString(), name),
-          reference: postInlineImageReference(name),
-        },
+        ),
       ]);
     });
   });
 
-  describe("an unauthorized request", () => {
-    it("is unauthenticated without an authorization header", async () => {
-      const response = await createPost(validBody());
-
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({
-        error: true,
-        message: ApiMessage.UNAUTHENTICATED,
-      });
-      expect(savedPosts).toHaveLength(0);
+  describe("an author who may not publish", () => {
+    it.each<[string, number, string, () => string | null]>([
+      ["no authorization header", 401, ApiMessage.UNAUTHENTICATED, () => null],
+      [
+        "a token this api did not sign",
+        401,
+        ApiMessage.UNAUTHENTICATED,
+        () => "not.a.jwt",
+      ],
+      [
+        "a token that is not an admin token",
+        403,
+        ApiMessage.FORBIDDEN,
+        () => createApiToken(makeUser({ role: "user" })),
+      ],
+    ])("is refused for %s", async (_description, status, message, token) => {
+      expectRejected(await createPost(validBody(), token()), status, message);
     });
 
-    it("is unauthenticated with a token this api did not sign", async () => {
-      const response = await createPost(validBody(), "not.a.jwt");
+    it.each<[string, number, string, UserNoPassword | null]>([
+      ["no longer has an account", 401, ApiMessage.UNAUTHENTICATED, null],
+      [
+        "has been banned since signing in",
+        403,
+        ApiMessage.FORBIDDEN,
+        makeUser({ userBanned: true }),
+      ],
+      [
+        "is no longer an admin",
+        403,
+        ApiMessage.FORBIDDEN,
+        makeUser({ role: "user" }),
+      ],
+    ])(
+      "is refused when the author %s",
+      async (_description, status, message, author) => {
+        stubUserLookup(author);
 
-      expect(response.status).toBe(401);
-      expect(failureMessage(response)).toBe(ApiMessage.UNAUTHENTICATED);
-      expect(savedPosts).toHaveLength(0);
-    });
-
-    it("is forbidden for a token that is not an admin token", async () => {
-      const response = await createPost(
-        validBody(),
-        createApiToken(makeUser({ role: "user" })),
-      );
-
-      expect(response.status).toBe(403);
-      expect(response.body).toEqual({
-        error: true,
-        message: ApiMessage.FORBIDDEN,
-      });
-      expect(savedPosts).toHaveLength(0);
-    });
-
-    it("is unauthenticated when the author no longer has an account", async () => {
-      stubUserLookup(null);
-
-      const response = await createPost(validBody(), createApiToken(admin));
-
-      expect(response.status).toBe(401);
-      expect(failureMessage(response)).toBe(ApiMessage.UNAUTHENTICATED);
-      expect(savedPosts).toHaveLength(0);
-    });
-
-    it("is forbidden when the author has been banned since signing in", async () => {
-      stubUserLookup(makeUser({ userBanned: true }));
-
-      const response = await createPost(validBody(), createApiToken(admin));
-
-      expect(response.status).toBe(403);
-      expect(failureMessage(response)).toBe(ApiMessage.FORBIDDEN);
-      expect(savedPosts).toHaveLength(0);
-    });
-
-    it("is forbidden when the author is no longer an admin", async () => {
-      stubUserLookup(makeUser({ role: "user" }));
-
-      const response = await createPost(validBody(), createApiToken(admin));
-
-      expect(response.status).toBe(403);
-      expect(failureMessage(response)).toBe(ApiMessage.FORBIDDEN);
-      expect(savedPosts).toHaveLength(0);
-    });
+        expectRejected(await createPost(validBody()), status, message);
+      },
+    );
   });
 
-  describe("an invalid request body", () => {
+  describe("a request body the api will not accept", () => {
     it.each([
       ["a missing title", validBody({ title: undefined })],
       ["a blank title", validBody({ title: "   " })],
@@ -445,71 +418,44 @@ describe("POST /api/v1/posts", () => {
         }),
       ],
     ])("is rejected for %s", async (_description, body) => {
-      const response = await createPost(body, createApiToken(admin));
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({
-        error: true,
-        message: ApiMessage.INVALID_REQUEST,
-      });
-      expect(savedPosts).toHaveLength(0);
+      expectRejected(await createPost(body), 400, ApiMessage.INVALID_REQUEST);
     });
   });
 
   describe("an image that is not an image", () => {
-    it("rejects a header image that is not a supported image type", async () => {
-      const response = await createPost(
+    it.each([
+      [
+        "a header image of an unsupported type",
         validBody({ headerImage: NOT_AN_IMAGE.toString("base64") }),
-        createApiToken(admin),
-      );
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({
-        error: true,
-        message: ApiMessage.POST_IMAGE_INVALID,
-      });
-      expect(savedPosts).toHaveLength(0);
-    });
-
-    it("rejects an inline image that is not a supported image type", async () => {
-      const response = await createPost(
+        ApiMessage.POST_IMAGE_INVALID,
+      ],
+      [
+        "an inline image of an unsupported type",
         validBody({ inlineImages: [inlineImage("diagram.png", NOT_AN_IMAGE)] }),
-        createApiToken(admin),
-      );
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({
-        error: true,
-        message: inlineImageNotAnImage("diagram.png"),
-      });
-      expect(savedPosts).toHaveLength(0);
-    });
-
-    it("rejects an inline image whose contents do not match its name", async () => {
-      const response = await createPost(
+        inlineImageNotAnImage("diagram.png"),
+      ],
+      [
+        "an inline image whose contents do not match its name",
         validBody({ inlineImages: [inlineImage("diagram.png", JPEG_IMAGE)] }),
-        createApiToken(admin),
-      );
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({
-        error: true,
-        message: inlineImageTypeMismatch("diagram.png"),
-      });
-      expect(savedPosts).toHaveLength(0);
+        inlineImageTypeMismatch("diagram.png"),
+      ],
+    ])("is rejected for %s", async (_description, body, message) => {
+      expectRejected(await createPost(body), 400, message);
     });
   });
 
   describe("a post that cannot be saved", () => {
-    it("removes the files it wrote and reports an unexpected failure", async () => {
+    beforeEach(() => {
       stubSave(new Error("mongo is unreachable"));
+    });
 
+    it("removes the files it wrote and reports an unexpected failure", async () => {
       const response = await createPost(
         validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
-        createApiToken(admin),
       );
 
-      const revision = savedPosts[0].revisions[0];
+      const post = savedPosts[0];
+      const revision = post.revisions[0];
 
       expect(response.status).toBe(500);
       expect(response.body).toEqual({
@@ -517,22 +463,15 @@ describe("POST /api/v1/posts", () => {
         message: ApiMessage.UNEXPECTED,
       });
 
-      await expect(
-        readFile(resolveStoragePath(revision.content.file)),
-      ).rejects.toThrow();
-      await expect(
-        readFile(resolveStoragePath(headerImageFile(savedPosts[0]))),
-      ).rejects.toThrow();
-      await expect(
-        readFile(resolveStoragePath(revision.inlineImages[0].file)),
-      ).rejects.toThrow();
+      await expect(storedFile(revision.content.file)).rejects.toThrow();
+      await expect(storedFile(headerImageFile(post))).rejects.toThrow();
+      await expect(storedFile(revision.inlineImages[0].file)).rejects.toThrow();
     });
 
     it("logs and keeps reporting the save failure when cleanup also fails", async () => {
-      stubSave(new Error("mongo is unreachable"));
       storageControl.cleanupFails = true;
 
-      const response = await createPost(validBody(), createApiToken(admin));
+      const response = await createPost(validBody());
 
       expect(response.status).toBe(500);
       expect(response.body).toEqual({
