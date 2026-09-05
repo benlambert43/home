@@ -4,23 +4,20 @@ import PostByline from "@/app/blog/PostByline";
 import { pageMetadata } from "@/app/lib/metadata";
 import Button from "@/app/ui/Button";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 
 type PostProps = {
   params: Promise<{ id: string }>;
   searchParams: SearchParams;
 };
 
-const loadPost = cache(getPost);
-
 export const generateMetadata = async ({ params }: PostProps) => {
-  const result = await loadPost((await params).id);
+  const result = await getPost((await params).id);
 
   return pageMetadata(result.error ? "blog" : result.post.title);
 };
 
 const BlogPost = async ({ params, searchParams }: PostProps) => {
-  const result = await loadPost((await params).id);
+  const result = await getPost((await params).id);
 
   if (result.error) notFound();
 
