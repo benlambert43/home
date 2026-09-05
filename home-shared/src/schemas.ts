@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { containsRawHtml, normalizePostContent } from "./markdown";
 import {
+  base64Characters,
   DEFAULT_POST_PAGE_SIZE,
   MAX_POST_CONTENT_CHARACTERS,
   MAX_POST_IMAGE_BYTES,
@@ -150,7 +151,7 @@ const postContentField = z
   });
 
 const base64ImageField = (label: string, maxBytes: number) => {
-  const maxCharacters = Math.ceil(maxBytes / 3) * 4;
+  const maxCharacters = base64Characters(maxBytes);
 
   return z
     .string()

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import apiRouter from "./api/api";
+import { handleRequestError } from "./api/v1/http/handleRequestError";
 import { sendSuccess } from "./api/v1/http/respond";
 
 const POSTS_PATH = "/api/v1/posts";
@@ -36,6 +37,8 @@ app.get("/", (req, res) =>
 );
 
 app.use("/api", apiRouter);
+
+app.use(handleRequestError);
 
 app.listen(API_PORT, () => {
   console.log(`home-server is running on port ${API_PORT}`);

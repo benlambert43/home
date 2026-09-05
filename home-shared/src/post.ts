@@ -8,7 +8,19 @@ export const MAX_POST_INLINE_IMAGES = 8;
 
 export const MAX_POST_INLINE_IMAGE_NAME_CHARACTERS = 64;
 
-export const MAX_POST_REQUEST_BODY_BYTES = 96 * 1024 * 1024;
+export const base64Characters = (bytes: number) => Math.ceil(bytes / 3) * 4;
+
+const MAX_UTF8_BYTES_PER_CHARACTER = 4;
+
+const POST_REQUEST_ENVELOPE_BYTES = 1024 * 1024;
+
+export const MAX_POST_REQUEST_BODY_BYTES =
+  (MAX_POST_INLINE_IMAGES + 1) *
+    (base64Characters(MAX_POST_IMAGE_BYTES) +
+      MAX_POST_INLINE_IMAGE_NAME_CHARACTERS) +
+  (MAX_POST_TITLE_CHARACTERS + MAX_POST_CONTENT_CHARACTERS) *
+    MAX_UTF8_BYTES_PER_CHARACTER +
+  POST_REQUEST_ENVELOPE_BYTES;
 
 export const DEFAULT_POST_PAGE_SIZE = 10;
 
@@ -23,43 +35,32 @@ export const POST_HEADER_IMAGE_NAME = "image-header";
 
 export const POST_INLINE_IMAGES_DIRECTORY = "images";
 
-export interface PostImageFields {
+export interface PostImage {
   name: string;
   contentType: string;
   byteSize: number;
   path: string;
 }
 
-export type PostImage = PostImageFields;
-
-export interface PostInlineImageFields extends PostImageFields {
+export interface PostInlineImage extends PostImage {
   reference: string;
 }
 
-export type PostInlineImage = PostInlineImageFields;
-
-export interface PostSummaryFields<Id = string, Timestamp = string> {
-  _id: Id;
+export interface PostSummary {
+  _id: string;
   title: string;
-  authorUserId: Id;
+  authorUserId: string;
   authorUsername: string | null;
-  createdDate: Timestamp;
-  modifiedDate: Timestamp;
+  createdDate: string;
+  modifiedDate: string;
   revision: string;
-  headerImage: PostImageFields | null;
+  headerImage: PostImage | null;
 }
 
-export type PostSummary = PostSummaryFields;
-
-export interface PostFields<
-  Id = string,
-  Timestamp = string,
-> extends PostSummaryFields<Id, Timestamp> {
+export interface Post extends PostSummary {
   content: string;
-  inlineImages: PostInlineImageFields[];
+  inlineImages: PostInlineImage[];
 }
-
-export type Post = PostFields;
 
 export interface PostPagination {
   page: number;
