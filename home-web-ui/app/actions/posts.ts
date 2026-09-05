@@ -1,7 +1,7 @@
 "use server";
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
-import { apiFetch, errorMessage } from "@/app/lib/api";
+import { apiFetch, apiRequest, errorMessage } from "@/app/lib/api";
 import {
   CreatePostFormState,
   FieldNames,
@@ -12,10 +12,21 @@ import {
   createPostFormSchema,
   CreatePostRequestBody,
   CreatePostResponse,
+  GetPostResponse,
+  GetPostsResponse,
 } from "@home/shared";
+import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
-const CREATE_POST_URL = `${process.env.BASE_API_URL}/posts`;
+const POSTS_URL = `${process.env.BASE_API_URL}/posts`;
+
+const POST_LIST_TAG = "post-list";
+
+const POST_LIST_REVALIDATE_SECONDS = 60;
+
+const CACHED_POST_LIST = {
+  next: { revalidate: POST_LIST_REVALIDATE_SECONDS, tags: [POST_LIST_TAG] },
+};
 
 const CREATE_POST_FIELDS = {
   title: "title",
@@ -34,7 +45,7 @@ export const createPost = async (
   }
 
   try {
-    await apiFetch<CreatePostResponse, CreatePostRequestBody>(CREATE_POST_URL, {
+    await apiFetch<CreatePostResponse, CreatePostRequestBody>(POSTS_URL, {
       method: "POST",
       authorization: await getApiSessionToken(),
       body: { ...validatedFields.data, inlineImages: [] },
@@ -43,5 +54,20 @@ export const createPost = async (
     return { values, errors: [errorMessage(error)] };
   }
 
+  updateTag(POST_LIST_TAG);
   redirect("/blog");
 };
+
+export const getPosts = async (page: number): Promise<GetPostsResponse> => {
+  try {
+    return await apiFetch<GetPostsResponse>(
+      `${POSTS_URL}?page=${page}`,
+      CACHED_POST_LIST,
+    );
+  } catch (error) {
+    return { error: true, message: errorMessage(error) };
+  }
+};
+
+export const getPost = async (id: string): Promise<GetPostResponse> =>
+  apiRequest<GetPostResponse>(`${POSTS_URL}/${encodeURIComponent(id)}`);
