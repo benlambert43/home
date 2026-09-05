@@ -1,5 +1,6 @@
 import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { Notifications } from "@/app/components/Notifications";
 
@@ -31,9 +32,21 @@ const Settings = () => {
   );
 };
 
-const Navbar = async () => {
+const SessionActions = async () => {
   const user = await getBffSessionUser();
 
+  if (!user) return <SignIn />;
+
+  return (
+    <>
+      <Notifications />
+      <Settings />
+      <Profile />
+    </>
+  );
+};
+
+const Navbar = () => {
   return (
     <nav
       className="relative mx-2 flex flex-row flex-wrap-reverse items-center
@@ -45,16 +58,10 @@ const Navbar = async () => {
         <Link href="/projects">projects</Link>
         <Link href="/about">about</Link>
       </div>
-      <div className="flex flex-1 items-center gap-4 sm:justify-end">
-        {user ? (
-          <>
-            <Notifications />
-            <Settings />
-            <Profile />
-          </>
-        ) : (
-          <SignIn />
-        )}
+      <div className="flex min-h-6 flex-1 items-center gap-4 sm:justify-end">
+        <Suspense fallback={null}>
+          <SessionActions />
+        </Suspense>
       </div>
     </nav>
   );
