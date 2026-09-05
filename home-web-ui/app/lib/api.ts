@@ -6,6 +6,7 @@ type ApiRequest<Body> = {
   authorization?: string;
   body?: Body;
   cache?: RequestCache;
+  next?: NextFetchRequestConfig;
 };
 
 export const SERVICE_UNAVAILABLE_MESSAGE =
@@ -13,7 +14,7 @@ export const SERVICE_UNAVAILABLE_MESSAGE =
 
 export const apiRequest = async <Result extends ApiResponse, Body = undefined>(
   url: string,
-  { method = "GET", authorization, body, cache }: ApiRequest<Body> = {},
+  { method = "GET", authorization, body, cache, next }: ApiRequest<Body> = {},
 ): Promise<Result> => {
   let response: Response;
 
@@ -21,6 +22,7 @@ export const apiRequest = async <Result extends ApiResponse, Body = undefined>(
     response = await fetch(url, {
       method,
       cache,
+      next,
       headers: {
         "Content-Type": "application/json",
         ...(authorization === undefined
