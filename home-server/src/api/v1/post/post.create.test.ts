@@ -246,7 +246,7 @@ describe("POST /api/v1/posts", () => {
           createdDate: post.createdDate.toISOString(),
           modifiedDate: post.modifiedDate.toISOString(),
           revision: revision.fingerprint,
-          content: "a",
+          content: "a\n",
           headerImage: null,
           inlineImages: [],
         },
@@ -257,7 +257,7 @@ describe("POST /api/v1/posts", () => {
 
       await expect(
         readFile(resolveStoragePath(revision.content.file), "utf8"),
-      ).resolves.toBe("a");
+      ).resolves.toBe("a\n");
     });
 
     it("stores inline images alongside the header image", async () => {
