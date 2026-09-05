@@ -153,6 +153,13 @@ const inlineImage = (name: string, data: Buffer) => ({
   data: data.toString("base64"),
 });
 
+const headerImageFile = (post: PostDocument) => {
+  const file = post.revisions[0].headerImage?.file;
+  if (!file) throw new Error(`Post ${post.fingerprint} has no header image.`);
+
+  return file;
+};
+
 describe("POST /api/v1/posts", () => {
   beforeEach(() => {
     vi.stubEnv("API_SESSION_SECRET", "test-api-session-secret");
@@ -214,8 +221,43 @@ describe("POST /api/v1/posts", () => {
         readFile(resolveStoragePath(revision.content.file), "utf8"),
       ).resolves.toBe(CONTENT);
       await expect(
-        readFile(resolveStoragePath(revision.headerImage.file)),
+        readFile(resolveStoragePath(headerImageFile(post))),
       ).resolves.toEqual(PNG_IMAGE);
+    });
+
+    it("stores a post that has only a title and content", async () => {
+      const response = await createPost(
+        { title: "a", content: "a" },
+        createApiToken(admin),
+      );
+
+      const post = savedPosts[0];
+      const revision = post.revisions[0];
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        error: false,
+        message: ApiMessage.POST_CREATED,
+        post: {
+          _id: post._id.toString(),
+          title: "a",
+          authorUserId: admin._id,
+          authorUsername: admin.username,
+          createdDate: post.createdDate.toISOString(),
+          modifiedDate: post.modifiedDate.toISOString(),
+          revision: revision.fingerprint,
+          content: "a",
+          headerImage: null,
+          inlineImages: [],
+        },
+      });
+
+      expect(revision.headerImage).toBeUndefined();
+      expect(revision.inlineImages).toEqual([]);
+
+      await expect(
+        readFile(resolveStoragePath(revision.content.file), "utf8"),
+      ).resolves.toBe("a");
     });
 
     it("stores inline images alongside the header image", async () => {
@@ -359,10 +401,6 @@ describe("POST /api/v1/posts", () => {
 
   describe("an invalid request body", () => {
     it.each([
-      [
-        "a title and markdown content with no header image",
-        { title: TITLE, content: CONTENT },
-      ],
       ["a missing title", validBody({ title: undefined })],
       ["a blank title", validBody({ title: "   " })],
       [
@@ -483,7 +521,7 @@ describe("POST /api/v1/posts", () => {
         readFile(resolveStoragePath(revision.content.file)),
       ).rejects.toThrow();
       await expect(
-        readFile(resolveStoragePath(revision.headerImage.file)),
+        readFile(resolveStoragePath(headerImageFile(savedPosts[0]))),
       ).rejects.toThrow();
       await expect(
         readFile(resolveStoragePath(revision.inlineImages[0].file)),

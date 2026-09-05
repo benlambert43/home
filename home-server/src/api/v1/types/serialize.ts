@@ -86,10 +86,9 @@ export const serializePostSummary = (
     createdDate: toIsoDate(post.createdDate),
     modifiedDate: toIsoDate(post.modifiedDate),
     revision: revision.fingerprint,
-    headerImage: serializePostImage(
-      postHeaderImagePath(_id),
-      revision.headerImage,
-    ),
+    headerImage: revision.headerImage
+      ? serializePostImage(postHeaderImagePath(_id), revision.headerImage)
+      : null,
   };
 };
 

@@ -13,7 +13,7 @@ export const handleGetPostHeaderImage = async (
 ): Promise<PostImageFile | undefined> => {
   const post = await PostModel.findById(postId, CURRENT_REVISION_ONLY);
   const revision = post && latestRevision(post.revisions);
-  if (!revision) return undefined;
+  if (!revision?.headerImage) return undefined;
 
   return {
     data: await readPostFile(revision.headerImage),

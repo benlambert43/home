@@ -18,8 +18,12 @@ export const handleCreatePost = async (
   author: UserNoPassword,
   body: CreatePostRequestBody,
 ): Promise<CreatePostResponse> => {
-  const headerImage = decodeHeaderImage(body.headerImage);
-  if (!headerImage) {
+  const headerImage =
+    body.headerImage === undefined
+      ? undefined
+      : decodeHeaderImage(body.headerImage);
+
+  if (body.headerImage !== undefined && !headerImage) {
     return { error: true, message: ApiMessage.POST_IMAGE_INVALID };
   }
 

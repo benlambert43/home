@@ -46,7 +46,7 @@ export interface PostSummaryFields<Id = string, Timestamp = string> {
   createdDate: Timestamp;
   modifiedDate: Timestamp;
   revision: string;
-  headerImage: PostImageFields;
+  headerImage: PostImageFields | null;
 }
 
 export type PostSummary = PostSummaryFields;

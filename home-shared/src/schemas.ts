@@ -202,7 +202,7 @@ const postInlineImagesField = z
 export const createPostBodySchema = z.object({
   title: postTitleField,
   content: postContentField,
-  headerImage: postHeaderImageField,
+  headerImage: postHeaderImageField.optional(),
   inlineImages: postInlineImagesField.default([]),
 });
 
@@ -210,15 +210,17 @@ export const updatePostBodySchema = z
   .object({
     title: postTitleField.optional(),
     content: postContentField.optional(),
-    headerImage: postHeaderImageField.optional(),
+    headerImage: postHeaderImageField.nullable().optional(),
     inlineImages: postInlineImagesField.optional(),
+    removeInlineImages: z.array(postInlineImageNameField).optional(),
   })
   .refine(
     (body) =>
       body.title !== undefined ||
       body.content !== undefined ||
       body.headerImage !== undefined ||
-      (body.inlineImages?.length ?? 0) > 0,
+      (body.inlineImages?.length ?? 0) > 0 ||
+      (body.removeInlineImages?.length ?? 0) > 0,
     { message: "Please change the title, the content, or the images." },
   );
 

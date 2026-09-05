@@ -54,5 +54,8 @@ export const inlineImageNotAnImage = (name: string) =>
 export const inlineImageTypeMismatch = (name: string) =>
   `The contents of ${name} do not match the file extension in its name.`;
 
+export const inlineImageNotOnPost = (name: string) =>
+  `${name} is not an image on this post.`;
+
 export const pendingEmailVerification = (email: string, expiresAt: string) =>
   `You already have a pending email verification. Please check your ${email} account's spam and junk mail folders. You may send another email after ${expiresAt}.`;

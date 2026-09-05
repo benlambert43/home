@@ -19,7 +19,7 @@ export interface PostFileContent {
 
 interface PostRevisionContent {
   content: string;
-  headerImage: PostFileContent;
+  headerImage?: PostFileContent;
   inlineImages: PostFileContent[];
 }
 
@@ -55,7 +55,9 @@ export const writePostRevision = async (
       contentType: MARKDOWN_CONTENT_TYPE,
       data: Buffer.from(content, "utf8"),
     }),
-    headerImage: await writeStoredFile(directory, headerImage),
+    headerImage: headerImage
+      ? await writeStoredFile(directory, headerImage)
+      : undefined,
     inlineImages: await Promise.all(
       inlineImages.map((image) =>
         writeStoredFile(
