@@ -4,8 +4,8 @@ import {
   inlineImageNotAnImage,
   inlineImageTypeMismatch,
 } from "../http/messages";
-import { detectImageType } from "../storage/imageType";
-import { PostFileContent } from "../storage/postStorage";
+import { detectImageType } from "../fileOperations/imageType";
+import { PostFileContent } from "../fileOperations/postStorage";
 
 const EXTENSION_CONTENT_TYPES: Record<string, string> = {
   png: "image/png",

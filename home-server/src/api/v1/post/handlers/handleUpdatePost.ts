@@ -6,7 +6,7 @@ import {
   PostFileContent,
   readPostContent,
   writePostRevision,
-} from "../../storage/postStorage";
+} from "../../fileOperations/postStorage";
 import { requireLatestRevision, StoredPostFile } from "../../types/db";
 import { Decoded, decodeHeaderImage, decodeInlineImages } from "../postImages";
 import { toPostResponse } from "../postResponse";

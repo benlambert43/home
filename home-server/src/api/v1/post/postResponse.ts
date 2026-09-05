@@ -1,5 +1,5 @@
 import { Post } from "@home/shared";
-import { readPostContent } from "../storage/postStorage";
+import { readPostContent } from "../fileOperations/postStorage";
 import { PostDocument, requireLatestRevision } from "../types/db";
 import { serializePost } from "../types/serialize";
 import { findAuthorUsername } from "./postAuthors";

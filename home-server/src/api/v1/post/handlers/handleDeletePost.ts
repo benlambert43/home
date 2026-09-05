@@ -1,5 +1,5 @@
 import { PostModel } from "../../model/postModel";
-import { deletePostStorage } from "../../storage/postStorage";
+import { deletePostStorage } from "../../fileOperations/postStorage";
 
 export const handleDeletePost = async (postId: string): Promise<boolean> => {
   const post = await PostModel.findByIdAndDelete(postId);

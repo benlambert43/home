@@ -1,5 +1,5 @@
 import { CURRENT_REVISION_ONLY, PostModel } from "../../model/postModel";
-import { readPostFile } from "../../storage/postStorage";
+import { readPostFile } from "../../fileOperations/postStorage";
 import { latestRevision } from "../../types/db";
 
 export interface PostImageFile {

@@ -6,11 +6,11 @@ import {
 } from "@home/shared";
 import { ApiMessage } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
-import { fingerprint } from "../../storage/fingerprint";
+import { fingerprint } from "../../fileOperations/fingerprint";
 import {
   deletePostStorage,
   writePostRevision,
-} from "../../storage/postStorage";
+} from "../../fileOperations/postStorage";
 import { serializePost } from "../../types/serialize";
 import { decodePostImages } from "../postImages";
 
