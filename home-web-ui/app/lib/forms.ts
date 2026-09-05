@@ -3,6 +3,7 @@ import {
   changePasswordFormSchema,
   changeUsernameBodySchema,
   createAccountFormSchema,
+  createPostFormSchema,
   requestNewEmailVerificationLinkBodySchema,
   requestPasswordResetBodySchema,
   resetPasswordFormSchema,
@@ -43,6 +44,8 @@ export type RequestPasswordResetFormState = FormState<
 >;
 
 export type ResetPasswordFormState = FormState<typeof resetPasswordFormSchema>;
+
+export type CreatePostFormState = FormState<typeof createPostFormSchema>;
 
 export type DeleteAccountState = { errors: string[] };
 

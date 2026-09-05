@@ -211,6 +211,11 @@ export const createPostBodySchema = z.object({
   inlineImages: postInlineImagesField.default([]),
 });
 
+export const createPostFormSchema = createPostBodySchema.pick({
+  title: true,
+  content: true,
+});
+
 export const updatePostBodySchema = z
   .object({
     title: postTitleField.optional(),
