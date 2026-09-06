@@ -6,7 +6,7 @@ const PostNotFound = () => (
     <div>That post could not be found.</div>
     <div>
       <Button type="link" linkProps={{ href: "/blog" }} size="small">
-        Back to Blog
+        Return to Blog Posts
       </Button>
     </div>
   </div>

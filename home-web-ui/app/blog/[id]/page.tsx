@@ -1,28 +1,33 @@
 import { getPost } from "@/app/actions/posts";
-import { blogHref, requestedPage, SearchParams } from "@/app/blog/links";
+import { blogHref, postCanonicalHref } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
+import ReturnToBlogPosts, {
+  ReturnToBlogPostsButton,
+} from "@/app/blog/ReturnToBlogPosts";
 import { pageMetadata } from "@/app/lib/metadata";
-import Button from "@/app/ui/Button";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 type PostProps = {
   params: Promise<{ id: string }>;
-  searchParams: SearchParams;
 };
 
 export const generateMetadata = async ({ params }: PostProps) => {
-  const result = await getPost((await params).id);
+  const { id } = await params;
+  const result = await getPost(id);
 
-  return pageMetadata(result.error ? "blog" : result.post.title);
+  return pageMetadata(
+    result.error ? "blog" : result.post.title,
+    postCanonicalHref(id),
+  );
 };
 
-const BlogPost = async ({ params, searchParams }: PostProps) => {
+const BlogPost = async ({ params }: PostProps) => {
   const result = await getPost((await params).id);
 
   if (result.error) notFound();
 
   const { post } = result;
-  const backHref = blogHref(requestedPage((await searchParams).page));
 
   return (
     <div className="flex max-w-160 flex-col gap-4 p-5">
@@ -30,9 +35,9 @@ const BlogPost = async ({ params, searchParams }: PostProps) => {
       <PostByline post={post} />
       <div className="whitespace-pre-wrap">{post.content}</div>
       <div>
-        <Button type="link" linkProps={{ href: backHref }} size="small">
-          Back to Blog
-        </Button>
+        <Suspense fallback={<ReturnToBlogPostsButton href={blogHref(1)} />}>
+          <ReturnToBlogPosts />
+        </Suspense>
       </div>
     </div>
   );
