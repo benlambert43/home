@@ -39,5 +39,8 @@ jobs:
             next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             next-${{ runner.os }}-
 
+      - name: Stub environment variables
+        run: npm run env:placeholders
+
       - name: Check
         run: npm run check
