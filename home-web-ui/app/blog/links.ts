@@ -10,5 +10,7 @@ export const requestedPage = (value: string | string[] | undefined) => {
 export const blogHref = (page: number) =>
   page > 1 ? `/blog?page=${page}` : "/blog";
 
+export const postCanonicalHref = (id: string) => `/blog/${id}`;
+
 export const postHref = (id: string, page: number) =>
-  page > 1 ? `/blog/${id}?page=${page}` : `/blog/${id}`;
+  page > 1 ? `${postCanonicalHref(id)}?page=${page}` : postCanonicalHref(id);
