@@ -8,6 +8,8 @@ cd "$root" || exit 1
 KEEP_ROOT='/.env'
 KEEP_WORKSPACE='/*/.env'
 
+DOWN_FLAGS='--volumes --remove-orphans'
+
 force=0
 dry_run=0
 for arg in "$@"; do
@@ -25,19 +27,39 @@ count() {
   printf '%s\n' "$1" | sed '/^$/d' | wc -l | tr -d ' '
 }
 
-
-removals=$(git clean -xdn -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" | sed 's/^Would remove //')
-
+removals=$(git clean -xdnff -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" | sed 's/^Would remove //')
 
 at_risk=$(git ls-files --others --exclude-standard)
 
-if [ -z "$removals" ]; then
+db_removals=''
+db_error=''
+if ! command -v docker >/dev/null 2>&1; then
+  db_error='docker is not installed'
+elif ! db_plan=$(docker compose --dry-run down $DOWN_FLAGS 2>&1 >/dev/null); then
+  db_error=$(printf '%s\n' "$db_plan" | sed '/^$/d' | head -1)
+  [ -n "$db_error" ] || db_error='docker compose could not be reached'
+else
+  db_removals=$(printf '%s\n' "$db_plan" | sed -n 's/^ *\([A-Za-z][A-Za-z]*\) \([^ ]*\) Removing *$/\1 \2/p' | sort -u)
+fi
+
+if [ -z "$removals" ] && [ -z "$db_removals" ] && [ -z "$db_error" ]; then
   printf '\n\033[2mNothing to clean.\033[0m\n\n'
   exit 0
 fi
 
-step clean "$(count "$removals") path(s)"
-printf '%s\n' "$removals" | sed 's/^/  /'
+if [ -n "$removals" ]; then
+  step clean "$(count "$removals") path(s)"
+  printf '%s\n' "$removals" | sed 's/^/  /'
+fi
+
+if [ -n "$db_removals" ]; then
+  step database "$(count "$db_removals") docker resource(s)"
+  printf '%s\n' "$db_removals" | sed 's/^/  /'
+fi
+
+if [ -n "$db_error" ]; then
+  printf '\n\033[31m✖ the database cannot be reset — %s\033[0m\n' "$db_error"
+fi
 
 if [ -n "$at_risk" ]; then
   printf '\n\033[31m✖ %s uncommitted file(s) would be destroyed:\033[0m\n\n' "$(count "$at_risk")"
@@ -57,7 +79,27 @@ if [ "$dry_run" -eq 1 ]; then
   exit 0
 fi
 
-git clean -xdf -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" >/dev/null || exit 1
+git clean -xdff -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" >/dev/null || exit 1
 
-pass "cleaned $(count "$removals") path(s)"
-printf '\033[2mDependencies were removed too — restore them with \033[0m\033[1mnpm install\033[0m\n\n'
+if [ -n "$db_removals" ] && ! docker compose down $DOWN_FLAGS >/dev/null 2>&1; then
+  printf '\n\033[31m✖ cleaned %s path(s), but docker compose down %s failed\033[0m\n\n' \
+    "$(count "$removals")" "$DOWN_FLAGS"
+  exit 1
+fi
+
+summary="cleaned $(count "$removals") path(s)"
+
+if [ -n "$db_error" ]; then
+  printf '\n\033[31m✖ %s, but the database was left as it is\033[0m\n' "$summary"
+  printf '\n  Reset it once docker is up with: \033[1mdocker compose down %s\033[0m\n\n' "$DOWN_FLAGS"
+  exit 1
+fi
+
+[ -n "$db_removals" ] && summary="$summary and reset the database"
+
+pass "$summary"
+[ -n "$removals" ] &&
+  printf '\033[2mDependencies were removed too — restore them with \033[0m\033[1mnpm install\033[0m\n'
+[ -n "$db_removals" ] &&
+  printf '\033[2mThe database comes back empty with \033[0m\033[1mdocker compose up -d\033[0m\n'
+printf '\n'
