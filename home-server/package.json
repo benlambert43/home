@@ -9,6 +9,7 @@
     "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "rimraf ./build && tsc -p tsconfig.build.json",
     "start": "node --env-file=.env build/index.js",
+    "seed": "sh ../scripts/build-shared.sh && tsx --env-file=.env src/scripts/seedPosts.ts",
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",

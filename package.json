@@ -14,6 +14,7 @@
     "dev": "npm run build:shared && npm run dev --workspace home-web-ui",
     "dev:server": "npm run build:shared && npm run dev --workspace home-server",
     "build": "npm run build --workspace home-shared && npm run build --workspace home-server && npm run build --workspace home-web-ui",
+    "seed": "npm run seed --workspace home-server",
     "lint": "npm run lint --workspaces --if-present",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
     "lint:deprecations": "sh scripts/check-deprecations.sh",
