@@ -6,8 +6,13 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 const ReturnButton = ({ page }: { page: number }) => (
-  <Button type="link" linkProps={{ href: blogHref(page) }} size="small">
-    Return to Blog Posts
+  <Button
+    type="link"
+    linkProps={{ href: blogHref(page) }}
+    size="large"
+    emphasis="secondary"
+  >
+    Go Back
   </Button>
 );
 
@@ -17,10 +22,12 @@ const RequestedPageButton = () => (
   />
 );
 
-const ReturnToBlogPosts = () => (
-  <Suspense fallback={<ReturnButton page={1} />}>
-    <RequestedPageButton />
-  </Suspense>
-);
+const ReturnToBlogPosts = () => {
+  return (
+    <Suspense fallback={<ReturnButton page={1} />}>
+      <RequestedPageButton />
+    </Suspense>
+  );
+};
 
 export default ReturnToBlogPosts;

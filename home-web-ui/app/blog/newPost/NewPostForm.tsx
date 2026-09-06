@@ -6,6 +6,7 @@ import FieldError from "@/app/ui/FieldError";
 import TextArea from "@/app/ui/TextArea";
 import TextField from "@/app/ui/TextField";
 import { useActionState } from "react";
+import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 
 const NewPostForm = () => {
   const [state, action, pending] = useActionState(createPost, undefined);
@@ -32,7 +33,8 @@ const NewPostForm = () => {
 
       <FieldError errors={state?.properties?.content?.errors} />
 
-      <div className="mt-4 flex flex-col items-start justify-center gap-2">
+      <div className="mt-4 flex flex-row items-start justify-start gap-2">
+        <ReturnToBlogPosts />
         <Button size="large" disabled={pending} type="submit">
           Create Post
         </Button>
