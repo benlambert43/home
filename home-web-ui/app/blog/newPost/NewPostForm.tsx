@@ -3,6 +3,7 @@
 import { createPost } from "@/app/actions/posts";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
+import TextArea from "@/app/ui/TextArea";
 import TextField from "@/app/ui/TextField";
 import { useActionState } from "react";
 
@@ -21,18 +22,13 @@ const NewPostForm = () => {
 
       <FieldError errors={state?.properties?.title?.errors} />
 
-      <div className="flex flex-col items-start justify-center gap-2">
-        <label htmlFor="content">Content</label>
-        <textarea
-          id="content"
-          name="content"
-          rows={12}
-          placeholder="Content"
-          defaultValue={state?.values?.content}
-          className="w-full max-w-160 rounded-xl px-4 py-2 outline-1
-            outline-slate-400 focus:outline-slate-50"
-        />
-      </div>
+      <TextArea
+        name="content"
+        label="Content"
+        rows={12}
+        placeholder="Content"
+        defaultValue={state?.values?.content}
+      />
 
       <FieldError errors={state?.properties?.content?.errors} />
 
@@ -45,4 +41,5 @@ const NewPostForm = () => {
     </form>
   );
 };
+
 export default NewPostForm;

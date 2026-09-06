@@ -11,6 +11,7 @@ import {
   readFormValues,
   treeifyFormError,
 } from "@/app/lib/forms";
+import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
   changePasswordFormSchema,
   ChangePasswordRequestBody,
@@ -22,9 +23,9 @@ import {
 } from "@home/shared";
 import { redirect } from "next/navigation";
 
-const CHANGE_USERNAME_URL = `${process.env.BASE_API_URL}/accountManagement/changeUsername`;
-const CHANGE_PASSWORD_URL = `${process.env.BASE_API_URL}/accountManagement/changePassword`;
-const DELETE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/deleteAccount`;
+const CHANGE_USERNAME_URL = `${BASE_API_URL}/accountManagement/changeUsername`;
+const CHANGE_PASSWORD_URL = `${BASE_API_URL}/accountManagement/changePassword`;
+const DELETE_ACCOUNT_URL = `${BASE_API_URL}/accountManagement/deleteAccount`;
 
 const CHANGE_USERNAME_FIELDS = {
   newUsername: "newUsername",

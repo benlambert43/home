@@ -1,11 +1,9 @@
+import PostDate from "@/app/blog/PostDate";
 import { PostSummary } from "@home/shared";
 
 const PostByline = ({ post }: { post: PostSummary }) => (
   <div className="text-xs tracking-wide text-slate-400">
-    {post.authorUsername ?? "unknown"} ·{" "}
-    <time dateTime={post.createdDate}>
-      {new Date(post.createdDate).toLocaleDateString()}
-    </time>
+    {post.authorUsername ?? "unknown"} · <PostDate date={post.createdDate} />
   </div>
 );
 

@@ -1,6 +1,7 @@
 import "server-only";
 import { jwtVerify } from "jose";
 import { EncodedAccountJwt } from "@home/shared";
+import { BFF_SESSION_SECRET } from "@/app/lib/serverEnv";
 
 export type AuthenticatedBffToken =
   | { valid: true; authenticatedUser: EncodedAccountJwt }
@@ -9,20 +10,11 @@ export type AuthenticatedBffToken =
 export const authenticateBffToken = async (
   jwtStr?: string,
 ): Promise<AuthenticatedBffToken> => {
-  const BFF_SESSION_SECRET = process.env.BFF_SESSION_SECRET;
-
   if (!jwtStr) {
     return { valid: false, message: "No JWT was provided." };
   }
 
   try {
-    if (
-      typeof BFF_SESSION_SECRET !== "string" ||
-      BFF_SESSION_SECRET.length < 1
-    ) {
-      throw new Error("Failed to parse environment variable secret.");
-    }
-
     const encodedAccountJwtData = (
       await jwtVerify(jwtStr, new TextEncoder().encode(BFF_SESSION_SECRET), {
         algorithms: ["HS256"],

@@ -2,9 +2,10 @@
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { apiFetch, errorMessage } from "@/app/lib/api";
+import { BASE_API_URL } from "@/app/lib/serverEnv";
 import { GetNotificationsResponse } from "@home/shared";
 
-const NOTIFICATION_URL = `${process.env.BASE_API_URL}/notifications`;
+const NOTIFICATION_URL = `${BASE_API_URL}/notifications`;
 
 export const getNotifications = async (): Promise<GetNotificationsResponse> => {
   try {

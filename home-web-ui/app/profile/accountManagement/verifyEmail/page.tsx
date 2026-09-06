@@ -1,20 +1,16 @@
+import { verifyEmail } from "@/app/actions/auth";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
+import { errorMessage } from "@/app/lib/api";
+import { paramFilled, SearchParams } from "@/app/lib/searchParams";
 import VerificationComplete from "@/app/profile/accountManagement/verifyEmail/VerificationComplete";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
 import { SessionPayload } from "@home/shared";
-import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import { verifyEmail } from "@/app/actions/auth";
-import { errorMessage } from "@/app/lib/api";
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type VerificationResult =
   | { status: "complete"; message?: string; session?: SessionPayload }
   | { status: "failed"; message: string }
   | { status: "missingParams" }
   | { status: "unreachable"; error: string };
-
-const paramFilled = (value: string | string[] | undefined): value is string =>
-  typeof value === "string" && value.length > 0;
 
 const resolveVerification = async (
   searchParams: SearchParams,

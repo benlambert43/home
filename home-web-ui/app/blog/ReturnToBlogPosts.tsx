@@ -3,17 +3,24 @@
 import { blogHref, requestedPage } from "@/app/blog/links";
 import Button from "@/app/ui/Button";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export const ReturnToBlogPostsButton = ({ href }: { href: string }) => (
-  <Button type="link" linkProps={{ href }} size="small">
+const ReturnButton = ({ page }: { page: number }) => (
+  <Button type="link" linkProps={{ href: blogHref(page) }} size="small">
     Return to Blog Posts
   </Button>
 );
 
-const ReturnToBlogPosts = () => {
-  const page = requestedPage(useSearchParams().get("page") ?? undefined);
+const RequestedPageButton = () => (
+  <ReturnButton
+    page={requestedPage(useSearchParams().get("page") ?? undefined)}
+  />
+);
 
-  return <ReturnToBlogPostsButton href={blogHref(page)} />;
-};
+const ReturnToBlogPosts = () => (
+  <Suspense fallback={<ReturnButton page={1} />}>
+    <RequestedPageButton />
+  </Suspense>
+);
 
 export default ReturnToBlogPosts;

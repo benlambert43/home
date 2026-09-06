@@ -1,16 +1,9 @@
-import { getPost } from "@/app/actions/posts";
-import { blogHref, postCanonicalHref } from "@/app/blog/links";
-import PostByline from "@/app/blog/PostByline";
-import ReturnToBlogPosts, {
-  ReturnToBlogPostsButton,
-} from "@/app/blog/ReturnToBlogPosts";
+import Post, { PostParams } from "@/app/blog/Post";
+import { postCanonicalHref } from "@/app/blog/links";
 import { pageMetadata } from "@/app/lib/metadata";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { getPost } from "@/app/lib/posts";
 
-type PostProps = {
-  params: Promise<{ id: string }>;
-};
+type PostProps = { params: PostParams };
 
 export const generateMetadata = async ({ params }: PostProps) => {
   const { id } = await params;
@@ -22,25 +15,6 @@ export const generateMetadata = async ({ params }: PostProps) => {
   );
 };
 
-const BlogPost = async ({ params }: PostProps) => {
-  const result = await getPost((await params).id);
-
-  if (result.error) notFound();
-
-  const { post } = result;
-
-  return (
-    <div className="flex max-w-160 flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">{post.title}</div>
-      <PostByline post={post} />
-      <div className="whitespace-pre-wrap">{post.content}</div>
-      <div>
-        <Suspense fallback={<ReturnToBlogPostsButton href={blogHref(1)} />}>
-          <ReturnToBlogPosts />
-        </Suspense>
-      </div>
-    </div>
-  );
-};
+const BlogPost = ({ params }: PostProps) => <Post params={params} />;
 
 export default BlogPost;

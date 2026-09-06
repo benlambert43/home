@@ -13,6 +13,7 @@ import {
   SignInFormState,
   treeifyFormError,
 } from "@/app/lib/forms";
+import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
   CheckPasswordResetLinkResponse,
   createAccountFormSchema,
@@ -34,13 +35,13 @@ import {
 } from "@home/shared";
 import { redirect } from "next/navigation";
 
-const CREATE_ACCOUNT_URL = `${process.env.BASE_API_URL}/accountManagement/createAccount`;
-const SIGN_IN_URL = `${process.env.BASE_API_URL}/signIn`;
-const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/requestNewEmailVerificationLink`;
-const VERIFY_EMAIL_URL = `${process.env.BASE_API_URL}/accountManagement/verifyEmail`;
-const REQUEST_PASSWORD_RESET_URL = `${process.env.BASE_API_URL}/accountManagement/requestPasswordReset`;
-const PASSWORD_RESET_LINK_URL = `${process.env.BASE_API_URL}/accountManagement/passwordResetLink`;
-const RESET_PASSWORD_URL = `${process.env.BASE_API_URL}/accountManagement/resetPassword`;
+const CREATE_ACCOUNT_URL = `${BASE_API_URL}/accountManagement/createAccount`;
+const SIGN_IN_URL = `${BASE_API_URL}/signIn`;
+const REQUEST_NEW_EMAIL_VERIFICATION_LINK_URL = `${BASE_API_URL}/accountManagement/requestNewEmailVerificationLink`;
+const VERIFY_EMAIL_URL = `${BASE_API_URL}/accountManagement/verifyEmail`;
+const REQUEST_PASSWORD_RESET_URL = `${BASE_API_URL}/accountManagement/requestPasswordReset`;
+const PASSWORD_RESET_LINK_URL = `${BASE_API_URL}/accountManagement/passwordResetLink`;
+const RESET_PASSWORD_URL = `${BASE_API_URL}/accountManagement/resetPassword`;
 
 const CREATE_ACCOUNT_FIELDS = {
   firstname: "firstname",

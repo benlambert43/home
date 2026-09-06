@@ -1,20 +1,20 @@
-import { requestedPage, SearchParams } from "@/app/blog/links";
-import NewPost from "@/app/blog/NewPost";
+import NewPostButton from "@/app/blog/NewPostButton";
 import Posts from "@/app/blog/Posts";
+import { SearchParams } from "@/app/lib/searchParams";
 import { Suspense } from "react";
 
-const Blog = async ({ searchParams }: { searchParams: SearchParams }) => {
-  const page = requestedPage((await searchParams).page);
-
-  return (
-    <div className="flex flex-col gap-4 p-5">
+const Blog = ({ searchParams }: { searchParams: SearchParams }) => (
+  <div className="flex flex-col gap-4 p-5">
+    <div className="flex flex-row flex-wrap items-center gap-4">
       <div className="text-4xl font-bold">Blog</div>
       <Suspense fallback={null}>
-        <NewPost />
+        <NewPostButton />
       </Suspense>
-      <Posts page={page} />
     </div>
-  );
-};
+    <Suspense fallback={null}>
+      <Posts searchParams={searchParams} />
+    </Suspense>
+  </div>
+);
 
 export default Blog;

@@ -1,15 +1,11 @@
 import { checkPasswordResetLink } from "@/app/actions/auth";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import { errorMessage } from "@/app/lib/api";
+import { paramFilled, SearchParams } from "@/app/lib/searchParams";
 import ChangePasswordForm from "@/app/profile/accountManagement/changePassword/ChangePasswordForm";
 import ResetLinkProblem from "@/app/profile/accountManagement/changePassword/ResetLinkProblem";
 import ResetPasswordForm from "@/app/profile/accountManagement/changePassword/ResetPasswordForm";
 import { CheckPasswordResetLinkResponse } from "@home/shared";
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-const paramFilled = (value: string | string[] | undefined): value is string =>
-  typeof value === "string" && value.length > 0;
 
 const ResetPassword = async ({ code }: { code: string }) => {
   let linkStatus: CheckPasswordResetLinkResponse;

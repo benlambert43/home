@@ -1,6 +1,7 @@
-import { getPosts } from "@/app/actions/posts";
-import { blogHref, postHref } from "@/app/blog/links";
+import { blogHref, postHref, requestedPage } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
+import { getPosts } from "@/app/lib/posts";
+import { SearchParams } from "@/app/lib/searchParams";
 import Button from "@/app/ui/Button";
 import { PostPagination, PostSummary } from "@home/shared";
 import Link from "next/link";
@@ -33,14 +34,15 @@ const Pagination = ({ page, totalPages, hasMore }: PostPagination) => (
   </div>
 );
 
-const Posts = async ({ page }: { page: number }) => {
+const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
+  const page = requestedPage((await searchParams).page);
   const result = await getPosts(page);
 
-  if (result.error) return <div>{result.message}</div>;
+  if (result.error) return <p>{result.message}</p>;
 
   const { posts, pagination } = result;
 
-  if (pagination.totalPosts === 0) return <div>No posts yet.</div>;
+  if (pagination.totalPosts === 0) return <p>No posts yet.</p>;
 
   return (
     <div className="flex max-w-160 flex-col gap-6">

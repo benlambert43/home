@@ -1,18 +1,17 @@
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
+import { newPostHref } from "@/app/blog/links";
 import Button from "@/app/ui/Button";
 
-const NewPost = async () => {
+const NewPostButton = async () => {
   const user = await getBffSessionUser();
 
   if (user?.role !== "admin") return null;
 
   return (
-    <div>
-      <Button type="link" linkProps={{ href: "/blog/newPost" }} size="small">
-        New Post
-      </Button>
-    </div>
+    <Button type="link" linkProps={{ href: newPostHref }} size="small">
+      New Post
+    </Button>
   );
 };
 
-export default NewPost;
+export default NewPostButton;
