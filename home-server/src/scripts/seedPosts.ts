@@ -11,8 +11,42 @@ const LOREM =
 
 const postTitle = (number: number) => `Test Post ${number}`;
 
-const postContent = (number: number) =>
-  `# ${postTitle(number)}\n\nTest Post Content ${number}: ${LOREM}\n`;
+const postContent = (number: number) => `## What this post covers
+
+Test Post Content ${number}: ${LOREM} 
+It mixes **bold**, _italic_, \`inline code\`, 
+~~struck through~~ text, an [internal link](/blog), 
+and an [external one](https://example.com).
+
+### A few lists
+
+- An unordered item
+- Another unordered item
+  - A nested item
+
+1. An ordered item
+2. A second ordered item
+
+- [x] A finished task
+- [ ] An unfinished task
+
+> A block quotation, for when someone else said it better.
+
+### Code and tables
+
+\`\`\`ts
+const greet = (name: string) => \`Hello, \${name}.\`;
+\`\`\`
+
+| Element | Supported | Notes |
+| ------- | :-------: | ----------------: |
+| Tables | yes | right aligned notes |
+| Task lists | yes | rendered as checkboxes |
+
+---
+
+A closing paragraph for post ${number}.
+`;
 
 const requireEnv = (name: string) => {
   const value = process.env[name];

@@ -1,5 +1,9 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --container-site-min: 320px;
+  --color-portrait-sky: #7b9fc3;
+  --color-portrait-haze: #bfc1ca;
+  --color-portrait-dusk: #d5a998;
 }
