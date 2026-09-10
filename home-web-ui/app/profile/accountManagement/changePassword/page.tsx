@@ -27,7 +27,7 @@ const ResetPassword = async ({ code }: { code: string }) => {
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">Choose a New Password</div>
+      <h1 className="text-4xl font-bold">Choose a New Password</h1>
       <div>Pick a new password, then sign in with it.</div>
       <div>
         <ResetPasswordForm code={code} />
@@ -49,7 +49,7 @@ const ChangePassword = async ({
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">Change Password</div>
+      <h1 className="text-4xl font-bold">Change Password</h1>
       <div>Enter your current password, then choose a new one.</div>
       <div>
         <ChangePasswordForm />

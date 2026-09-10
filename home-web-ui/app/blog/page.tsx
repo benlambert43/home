@@ -6,7 +6,7 @@ import { Suspense } from "react";
 const Blog = ({ searchParams }: { searchParams: SearchParams }) => (
   <div className="flex flex-col gap-4 p-5">
     <div className="flex flex-row flex-wrap items-center gap-4">
-      <div className="text-4xl font-bold">Blog</div>
+      <h1 className="text-4xl font-bold">Blog</h1>
       <Suspense fallback={null}>
         <NewPostButton />
       </Suspense>

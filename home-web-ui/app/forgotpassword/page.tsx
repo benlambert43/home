@@ -7,7 +7,7 @@ const ForgotPassword = async () => {
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">Forgot Password</div>
+      <h1 className="text-4xl font-bold">Forgot Password</h1>
       <div>
         Enter the email address on your account and we will send you a link to
         choose a new password.

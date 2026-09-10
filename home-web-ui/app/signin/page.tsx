@@ -7,7 +7,7 @@ const SignIn = async () => {
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">Sign In</div>
+      <h1 className="text-4xl font-bold">Sign In</h1>
       <div>
         <SignInForm />
       </div>

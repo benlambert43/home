@@ -10,7 +10,7 @@ const NewPost = async () => {
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">New Blog Post</div>
+      <h1 className="text-4xl font-bold">New Blog Post</h1>
       <div>
         <NewPostForm />
       </div>

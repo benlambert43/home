@@ -6,7 +6,7 @@ const CreateAccount = async () => {
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">Create Account</div>
+      <h1 className="text-4xl font-bold">Create Account</h1>
       <CreateAccountForm />
     </div>
   );

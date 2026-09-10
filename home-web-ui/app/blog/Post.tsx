@@ -1,4 +1,5 @@
 import PostByline from "@/app/blog/PostByline";
+import PostMarkdown from "@/app/blog/PostMarkdown";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import { getPost } from "@/app/lib/posts";
@@ -16,9 +17,15 @@ const Post = async ({ params }: { params: PostParams }) => {
 
   return (
     <div className="flex max-w-160 flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">{post.title}</div>
+      <h1
+        className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
+          bg-linear-to-r bg-clip-text text-5xl font-medium text-transparent
+          sm:text-6xl"
+      >
+        {post.title}
+      </h1>
       <PostByline post={post} />
-      <div className="whitespace-pre-wrap">{post.content}</div>
+      <PostMarkdown content={post.content} />
       <div>
         <ReturnToBlogPosts />
       </div>

@@ -8,7 +8,7 @@ const PostProblem = ({
   detail: string;
 }) => (
   <div className="flex max-w-160 flex-col gap-4 p-5">
-    <div className="text-4xl font-bold">{headline}</div>
+    <h1 className="text-4xl font-bold">{headline}</h1>
     <p>{detail}</p>
     <div>
       <ReturnToBlogPosts />

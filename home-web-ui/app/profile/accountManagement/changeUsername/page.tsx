@@ -6,7 +6,7 @@ const ChangeUsername = async () => {
 
   return (
     <div className="flex flex-col gap-4 p-5">
-      <div className="text-4xl font-bold">Change Username</div>
+      <h1 className="text-4xl font-bold">Change Username</h1>
       <div>Current username: {user.username}</div>
       <div>
         <ChangeUsernameForm />
