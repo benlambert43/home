@@ -2,9 +2,7 @@ import { UpdatePostRequestBody, UpdatePostResponse } from "@home/shared";
 import { ApiMessage, inlineImageNotOnPost } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
 import {
-  carryForward,
-  PostFileContent,
-  readPostContent,
+  PostFileSource,
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import { requireLatestRevision, StoredPostFile } from "../../types/db";
@@ -14,20 +12,20 @@ import { toPostResponse } from "../postResponse";
 const namesInLowercase = (names: string[]) =>
   new Set(names.map((name) => name.toLowerCase()));
 
-const resolveHeaderImage = async (
+const resolveHeaderImage = (
   requested: string | null | undefined,
   stored: StoredPostFile | undefined,
-): Promise<Decoded<PostFileContent | undefined>> => {
+): Decoded<PostFileSource | undefined> => {
   if (requested === null) return { ok: true, value: undefined };
   if (requested !== undefined) return decodeHeaderImage(requested);
 
-  return { ok: true, value: stored && (await carryForward(stored)) };
+  return { ok: true, value: stored };
 };
 
-const resolveInlineImages = async (
+const resolveInlineImages = (
   stored: StoredPostFile[],
   body: UpdatePostRequestBody,
-): Promise<Decoded<PostFileContent[]>> => {
+): Decoded<PostFileSource[]> => {
   const added = decodeInlineImages(body.inlineImages ?? []);
   if (!added.ok) return added;
 
@@ -43,10 +41,7 @@ const resolveInlineImages = async (
   ]);
   const kept = stored.filter((image) => !dropped.has(image.name.toLowerCase()));
 
-  return {
-    ok: true,
-    value: [...(await Promise.all(kept.map(carryForward))), ...added.value],
-  };
+  return { ok: true, value: [...kept, ...added.value] };
 };
 
 export const handleUpdatePost = async (
@@ -58,18 +53,18 @@ export const handleUpdatePost = async (
 
   const previous = requireLatestRevision(post);
 
-  const headerImage = await resolveHeaderImage(
+  const headerImage = resolveHeaderImage(
     body.headerImage,
     previous.headerImage,
   );
   if (!headerImage.ok) return { error: true, message: headerImage.message };
 
-  const inlineImages = await resolveInlineImages(previous.inlineImages, body);
+  const inlineImages = resolveInlineImages(previous.inlineImages, body);
   if (!inlineImages.ok) return { error: true, message: inlineImages.message };
 
   post.revisions.push(
     await writePostRevision(post.fingerprint, {
-      content: body.content ?? (await readPostContent(previous)),
+      content: body.content ?? previous.content,
       headerImage: headerImage.value,
       inlineImages: inlineImages.value,
     }),

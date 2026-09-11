@@ -41,6 +41,7 @@ import {
   responsePost,
   savedPosts,
   storedFile,
+  storedInode,
   storedText,
   stubSave,
   stubUserLookup,
@@ -647,6 +648,30 @@ describe("the blog post api", () => {
       );
     });
 
+    it("links the files it carries forward instead of copying them", async () => {
+      const post = await publishPost(
+        validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
+      );
+      const previous = currentRevision(post);
+
+      const response = await apiCall("patch", postPath(post), {
+        body: { title: "Take two" },
+      });
+
+      const revision = currentRevision(post);
+
+      expect(response.status).toBe(200);
+
+      for (const [file, original] of [
+        [revision.content.file, previous.content.file],
+        [headerImageFile(revision), headerImageFile(previous)],
+        [revision.inlineImages[0].file, previous.inlineImages[0].file],
+      ]) {
+        expect(file).not.toBe(original);
+        expect(await storedInode(file)).toBe(await storedInode(original));
+      }
+    });
+
     it("replaces the header image with a new one", async () => {
       const post = await publishPost();
 
@@ -698,6 +723,19 @@ describe("the blog post api", () => {
         await apiCall("patch", postPath(post), { body }),
         400,
         message,
+      );
+    });
+
+    it("reports a post whose files are missing from storage", async () => {
+      const post = await publishPost();
+      await deletePostStorage(post.fingerprint);
+
+      expectFailure(
+        await apiCall("patch", postPath(post), {
+          body: { title: "Take two" },
+        }),
+        500,
+        ApiMessage.POST_FILES_UNAVAILABLE,
       );
     });
 

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import express from "express";
 import { Types } from "mongoose";
 import request, { Response } from "supertest";
@@ -133,6 +133,9 @@ export const storedFile = (file: string) => readFile(resolveStoragePath(file));
 
 export const storedText = (file: string) =>
   readFile(resolveStoragePath(file), "utf8");
+
+export const storedInode = async (file: string) =>
+  (await stat(resolveStoragePath(file))).ino;
 
 export const currentRevision = (post: PostDocument) =>
   post.revisions[post.revisions.length - 1];
