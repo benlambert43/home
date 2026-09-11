@@ -3,7 +3,7 @@
 import { createPost } from "@/app/actions/posts";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
-import TextArea from "@/app/ui/TextArea";
+import MarkdownEditor from "@/app/blog/MarkdownEditor";
 import TextField from "@/app/ui/TextField";
 import { useActionState } from "react";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
@@ -23,11 +23,10 @@ const NewPostForm = () => {
 
       <FieldError errors={state?.properties?.title?.errors} />
 
-      <TextArea
+      <MarkdownEditor
         name="content"
         label="Content"
         rows={12}
-        placeholder="Content"
         defaultValue={state?.values?.content}
       />
 
