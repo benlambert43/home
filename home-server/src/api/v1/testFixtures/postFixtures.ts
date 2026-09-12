@@ -204,6 +204,10 @@ export const beforeEachPostTest = () => {
   });
   stubUserLookup(admin);
   stubSave();
+  vi.spyOn(PostModel, "exists").mockImplementation(
+    () =>
+      Promise.resolve(null) as unknown as ReturnType<typeof PostModel.exists>,
+  );
 };
 
 export const afterEachPostTest = async () => {

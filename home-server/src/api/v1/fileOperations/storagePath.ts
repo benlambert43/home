@@ -1,6 +1,6 @@
 import path from "node:path";
 
-const STORAGE_ROOT = path.resolve("storage");
+export const STORAGE_ROOT = path.resolve("storage");
 
 export const resolveStoragePath = (relativePath: string) => {
   const resolved = path.resolve(STORAGE_ROOT, relativePath);

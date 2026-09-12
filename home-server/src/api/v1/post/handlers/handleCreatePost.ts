@@ -14,6 +14,11 @@ import {
 import { serializePost } from "../../types/serialize";
 import { decodePostImages } from "../postImages";
 
+const postMayExist = (_id: Types.ObjectId) =>
+  PostModel.exists({ _id })
+    .then((post) => post !== null)
+    .catch(() => true);
+
 export const handleCreatePost = async (
   author: UserNoPassword,
   body: CreatePostRequestBody,
@@ -50,12 +55,16 @@ export const handleCreatePost = async (
       post: serializePost(post, author.username, body.content),
     };
   } catch (e) {
-    await deletePostStorage(postFingerprint).catch((cleanupError: unknown) => {
-      console.error(
-        `Failed to clean up storage for post ${postFingerprint}:`,
-        cleanupError,
+    if (!(await postMayExist(_id))) {
+      await deletePostStorage(postFingerprint).catch(
+        (cleanupError: unknown) => {
+          console.error(
+            `Failed to clean up storage for post ${postFingerprint}:`,
+            cleanupError,
+          );
+        },
       );
-    });
+    }
     throw e;
   }
 };
