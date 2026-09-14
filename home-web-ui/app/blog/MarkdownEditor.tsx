@@ -13,6 +13,8 @@ type MarkdownSelection = {
 
 type MarkdownEdit = (selection: MarkdownSelection) => MarkdownSelection;
 
+const LINE_BREAK = "\\\n";
+
 const lineStart = (value: string, index: number) =>
   value.lastIndexOf("\n", index - 1) + 1;
 
@@ -81,11 +83,26 @@ const insertLink: MarkdownEdit = ({ value, selectionStart, selectionEnd }) => {
   };
 };
 
+const insertLineBreak: MarkdownEdit = ({
+  value,
+  selectionStart,
+  selectionEnd,
+}) => {
+  const cursor = selectionStart + LINE_BREAK.length;
+
+  return {
+    value: `${value.slice(0, selectionStart)}${LINE_BREAK}${value.slice(selectionEnd)}`,
+    selectionStart: cursor,
+    selectionEnd: cursor,
+  };
+};
+
 const TOOLBAR: { label: string; title: string; edit: MarkdownEdit }[] = [
   { label: "B", title: "Bold", edit: wrapSelection("**", "bold text") },
   { label: "I", title: "Italic", edit: wrapSelection("_", "italic text") },
   { label: "</>", title: "Code", edit: wrapSelection("`", "code") },
   { label: "Link", title: "Link", edit: insertLink },
+  { label: "Break", title: "Line break", edit: insertLineBreak },
   { label: "H", title: "Heading", edit: prefixLines(() => "## ") },
   { label: "Quote", title: "Quote", edit: prefixLines(() => "> ") },
   { label: "List", title: "Bulleted list", edit: prefixLines(() => "- ") },
@@ -146,9 +163,13 @@ const MarkdownEditor = ({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!event.metaKey && !event.ctrlKey) return;
+    const shortcut =
+      event.metaKey || event.ctrlKey
+        ? SHORTCUTS[event.key.toLowerCase()]
+        : event.shiftKey && event.key === "Enter"
+          ? insertLineBreak
+          : undefined;
 
-    const shortcut = SHORTCUTS[event.key.toLowerCase()];
     if (!shortcut) return;
 
     event.preventDefault();
