@@ -38,6 +38,7 @@ type SharedProps = {
   color?: ButtonColor;
   emphasis?: ButtonEmphasis;
   size?: ButtonSize;
+  title?: string;
 };
 
 type ButtonProps = SharedProps &
@@ -58,13 +59,19 @@ const Button = ({
   emphasis = "primary",
   ...props
 }: ButtonProps) => {
-  const { children, size } = props;
+  const { children, size, title } = props;
   const className = `${size ? SIZE_CLASSES[size] : ""} ${COLOR_CLASSES[emphasis][color]}`;
 
   if (props.type === "link") {
     const { href, target, rel } = props.linkProps;
     return (
-      <Link href={href} target={target} rel={rel} className={className}>
+      <Link
+        href={href}
+        target={target}
+        rel={rel}
+        title={title}
+        className={className}
+      >
         {children}
       </Link>
     );
@@ -75,6 +82,7 @@ const Button = ({
       type={props.type}
       disabled={props.disabled}
       onClick={props.onClick}
+      title={title}
       className={className}
     >
       {children}

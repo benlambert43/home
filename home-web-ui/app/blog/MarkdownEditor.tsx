@@ -3,7 +3,13 @@
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import {
+  KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 type MarkdownSelection = {
   value: string;
@@ -13,7 +19,35 @@ type MarkdownSelection = {
 
 type MarkdownEdit = (selection: MarkdownSelection) => MarkdownSelection;
 
+type Shortcut = { key: string; mod?: boolean; shift?: boolean };
+
 const LINE_BREAK = "\\\n";
+
+const PHYSICAL_KEYS: Partial<Record<string, string>> = {
+  Digit7: "7",
+  Digit8: "8",
+  Period: ".",
+};
+
+const subscribe = () => () => {};
+
+const pressedKey = (event: KeyboardEvent) =>
+  PHYSICAL_KEYS[event.code] ?? event.key.toLowerCase();
+
+const matchesShortcut = (
+  { key, mod = false, shift = false }: Shortcut,
+  event: KeyboardEvent,
+  mac: boolean,
+) =>
+  (mac ? event.metaKey : event.ctrlKey) === mod &&
+  event.shiftKey === shift &&
+  !event.altKey &&
+  pressedKey(event) === key.toLowerCase();
+
+const formatShortcut = ({ key, mod, shift }: Shortcut, mac: boolean) =>
+  mac
+    ? `${shift ? "⇧" : ""}${mod ? "⌘" : ""}${key === "Enter" ? "↩" : key}`
+    : [mod && "Ctrl", shift && "Shift", key].filter(Boolean).join("+");
 
 const lineStart = (value: string, index: number) =>
   value.lastIndexOf("\n", index - 1) + 1;
@@ -97,28 +131,63 @@ const insertLineBreak: MarkdownEdit = ({
   };
 };
 
-const TOOLBAR: { label: string; title: string; edit: MarkdownEdit }[] = [
-  { label: "B", title: "Bold", edit: wrapSelection("**", "bold text") },
-  { label: "I", title: "Italic", edit: wrapSelection("_", "italic text") },
-  { label: "</>", title: "Code", edit: wrapSelection("`", "code") },
-  { label: "Link", title: "Link", edit: insertLink },
-  { label: "Break", title: "Line break", edit: insertLineBreak },
+const TOOLBAR: {
+  label: string;
+  title: string;
+  edit: MarkdownEdit;
+  shortcut?: Shortcut;
+}[] = [
+  {
+    label: "B",
+    title: "Bold",
+    edit: wrapSelection("**", "bold text"),
+    shortcut: { key: "B", mod: true },
+  },
+  {
+    label: "I",
+    title: "Italic",
+    edit: wrapSelection("_", "italic text"),
+    shortcut: { key: "I", mod: true },
+  },
+  {
+    label: "</>",
+    title: "Code",
+    edit: wrapSelection("`", "code"),
+    shortcut: { key: "E", mod: true },
+  },
+  {
+    label: "Link",
+    title: "Link",
+    edit: insertLink,
+    shortcut: { key: "K", mod: true },
+  },
+  {
+    label: "Break",
+    title: "Line break",
+    edit: insertLineBreak,
+    shortcut: { key: "Enter", shift: true },
+  },
   { label: "H", title: "Heading", edit: prefixLines(() => "## ") },
-  { label: "Quote", title: "Quote", edit: prefixLines(() => "> ") },
-  { label: "List", title: "Bulleted list", edit: prefixLines(() => "- ") },
+  {
+    label: "Quote",
+    title: "Quote",
+    edit: prefixLines(() => "> "),
+    shortcut: { key: ".", mod: true, shift: true },
+  },
+  {
+    label: "List",
+    title: "Bulleted list",
+    edit: prefixLines(() => "- "),
+    shortcut: { key: "8", mod: true, shift: true },
+  },
   {
     label: "1.",
     title: "Numbered list",
     edit: prefixLines((line) => `${line + 1}. `),
+    shortcut: { key: "7", mod: true, shift: true },
   },
   { label: "Block", title: "Code block", edit: fenceSelection("code") },
 ];
-
-const SHORTCUTS: Record<string, MarkdownEdit> = {
-  b: wrapSelection("**", "bold text"),
-  i: wrapSelection("_", "italic text"),
-  k: insertLink,
-};
 
 const MarkdownEditor = ({
   name,
@@ -135,6 +204,11 @@ const MarkdownEditor = ({
   const [previewing, setPreviewing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingSelection = useRef<MarkdownSelection>(undefined);
+  const mac = useSyncExternalStore(
+    subscribe,
+    () => /Mac|iPhone|iPad/.test(navigator.userAgent),
+    () => false,
+  );
 
   useEffect(() => {
     const selection = pendingSelection.current;
@@ -163,17 +237,14 @@ const MarkdownEditor = ({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    const shortcut =
-      event.metaKey || event.ctrlKey
-        ? SHORTCUTS[event.key.toLowerCase()]
-        : event.shiftKey && event.key === "Enter"
-          ? insertLineBreak
-          : undefined;
+    const item = TOOLBAR.find(
+      ({ shortcut }) => shortcut && matchesShortcut(shortcut, event, mac),
+    );
 
-    if (!shortcut) return;
+    if (!item) return;
 
     event.preventDefault();
-    apply(shortcut);
+    apply(item.edit);
   };
 
   return (
@@ -190,11 +261,16 @@ const MarkdownEditor = ({
             type="button"
             size="small"
             emphasis="secondary"
+            title={
+              item.shortcut
+                ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
+                : item.title
+            }
             onClick={() => {
               apply(item.edit);
             }}
           >
-            <span title={item.title}>{item.label}</span>
+            {item.label}
           </Button>
         ))}
 
