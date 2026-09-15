@@ -15,7 +15,9 @@ import {
   updatePostBodySchema,
 } from "@home/shared";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
+import { STORAGE_ROOT } from "../fileOperations/storagePath";
 import { resumePostUpload } from "../fileOperations/uploadStorage";
+import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
 import { parseRequest } from "../http/parseRequest";
 import { requireAdmin } from "../http/requireAdmin";
@@ -34,9 +36,12 @@ import { handleDeletePost } from "./handlers/handleDeletePost";
 import { handleDeletePostUpload } from "./handlers/handleDeletePostUpload";
 import { handleGetPost } from "./handlers/handleGetPost";
 import {
+  findPostHeaderImage,
+  findPostInlineImage,
   handleGetPostHeaderImage,
   handleGetPostInlineImage,
   PostImageFile,
+  StoredPostImage,
 } from "./handlers/handleGetPostImage";
 import { handleGetPosts } from "./handlers/handleGetPosts";
 import { handleUpdatePost } from "./handlers/handleUpdatePost";
@@ -60,18 +65,40 @@ const adminBodyGuard: RequestHandler = (req, res, next) => {
 
 const parsePostBody = express.json({ limit: MAX_POST_REQUEST_BODY_BYTES });
 
-const sendImage = (res: Response, image: PostImageFile) => {
-  res.setHeader("Content-Type", image.contentType);
-  res.setHeader("Content-Disposition", "inline");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("ETag", `"${image.etag}"`);
-  res.setHeader(
-    "Cache-Control",
-    `public, max-age=${IMAGE_CACHE_SECONDS}, must-revalidate`,
-  );
+const imageHeaders = (contentType: string, etag: string) => ({
+  "Content-Type": contentType,
+  "Content-Disposition": "inline",
+  "X-Content-Type-Options": "nosniff",
+  ETag: `"${etag}"`,
+  "Cache-Control": `public, max-age=${IMAGE_CACHE_SECONDS}, must-revalidate`,
+});
 
+const sendImage = (res: Response, image: PostImageFile) => {
+  res.set(imageHeaders(image.contentType, image.etag));
   res.send(image.data);
 };
+
+const sendFullSizeImage = (res: Response, image: StoredPostImage) =>
+  new Promise<void>((resolve, reject) => {
+    res.sendFile(
+      image.file.file,
+      {
+        root: STORAGE_ROOT,
+        headers: imageHeaders(image.file.contentType, image.etag),
+      },
+      (error) => {
+        if (!error || res.headersSent) return resolve();
+
+        reject(
+          new ApiError(
+            ApiMessage.POST_FILES_UNAVAILABLE,
+            500,
+            `Could not send ${image.file.file}: ${String(error)}`,
+          ),
+        );
+      },
+    );
+  });
 
 const postRouter = Router();
 
@@ -180,6 +207,32 @@ postRouter.get(
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendImage(res, image);
+  }),
+);
+
+postRouter.get(
+  "/:id/headerImage/fullSize",
+  route(async (req, res) => {
+    const params = parseRequest(postIdParamsSchema, req.params, res);
+    if (!params) return;
+
+    const image = await findPostHeaderImage(params.id);
+    if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+
+    await sendFullSizeImage(res, image);
+  }),
+);
+
+postRouter.get(
+  "/:id/images/:name/fullSize",
+  route(async (req, res) => {
+    const params = parseRequest(postInlineImageParamsSchema, req.params, res);
+    if (!params) return;
+
+    const image = await findPostInlineImage(params.id, params.name);
+    if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+
+    await sendFullSizeImage(res, image);
   }),
 );
 
