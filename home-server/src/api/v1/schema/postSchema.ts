@@ -21,13 +21,16 @@ const postRevisionSchema = new mongoose.Schema(
   { _id: false },
 );
 
-export const postSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  fingerprint: { type: String, required: true, unique: true },
-  authorUserId: { type: Schema.Types.ObjectId, required: true },
-  createdDate: { type: Date, required: true },
-  modifiedDate: { type: Date, required: true },
-  revisions: { type: [postRevisionSchema], required: true },
-});
+export const postSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    fingerprint: { type: String, required: true, unique: true },
+    authorUserId: { type: Schema.Types.ObjectId, required: true },
+    createdDate: { type: Date, required: true },
+    modifiedDate: { type: Date, required: true },
+    revisions: { type: [postRevisionSchema], required: true },
+  },
+  { optimisticConcurrency: true },
+);
 
 postSchema.index({ createdDate: -1 });

@@ -1,11 +1,14 @@
-import { POST_HEADER_IMAGE_NAME, UploadPostImageResponse } from "@home/shared";
+import {
+  CreatePostUploadRequestBody,
+  POST_HEADER_IMAGE_NAME,
+  UploadPostImageResponse,
+} from "@home/shared";
 import {
   contentTypeForName,
   detectFileImageType,
 } from "../../fileOperations/imageType";
 import {
   listStagedPostImages,
-  readPostUploadManifest,
   stagePostImage,
 } from "../../fileOperations/uploadStorage";
 import {
@@ -39,11 +42,9 @@ const stageImage = async (
 
 export const handleUploadPostHeaderImage = async (
   uploadId: string,
+  manifest: CreatePostUploadRequestBody,
   image: ReceivedPostImage | undefined,
-): Promise<UploadPostImageResponse | undefined> => {
-  const manifest = await readPostUploadManifest(uploadId);
-  if (!manifest) return undefined;
-
+): Promise<UploadPostImageResponse> => {
   if (!manifest.headerImage) {
     return failure(ApiMessage.POST_UPLOAD_HAS_NO_HEADER_IMAGE);
   }
@@ -69,12 +70,10 @@ export const handleUploadPostHeaderImage = async (
 
 export const handleUploadPostInlineImage = async (
   uploadId: string,
+  manifest: CreatePostUploadRequestBody,
   name: string,
   image: ReceivedPostImage | undefined,
-): Promise<UploadPostImageResponse | undefined> => {
-  const manifest = await readPostUploadManifest(uploadId);
-  if (!manifest) return undefined;
-
+): Promise<UploadPostImageResponse> => {
   if (!manifest.inlineImages.includes(name)) {
     return failure(inlineImageNotInUpload(name));
   }

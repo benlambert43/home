@@ -5,7 +5,7 @@ import {
 import { ApiMessage } from "../../http/messages";
 import {
   createPostUpload,
-  deleteTemporaryPostUploads,
+  deleteIdlePostUploads,
   newPostUploadId,
 } from "../../fileOperations/uploadStorage";
 import { discardPostUploadOnFailure } from "../postUploads";
@@ -13,7 +13,7 @@ import { discardPostUploadOnFailure } from "../postUploads";
 export const handleCreatePostUpload = async (
   manifest: CreatePostUploadRequestBody,
 ): Promise<CreatePostUploadResponse> => {
-  await deleteTemporaryPostUploads();
+  await deleteIdlePostUploads();
 
   const uploadId = newPostUploadId();
 

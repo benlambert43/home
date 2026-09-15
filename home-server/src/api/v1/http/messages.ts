@@ -37,6 +37,8 @@ export const ApiMessage = {
     "Unable to update email verification status. Please request a new email verification link or try again.",
   POST_CREATED: "Post published.",
   POST_UPDATED: "Post updated.",
+  POST_CHANGED_DURING_UPDATE:
+    "This post was changed while your edit was being saved. Please try again.",
   POST_DELETED: "Post deleted.",
   POST_NOT_FOUND: "That post could not be found.",
   POST_IMAGE_INVALID:

@@ -1,4 +1,6 @@
+import { Error as MongooseError } from "mongoose";
 import { UpdatePostRequestBody, UpdatePostResponse } from "@home/shared";
+import { ApiError } from "../../http/apiError";
 import { ApiMessage, inlineImageNotOnPost } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
 import {
@@ -100,6 +102,11 @@ const updatePost = async (
       `revision ${revision.fingerprint} of post ${post.fingerprint}`,
       () => deletePostRevision(post.fingerprint, revision.fingerprint),
     );
+
+    if (e instanceof MongooseError.VersionError) {
+      throw new ApiError(ApiMessage.POST_CHANGED_DURING_UPDATE, 409, e.message);
+    }
+
     throw e;
   }
 

@@ -8,7 +8,7 @@ import {
   deletePostUpload,
   inspectStagedPostImage,
   listStagedPostImages,
-  readPostUploadManifest,
+  resumePostUpload,
 } from "../fileOperations/uploadStorage";
 import { ApiMessage, inlineImageNotAnImage } from "../http/messages";
 import { Decoded } from "../types/decoded";
@@ -31,15 +31,13 @@ export const discardPostUploadIn = async (body: unknown) => {
   if (upload.success) await discardPostUpload(upload.data.uploadId);
 };
 
-export const discardPostUploadOnFailure = async <
-  Result extends ApiResponse | undefined,
->(
+export const discardPostUploadOnFailure = async <Result extends ApiResponse>(
   uploadId: string,
   attempt: () => Promise<Result>,
 ): Promise<Result> => {
   try {
     const result = await attempt();
-    if (result?.error) await discardPostUpload(uploadId);
+    if (result.error) await discardPostUpload(uploadId);
 
     return result;
   } catch (e) {
@@ -51,7 +49,7 @@ export const discardPostUploadOnFailure = async <
 export const collectPostUploadImages = async (
   uploadId: string,
 ): Promise<Decoded<PostUploadImages>> => {
-  const manifest = await readPostUploadManifest(uploadId);
+  const manifest = await resumePostUpload(uploadId);
   if (!manifest) {
     return { ok: false, message: ApiMessage.POST_UPLOAD_NOT_FOUND };
   }

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { link, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { POST_CONTENT_NAME } from "@home/shared";
@@ -116,7 +117,7 @@ export const writePostRevision = async (
   { content, headerImage, inlineImages }: PostRevisionContent,
 ): Promise<StoredPostRevision> => {
   const createdDate = new Date();
-  const revision = fingerprint(post, createdDate.toISOString());
+  const revision = fingerprint(post, createdDate.toISOString(), randomUUID());
   const directory = revisionDirectory(post, revision);
   const fullSizeImages = path.posix.join(directory, FULL_SIZE_IMAGES_DIRECTORY);
 

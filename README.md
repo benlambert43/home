@@ -32,7 +32,7 @@ Each post revision is a folder at `storage/blog-posts/<post>/<revision>/` holdin
 Images reach a post through an upload of up to 100 inline images plus a header image, each up to 100 MB:
 
 1. `POST /api/v1/posts/uploads` starts an upload with the list of images to expect.
-2. Each image is sent in its own `PUT` request. It streams into `storage/incoming/` and moves to `storage/uploads/<upload>/full_size_images/`.
+2. Each image is sent in its own `PUT` request. It streams into `storage/uploads/<upload>/incoming/` and moves to `storage/uploads/<upload>/full_size_images/`.
 3. Creating or editing the post with the upload id moves the images into the new revision and deletes the upload.
 
 ## Linting
