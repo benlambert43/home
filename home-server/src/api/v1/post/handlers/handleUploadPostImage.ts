@@ -7,10 +7,7 @@ import {
   contentTypeForName,
   detectFileImageType,
 } from "../../fileOperations/imageType";
-import {
-  listStagedPostImages,
-  stagePostImage,
-} from "../../fileOperations/uploadStorage";
+import { stagePostImage } from "../../fileOperations/uploadStorage";
 import {
   ApiMessage,
   imageAlreadyUploaded,
@@ -28,10 +25,13 @@ const failure = (message: string): UploadPostImageResponse => ({
 const stageImage = async (
   uploadId: string,
   image: ReceivedPostImage,
+  stagedName: string,
   name: string,
   contentType: string,
 ): Promise<UploadPostImageResponse> => {
-  await stagePostImage(uploadId, name, image.path);
+  if (!(await stagePostImage(uploadId, stagedName, image.path))) {
+    return failure(imageAlreadyUploaded(stagedName));
+  }
 
   return {
     error: false,
@@ -51,18 +51,13 @@ export const handleUploadPostHeaderImage = async (
 
   if (!image) return failure(ApiMessage.INVALID_REQUEST);
 
-  const staged = await listStagedPostImages(uploadId);
-
-  if (staged.some((file) => file.startsWith(`${POST_HEADER_IMAGE_NAME}.`))) {
-    return failure(imageAlreadyUploaded(POST_HEADER_IMAGE_NAME));
-  }
-
   const imageType = await detectFileImageType(image.path);
   if (!imageType) return failure(ApiMessage.POST_IMAGE_INVALID);
 
   return stageImage(
     uploadId,
     image,
+    POST_HEADER_IMAGE_NAME,
     `${POST_HEADER_IMAGE_NAME}.${imageType.extension}`,
     imageType.contentType,
   );
@@ -80,9 +75,6 @@ export const handleUploadPostInlineImage = async (
 
   if (!image) return failure(ApiMessage.INVALID_REQUEST);
 
-  const staged = await listStagedPostImages(uploadId);
-  if (staged.includes(name)) return failure(imageAlreadyUploaded(name));
-
   const imageType = await detectFileImageType(image.path);
   if (!imageType) return failure(inlineImageNotAnImage(name));
 
@@ -90,5 +82,5 @@ export const handleUploadPostInlineImage = async (
     return failure(inlineImageTypeMismatch(name));
   }
 
-  return stageImage(uploadId, image, name, imageType.contentType);
+  return stageImage(uploadId, image, name, name, imageType.contentType);
 };

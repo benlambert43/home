@@ -2,7 +2,10 @@ import { rm } from "node:fs/promises";
 import { Request, Response } from "express";
 import multer, { MulterError } from "multer";
 import { MAX_POST_IMAGE_BYTES, POST_IMAGE_FIELD } from "@home/shared";
-import { incomingPostUploadPath } from "../fileOperations/uploadStorage";
+import {
+  incomingPostUploadPath,
+  isMissing,
+} from "../fileOperations/uploadStorage";
 import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
 
@@ -41,10 +44,15 @@ export const withReceivedPostImage = async <Result>(
   uploadId: string,
   use: (image: ReceivedPostImage | undefined) => Promise<Result>,
 ): Promise<Result> => {
-  const image = await receivePostImage(req, res, uploadId);
+  let image: ReceivedPostImage | undefined;
 
   try {
+    image = await receivePostImage(req, res, uploadId);
     return await use(image);
+  } catch (e) {
+    if (!isMissing(e)) throw e;
+
+    throw new ApiError(ApiMessage.POST_UPLOAD_NOT_FOUND, 404, String(e));
   } finally {
     if (image) await rm(image.path, { force: true });
   }

@@ -22,7 +22,6 @@ import { ApiMessage } from "../http/messages";
 import { parseRequest } from "../http/parseRequest";
 import { requireAdmin } from "../http/requireAdmin";
 import {
-  sendFailure,
   sendForbidden,
   sendNotFound,
   sendResult,
@@ -49,7 +48,6 @@ import {
   handleUploadPostHeaderImage,
   handleUploadPostInlineImage,
 } from "./handlers/handleUploadPostImage";
-import { discardPostUploadIn, discardPostUploadOnFailure } from "./postUploads";
 import { withReceivedPostImage } from "./uploadImage";
 
 const IMAGE_CACHE_SECONDS = 60;
@@ -120,14 +118,10 @@ postRouter.post(
     const admin = await requireAdmin(req.headers?.authorization, res);
     if (!admin) return;
 
-    const body = createPostBodySchema.safeParse(req.body);
+    const body = parseRequest(createPostBodySchema, req.body, res);
+    if (!body) return;
 
-    if (!body.success) {
-      await discardPostUploadIn(req.body);
-      return sendFailure(res, ApiMessage.INVALID_REQUEST);
-    }
-
-    sendResult(res, await handleCreatePost(admin, body.data));
+    sendResult(res, await handleCreatePost(admin, body));
   }),
 );
 
@@ -152,15 +146,13 @@ postRouter.patch(
     const admin = await requireAdmin(req.headers?.authorization, res);
     if (!admin) return;
 
-    const params = postIdParamsSchema.safeParse(req.params);
-    const body = updatePostBodySchema.safeParse(req.body);
+    const params = parseRequest(postIdParamsSchema, req.params, res);
+    if (!params) return;
 
-    if (!params.success || !body.success) {
-      await discardPostUploadIn(req.body);
-      return sendFailure(res, ApiMessage.INVALID_REQUEST);
-    }
+    const body = parseRequest(updatePostBodySchema, req.body, res);
+    if (!body) return;
 
-    const result = await handleUpdatePost(params.data.id, body.data);
+    const result = await handleUpdatePost(params.id, body);
     if (!result) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendResult(res, result);
@@ -282,10 +274,11 @@ postRouter.put(
     const manifest = await resumePostUpload(params.uploadId);
     if (!manifest) return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
 
-    const result = await discardPostUploadOnFailure(params.uploadId, () =>
-      withReceivedPostImage(req, res, params.uploadId, (image) =>
-        handleUploadPostHeaderImage(params.uploadId, manifest, image),
-      ),
+    const result = await withReceivedPostImage(
+      req,
+      res,
+      params.uploadId,
+      (image) => handleUploadPostHeaderImage(params.uploadId, manifest, image),
     );
 
     sendResult(res, result);
@@ -304,15 +297,17 @@ postRouter.put(
     const manifest = await resumePostUpload(params.uploadId);
     if (!manifest) return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
 
-    const result = await discardPostUploadOnFailure(params.uploadId, () =>
-      withReceivedPostImage(req, res, params.uploadId, (image) =>
+    const result = await withReceivedPostImage(
+      req,
+      res,
+      params.uploadId,
+      (image) =>
         handleUploadPostInlineImage(
           params.uploadId,
           manifest,
           params.name,
           image,
         ),
-      ),
     );
 
     sendResult(res, result);

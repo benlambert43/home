@@ -1,9 +1,10 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
+import { createReadStream } from "node:fs";
 import {
+  link,
   mkdir,
   readdir,
   readFile,
-  rename,
   rm,
   stat,
   utimes,
@@ -34,8 +35,10 @@ const uploadFile = (upload: string, ...names: string[]) =>
 const uploadPath = (upload: string, ...names: string[]) =>
   resolveStoragePath(uploadFile(upload, ...names));
 
-const isMissing = (error: unknown) =>
-  error instanceof Error && "code" in error && error.code === "ENOENT";
+const hasErrorCode = (error: unknown, code: string) =>
+  error instanceof Error && "code" in error && error.code === code;
+
+export const isMissing = (error: unknown) => hasErrorCode(error, "ENOENT");
 
 const unlessMissing = async <Value, Fallback>(
   attempt: () => Promise<Value>,
@@ -115,11 +118,46 @@ export const resumePostUpload = async (upload: string) => {
 export const listStagedPostImages = (upload: string) =>
   readdir(uploadPath(upload, FULL_SIZE_IMAGES_DIRECTORY));
 
-export const stagePostImage = (
+const digestOf = (file: string) =>
+  new Promise<string>((resolve, reject) => {
+    const hash = createHash("sha256");
+
+    createReadStream(file)
+      .on("data", (chunk) => hash.update(chunk))
+      .on("error", reject)
+      .on("end", () => resolve(hash.digest("hex")));
+  });
+
+const haveSameContents = async (first: string, second: string) => {
+  const [firstStats, secondStats] = await Promise.all([
+    stat(first),
+    stat(second),
+  ]);
+  if (firstStats.size !== secondStats.size) return false;
+
+  const [firstDigest, secondDigest] = await Promise.all([
+    digestOf(first),
+    digestOf(second),
+  ]);
+
+  return firstDigest === secondDigest;
+};
+
+export const stagePostImage = async (
   upload: string,
   name: string,
   incomingPath: string,
-) => rename(incomingPath, uploadPath(upload, FULL_SIZE_IMAGES_DIRECTORY, name));
+) => {
+  const stagedPath = uploadPath(upload, FULL_SIZE_IMAGES_DIRECTORY, name);
+
+  try {
+    await link(incomingPath, stagedPath);
+    return true;
+  } catch (e) {
+    if (!hasErrorCode(e, "EEXIST")) throw e;
+    return haveSameContents(incomingPath, stagedPath);
+  }
+};
 
 export const inspectStagedPostImage = async (upload: string, name: string) => {
   const stagedFile = uploadFile(upload, FULL_SIZE_IMAGES_DIRECTORY, name);

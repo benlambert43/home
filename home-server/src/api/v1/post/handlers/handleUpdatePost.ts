@@ -5,8 +5,6 @@ import { ApiMessage, inlineImageNotOnPost } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
 import {
   deletePostRevision,
-  PostFileSource,
-  StagedPostFile,
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import { requireLatestRevision, StoredPostFile } from "../../types/db";
@@ -24,9 +22,9 @@ const namesInLowercase = (names: string[]) =>
 
 const resolveHeaderImage = (
   removed: null | undefined,
-  uploaded: StagedPostFile | undefined,
+  uploaded: StoredPostFile | undefined,
   stored: StoredPostFile | undefined,
-): Decoded<PostFileSource | undefined> => {
+): Decoded<StoredPostFile | undefined> => {
   if (removed === null && uploaded) {
     return {
       ok: false,
@@ -41,9 +39,9 @@ const resolveHeaderImage = (
 
 const resolveInlineImages = (
   stored: StoredPostFile[],
-  uploaded: StagedPostFile[],
+  uploaded: StoredPostFile[],
   removed: string[],
-): Decoded<PostFileSource[]> => {
+): Decoded<StoredPostFile[]> => {
   const onPost = namesInLowercase(stored.map((image) => image.name));
   const missing = removed.find((name) => !onPost.has(name.toLowerCase()));
 
@@ -125,12 +123,11 @@ export const handleUpdatePost = async (
     return updatePost(postId, body, { inlineImages: [] });
   }
 
-  try {
-    const images = await collectPostUploadImages(body.uploadId);
-    if (!images.ok) return { error: true, message: images.message };
+  const images = await collectPostUploadImages(body.uploadId);
+  if (!images.ok) return { error: true, message: images.message };
 
-    return await updatePost(postId, body, images.value);
-  } finally {
-    await discardPostUpload(body.uploadId);
-  }
+  const updated = await updatePost(postId, body, images.value);
+  if (updated?.error === false) await discardPostUpload(body.uploadId);
+
+  return updated;
 };

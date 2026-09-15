@@ -68,12 +68,11 @@ export const handleCreatePost = async (
     return createPost(author, body, { inlineImages: [] });
   }
 
-  try {
-    const images = await collectPostUploadImages(body.uploadId);
-    if (!images.ok) return { error: true, message: images.message };
+  const images = await collectPostUploadImages(body.uploadId);
+  if (!images.ok) return { error: true, message: images.message };
 
-    return await createPost(author, body, images.value);
-  } finally {
-    await discardPostUpload(body.uploadId);
-  }
+  const created = await createPost(author, body, images.value);
+  await discardPostUpload(body.uploadId);
+
+  return created;
 };

@@ -1,4 +1,4 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, rm, stat } from "node:fs/promises";
 import express from "express";
 import { Types } from "mongoose";
 import request, { Response } from "supertest";
@@ -269,6 +269,8 @@ export const afterEachPostTest = async () => {
   for (const post of savedPosts.splice(0)) {
     await deletePostStorage(post.fingerprint);
   }
+
+  await rm(resolveStoragePath("uploads"), { recursive: true, force: true });
 
   vi.unstubAllEnvs();
   vi.restoreAllMocks();

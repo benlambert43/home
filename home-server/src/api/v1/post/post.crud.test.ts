@@ -401,7 +401,7 @@ describe("the blog post api", () => {
         await expect(
           storedFile(revision.inlineImages[0].file),
         ).rejects.toThrow();
-        await expect(storedUploads()).resolves.toEqual([]);
+        await expect(storedUploads()).resolves.toHaveLength(1);
       });
 
       it("logs and keeps reporting the save failure when cleanup also fails", async () => {
