@@ -11,7 +11,7 @@ const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 const BLOG_POSTS_DIRECTORY = "blog-posts";
 
-const FULL_SIZE_IMAGES_DIRECTORY = "full_size_images";
+export const FULL_SIZE_IMAGES_DIRECTORY = "full_size_images";
 
 const THUMBNAILS_DIRECTORY = "thumbnails";
 

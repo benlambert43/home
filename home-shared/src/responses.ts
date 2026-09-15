@@ -59,3 +59,7 @@ export type GetPostResponse = ApiResponse<{ post: Post }>;
 export type UpdatePostResponse = ApiResponse<{ post: Post }>;
 
 export type DeletePostResponse = ApiResponse;
+
+export type CreatePostUploadResponse = ApiResponse<{ uploadId: string }>;
+
+export type DeletePostUploadResponse = ApiResponse;

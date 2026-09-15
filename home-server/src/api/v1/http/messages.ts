@@ -45,6 +45,9 @@ export const ApiMessage = {
     "This post's files could not be read from storage. Please try again.",
   POST_HAS_NO_REVISION:
     "This post has no saved content. Please try again, or edit the post to republish it.",
+  POST_UPLOAD_STARTED: "Upload started.",
+  POST_UPLOAD_DISCARDED: "Upload discarded.",
+  POST_UPLOAD_NOT_FOUND: "That upload could not be found. Please start again.",
 } as const;
 
 export const accountAlreadyExists = (field: "email" | "username") =>

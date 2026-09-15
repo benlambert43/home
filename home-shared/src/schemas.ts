@@ -194,6 +194,14 @@ const postInlineImageNameField = z
     },
   );
 
+const MAX_INLINE_IMAGES_MESSAGE = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
+
+const UNIQUE_IMAGE_NAMES_MESSAGE =
+  "Each image in a post needs its own file name.";
+
+const hasUniqueImageNames = (names: string[]) =>
+  new Set(names.map((name) => name.toLowerCase())).size === names.length;
+
 const postInlineImagesField = z
   .array(
     z.object({
@@ -201,15 +209,27 @@ const postInlineImagesField = z
       data: base64ImageField("post image", MAX_POST_IMAGE_BYTES),
     }),
   )
-  .max(MAX_POST_INLINE_IMAGES, {
-    message: `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`,
-  })
-  .refine(
-    (images) =>
-      new Set(images.map((image) => image.name.toLowerCase())).size ===
-      images.length,
-    { message: "Each image in a post needs its own file name." },
-  );
+  .max(MAX_POST_INLINE_IMAGES, { message: MAX_INLINE_IMAGES_MESSAGE })
+  .refine((images) => hasUniqueImageNames(images.map((image) => image.name)), {
+    message: UNIQUE_IMAGE_NAMES_MESSAGE,
+  });
+
+const postUploadIdField = z
+  .string()
+  .regex(/^[0-9a-fA-F]{32}$/, { message: "Invalid upload id." })
+  .transform((id) => id.toLowerCase());
+
+export const createPostUploadBodySchema = z.object({
+  headerImage: z.boolean(),
+  inlineImages: z
+    .array(postInlineImageNameField)
+    .max(MAX_POST_INLINE_IMAGES, { message: MAX_INLINE_IMAGES_MESSAGE })
+    .refine(hasUniqueImageNames, { message: UNIQUE_IMAGE_NAMES_MESSAGE }),
+});
+
+export const postUploadParamsSchema = z.object({
+  uploadId: postUploadIdField,
+});
 
 export const createPostBodySchema = z.object({
   title: postTitleField,

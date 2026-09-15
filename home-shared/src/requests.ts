@@ -4,6 +4,7 @@ import {
   changeUsernameBodySchema,
   createAccountBodySchema,
   createPostBodySchema,
+  createPostUploadBodySchema,
   postListQuerySchema,
   requestNewEmailVerificationLinkBodySchema,
   requestPasswordResetBodySchema,
@@ -39,6 +40,10 @@ export type CreatePostRequestBody = z.infer<typeof createPostBodySchema>;
 export type UpdatePostRequestBody = z.infer<typeof updatePostBodySchema>;
 
 export type PostListQuery = z.infer<typeof postListQuerySchema>;
+
+export type CreatePostUploadRequestBody = z.infer<
+  typeof createPostUploadBodySchema
+>;
 
 export type PostInlineImageRequest =
   CreatePostRequestBody["inlineImages"][number];

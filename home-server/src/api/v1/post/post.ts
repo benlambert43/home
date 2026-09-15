@@ -1,13 +1,16 @@
 import express, { RequestHandler, Response, Router } from "express";
 import {
   createPostBodySchema,
+  createPostUploadBodySchema,
   DeletePostResponse,
+  DeletePostUploadResponse,
   GetPostResponse,
   GetPostsResponse,
   MAX_POST_REQUEST_BODY_BYTES,
   postIdParamsSchema,
   postInlineImageParamsSchema,
   postListQuerySchema,
+  postUploadParamsSchema,
   updatePostBodySchema,
 } from "@home/shared";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
@@ -23,7 +26,9 @@ import {
 } from "../http/respond";
 import { route } from "../http/router";
 import { handleCreatePost } from "./handlers/handleCreatePost";
+import { handleCreatePostUpload } from "./handlers/handleCreatePostUpload";
 import { handleDeletePost } from "./handlers/handleDeletePost";
+import { handleDeletePostUpload } from "./handlers/handleDeletePostUpload";
 import { handleGetPost } from "./handlers/handleGetPost";
 import {
   handleGetPostHeaderImage,
@@ -160,6 +165,40 @@ postRouter.get(
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendImage(res, image);
+  }),
+);
+
+postRouter.post(
+  "/uploads",
+  adminBodyGuard,
+  parsePostBody,
+  route(async (req, res) => {
+    const admin = await requireAdmin(req.headers?.authorization, res);
+    if (!admin) return;
+
+    const body = parseRequest(createPostUploadBodySchema, req.body, res);
+    if (!body) return;
+
+    sendResult(res, await handleCreatePostUpload(body));
+  }),
+);
+
+postRouter.delete(
+  "/uploads/:uploadId",
+  route(async (req, res) => {
+    const admin = await requireAdmin(req.headers?.authorization, res);
+    if (!admin) return;
+
+    const params = parseRequest(postUploadParamsSchema, req.params, res);
+    if (!params) return;
+
+    if (!(await handleDeletePostUpload(params.uploadId))) {
+      return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
+    }
+
+    sendSuccess<DeletePostUploadResponse>(res, {
+      message: ApiMessage.POST_UPLOAD_DISCARDED,
+    });
   }),
 );
 
