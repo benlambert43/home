@@ -1,7 +1,7 @@
 import "server-only";
 import { NOT_FOUND_STATUS, SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/api";
 import { POSTS_URL } from "@/app/lib/posts";
-import { postIdParamsSchema, postInlineImageParamsSchema } from "@home/shared";
+import { postImageParamsSchema } from "@home/shared";
 
 const BAD_GATEWAY_STATUS = 502;
 
@@ -71,24 +71,8 @@ const proxyImage = async (request: Request, url: string) => {
 
 const notFoundResponse = () => new Response(null, { status: NOT_FOUND_STATUS });
 
-export const proxyFullSizeHeaderImage = async (
-  request: Request,
-  params: unknown,
-) => {
-  const parsed = postIdParamsSchema.safeParse(params);
-  if (!parsed.success) return notFoundResponse();
-
-  return proxyImage(
-    request,
-    `${POSTS_URL}/${parsed.data.id}/headerImage/fullSize`,
-  );
-};
-
-export const proxyFullSizeInlineImage = async (
-  request: Request,
-  params: unknown,
-) => {
-  const parsed = postInlineImageParamsSchema.safeParse(params);
+export const proxyFullSizeImage = async (request: Request, params: unknown) => {
+  const parsed = postImageParamsSchema.safeParse(params);
   if (!parsed.success) return notFoundResponse();
 
   const { id, name } = parsed.data;

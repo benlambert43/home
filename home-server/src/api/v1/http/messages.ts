@@ -41,8 +41,6 @@ export const ApiMessage = {
     "This post was changed while your edit was being saved. Please try again.",
   POST_DELETED: "Post deleted.",
   POST_NOT_FOUND: "That post could not be found.",
-  POST_IMAGE_INVALID:
-    "Header image must be a PNG, JPEG, WebP, GIF, or AVIF image.",
   POST_FILES_UNAVAILABLE:
     "This post's files could not be read from storage. Please try again.",
   POST_HAS_NO_REVISION:
@@ -50,8 +48,6 @@ export const ApiMessage = {
   POST_UPLOAD_STARTED: "Upload started.",
   POST_UPLOAD_DISCARDED: "Upload discarded.",
   POST_UPLOAD_NOT_FOUND: "That upload could not be found. Please start again.",
-  POST_UPLOAD_HAS_NO_HEADER_IMAGE:
-    "This upload does not include a header image.",
   POST_IMAGE_UPLOADED: "Image uploaded.",
   POST_UPLOAD_INCOMPLETE: "Not every image in this upload has been uploaded.",
   POST_HEADER_IMAGE_REMOVED_AND_UPLOADED:
@@ -61,17 +57,20 @@ export const ApiMessage = {
 export const accountAlreadyExists = (field: "email" | "username") =>
   `An account with this ${field} already exists.`;
 
-export const inlineImageNotAnImage = (name: string) =>
+export const imageNotAnImage = (name: string) =>
   `${name} is not a PNG, JPEG, WebP, GIF, or AVIF image.`;
 
-export const inlineImageTypeMismatch = (name: string) =>
+export const imageTypeMismatch = (name: string) =>
   `The contents of ${name} do not match the file extension in its name.`;
 
 export const inlineImageNotOnPost = (name: string) =>
-  `${name} is not an image on this post.`;
+  `${name} is not an inline image on this post.`;
 
-export const inlineImageNotInUpload = (name: string) =>
+export const imageNotInUpload = (name: string) =>
   `${name} is not an image in this upload.`;
+
+export const imageNameTaken = (name: string) =>
+  `Another image on this post is already named ${name}.`;
 
 export const imageAlreadyUploaded = (name: string) =>
   `${name} has already been uploaded.`;

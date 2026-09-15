@@ -1,6 +1,6 @@
 import { CURRENT_REVISION_ONLY, PostModel } from "../../model/postModel";
 import { readPostFile } from "../../fileOperations/postStorage";
-import { latestRevision, StoredPostFile } from "../../types/db";
+import { latestRevision, revisionImages, StoredPostFile } from "../../types/db";
 
 export interface PostImageFile {
   data: Buffer;
@@ -19,9 +19,26 @@ const currentRevision = async (postId: string) => {
   return post ? latestRevision(post.revisions) : undefined;
 };
 
-const readImage = async (
-  image: StoredPostImage | undefined,
+export const findPostImage = async (
+  postId: string,
+  name: string,
+): Promise<StoredPostImage | undefined> => {
+  const revision = await currentRevision(postId);
+  if (!revision) return undefined;
+
+  const image = revisionImages(revision).find(
+    (candidate) => candidate.name === name,
+  );
+  if (!image) return undefined;
+
+  return { file: image, etag: `${revision.fingerprint}-${name}` };
+};
+
+export const handleGetPostImage = async (
+  postId: string,
+  name: string,
 ): Promise<PostImageFile | undefined> => {
+  const image = await findPostImage(postId, name);
   if (!image) return undefined;
 
   return {
@@ -30,33 +47,3 @@ const readImage = async (
     etag: image.etag,
   };
 };
-
-export const findPostHeaderImage = async (
-  postId: string,
-): Promise<StoredPostImage | undefined> => {
-  const revision = await currentRevision(postId);
-  if (!revision?.headerImage) return undefined;
-
-  return { file: revision.headerImage, etag: revision.fingerprint };
-};
-
-export const findPostInlineImage = async (
-  postId: string,
-  name: string,
-): Promise<StoredPostImage | undefined> => {
-  const revision = await currentRevision(postId);
-  if (!revision) return undefined;
-
-  const image = revision.inlineImages.find(
-    (candidate) => candidate.name === name,
-  );
-  if (!image) return undefined;
-
-  return { file: image, etag: `${revision.fingerprint}-${name}` };
-};
-
-export const handleGetPostHeaderImage = async (postId: string) =>
-  readImage(await findPostHeaderImage(postId));
-
-export const handleGetPostInlineImage = async (postId: string, name: string) =>
-  readImage(await findPostInlineImage(postId, name));

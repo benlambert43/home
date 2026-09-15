@@ -5,11 +5,9 @@ import request, { Response } from "supertest";
 import { expect, vi } from "vitest";
 import {
   Post,
-  postHeaderImagePath,
-  POST_HEADER_IMAGE_NAME,
   POST_IMAGE_FIELD,
-  postInlineImagePath,
-  postInlineImageReference,
+  postImagePath,
+  postImageReference,
   PostSummary,
   UserNoPassword,
 } from "@home/shared";
@@ -33,6 +31,8 @@ export const JPEG_IMAGE = Buffer.from(
 );
 
 export const NOT_AN_IMAGE = Buffer.from("# Markdown, not an image.", "utf8");
+
+export const HEADER_IMAGE_NAME = "cover.png";
 
 export const TITLE = "Building the blog";
 
@@ -106,9 +106,14 @@ export const apiCall = (
   return body === undefined ? authorized : authorized.send(body);
 };
 
+interface NamedImage {
+  name: string;
+  data: Buffer;
+}
+
 interface PostRequest {
-  headerImage?: Buffer;
-  inlineImages?: { name: string; data: Buffer }[];
+  headerImage?: NamedImage;
+  inlineImages?: NamedImage[];
   [field: string]: unknown;
 }
 
@@ -130,20 +135,16 @@ const sendWithImages = async (
 
   const upload = await apiCall("post", "/uploads", {
     body: {
-      headerImage: headerImage !== undefined,
+      headerImage: headerImage?.name,
       inlineImages: inlineImages.map((image) => image.name),
     },
   });
   if (upload.status !== 200) return upload;
 
   const { uploadId } = upload.body as { uploadId: string };
+  const images = headerImage ? [headerImage, ...inlineImages] : inlineImages;
 
-  if (headerImage) {
-    const uploaded = await uploadImage(`${uploadId}/headerImage`, headerImage);
-    if (uploaded.status !== 200) return uploaded;
-  }
-
-  for (const { name, data } of inlineImages) {
+  for (const { name, data } of images) {
     const uploaded = await uploadImage(`${uploadId}/images/${name}`, data);
     if (uploaded.status !== 200) return uploaded;
   }
@@ -160,14 +161,17 @@ export const updatePost = (
   token?: string | null,
 ) => sendWithImages("patch", `/${post._id.toString()}`, request, token);
 
+export const postImage = (name: string, data: Buffer): NamedImage => ({
+  name,
+  data,
+});
+
 export const validBody = (overrides: Record<string, unknown> = {}) => ({
   title: TITLE,
   content: CONTENT,
-  headerImage: PNG_IMAGE,
+  headerImage: postImage(HEADER_IMAGE_NAME, PNG_IMAGE),
   ...overrides,
 });
-
-export const inlineImage = (name: string, data: Buffer) => ({ name, data });
 
 export const storedUploads = () =>
   readdir(resolveStoragePath("uploads")).catch(() => []);
@@ -192,14 +196,7 @@ export const storedInode = async (file: string) =>
 export const currentRevision = (post: PostDocument) =>
   post.revisions[post.revisions.length - 1];
 
-export const headerImageResponse = (postId: string) => ({
-  name: `${POST_HEADER_IMAGE_NAME}.png`,
-  contentType: "image/png",
-  byteSize: PNG_IMAGE.byteLength,
-  path: postHeaderImagePath(postId),
-});
-
-export const inlineImageResponse = (
+export const imageResponse = (
   postId: string,
   name: string,
   data: Buffer,
@@ -208,9 +205,12 @@ export const inlineImageResponse = (
   name,
   contentType,
   byteSize: data.byteLength,
-  path: postInlineImagePath(postId, name),
-  reference: postInlineImageReference(name),
+  path: postImagePath(postId, name),
+  reference: postImageReference(name),
 });
+
+export const headerImageResponse = (postId: string) =>
+  imageResponse(postId, HEADER_IMAGE_NAME, PNG_IMAGE, "image/png");
 
 export const postSummaryResponse = (
   post: PostDocument,

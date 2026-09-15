@@ -1,13 +1,21 @@
 import { Error as MongooseError } from "mongoose";
 import { UpdatePostRequestBody, UpdatePostResponse } from "@home/shared";
 import { ApiError } from "../../http/apiError";
-import { ApiMessage, inlineImageNotOnPost } from "../../http/messages";
+import {
+  ApiMessage,
+  imageNameTaken,
+  inlineImageNotOnPost,
+} from "../../http/messages";
 import { PostModel } from "../../model/postModel";
 import {
   deletePostRevision,
   writePostRevision,
 } from "../../fileOperations/postStorage";
-import { requireLatestRevision, StoredPostFile } from "../../types/db";
+import {
+  requireLatestRevision,
+  revisionImages,
+  StoredPostFile,
+} from "../../types/db";
 import { Decoded } from "../../types/decoded";
 import {
   collectPostUploadImages,
@@ -56,6 +64,14 @@ const resolveInlineImages = (
   return { ok: true, value: [...kept, ...uploaded] };
 };
 
+const duplicateImageName = (images: StoredPostFile[]) => {
+  const names = images.map((image) => image.name.toLowerCase());
+
+  return images.find(
+    (image, index) => names.indexOf(image.name.toLowerCase()) !== index,
+  )?.name;
+};
+
 const updatePost = async (
   postId: string,
   body: UpdatePostRequestBody,
@@ -79,6 +95,14 @@ const updatePost = async (
     body.removeInlineImages ?? [],
   );
   if (!inlineImages.ok) return { error: true, message: inlineImages.message };
+
+  const duplicate = duplicateImageName(
+    revisionImages({
+      headerImage: headerImage.value,
+      inlineImages: inlineImages.value,
+    }),
+  );
+  if (duplicate) return { error: true, message: imageNameTaken(duplicate) };
 
   const revision = await writePostRevision(post.fingerprint, {
     content: body.content ?? previous.content,

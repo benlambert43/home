@@ -13,8 +13,5 @@ export const postCanonicalHref = (id: string) => `/blog/${id}`;
 export const postHref = (id: string, page: number) =>
   page > 1 ? `${postCanonicalHref(id)}?page=${page}` : postCanonicalHref(id);
 
-export const postHeaderImageHref = (id: string) =>
-  `${postCanonicalHref(id)}/headerImage`;
-
-export const postInlineImageHref = (id: string, name: string) =>
+export const postImageHref = (id: string, name: string) =>
   `${postCanonicalHref(id)}/images/${encodeURIComponent(name)}`;

@@ -3,11 +3,11 @@ import { containsRawHtml, normalizePostContent } from "./markdown";
 import {
   DEFAULT_POST_PAGE_SIZE,
   MAX_POST_CONTENT_CHARACTERS,
-  MAX_POST_INLINE_IMAGE_NAME_CHARACTERS,
+  MAX_POST_IMAGE_NAME_CHARACTERS,
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
   MAX_POST_TITLE_CHARACTERS,
-  POST_HEADER_IMAGE_NAME,
+  postUploadImageNames,
 } from "./post";
 
 const nameField = (label: string) =>
@@ -145,21 +145,15 @@ const postContentField = z
     message: "Post content may not contain HTML. Please use Markdown instead.",
   });
 
-const postInlineImageNameField = z
+const postImageNameField = z
   .string()
-  .max(MAX_POST_INLINE_IMAGE_NAME_CHARACTERS, {
-    message: `An image name must be ${MAX_POST_INLINE_IMAGE_NAME_CHARACTERS} characters or fewer.`,
+  .max(MAX_POST_IMAGE_NAME_CHARACTERS, {
+    message: `An image name must be ${MAX_POST_IMAGE_NAME_CHARACTERS} characters or fewer.`,
   })
   .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*\.(png|jpe?g|webp|gif|avif)$/, {
     message:
       "An image name must be letters, numbers, dashes, or underscores, ending in .png, .jpg, .jpeg, .webp, .gif, or .avif.",
-  })
-  .refine(
-    (name) => !name.toLowerCase().startsWith(`${POST_HEADER_IMAGE_NAME}.`),
-    {
-      message: `An image may not be named ${POST_HEADER_IMAGE_NAME}, that name is reserved for the header image.`,
-    },
-  );
+  });
 
 const MAX_INLINE_IMAGES_MESSAGE = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
 
@@ -174,13 +168,16 @@ const postUploadIdField = z
   .regex(/^[0-9a-fA-F]{32}$/, { message: "Invalid upload id." })
   .transform((id) => id.toLowerCase());
 
-export const createPostUploadBodySchema = z.object({
-  headerImage: z.boolean(),
-  inlineImages: z
-    .array(postInlineImageNameField)
-    .max(MAX_POST_INLINE_IMAGES, { message: MAX_INLINE_IMAGES_MESSAGE })
-    .refine(hasUniqueImageNames, { message: UNIQUE_IMAGE_NAMES_MESSAGE }),
-});
+export const createPostUploadBodySchema = z
+  .object({
+    headerImage: postImageNameField.optional(),
+    inlineImages: z
+      .array(postImageNameField)
+      .max(MAX_POST_INLINE_IMAGES, { message: MAX_INLINE_IMAGES_MESSAGE }),
+  })
+  .refine((upload) => hasUniqueImageNames(postUploadImageNames(upload)), {
+    message: UNIQUE_IMAGE_NAMES_MESSAGE,
+  });
 
 export const postUploadParamsSchema = z.object({
   uploadId: postUploadIdField,
@@ -207,7 +204,7 @@ export const updatePostBodySchema = z
     content: postContentField.optional(),
     headerImage: z.null().optional(),
     uploadId: postUploadIdField.optional(),
-    removeInlineImages: z.array(postInlineImageNameField).optional(),
+    removeInlineImages: z.array(postImageNameField).optional(),
   })
   .refine(
     (body) =>
@@ -226,8 +223,8 @@ export const postIdParamsSchema = z.object({
     .transform((id) => id.toLowerCase()),
 });
 
-export const postInlineImageParamsSchema = postIdParamsSchema.extend({
-  name: postInlineImageNameField,
+export const postImageParamsSchema = postIdParamsSchema.extend({
+  name: postImageNameField,
 });
 
 export const postListQuerySchema = z.object({

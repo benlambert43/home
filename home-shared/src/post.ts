@@ -6,7 +6,7 @@ export const MAX_POST_IMAGE_BYTES = 100 * 1024 * 1024;
 
 export const MAX_POST_INLINE_IMAGES = 100;
 
-export const MAX_POST_INLINE_IMAGE_NAME_CHARACTERS = 64;
+export const MAX_POST_IMAGE_NAME_CHARACTERS = 64;
 
 const MAX_UTF8_BYTES_PER_CHARACTER = 4;
 
@@ -26,9 +26,7 @@ export type PostImageContentType =
 
 export const POST_CONTENT_NAME = "content-markdown";
 
-export const POST_HEADER_IMAGE_NAME = "image-header";
-
-export const POST_INLINE_IMAGES_DIRECTORY = "images";
+export const POST_IMAGES_DIRECTORY = "images";
 
 export const POST_IMAGE_FIELD = "image";
 
@@ -40,9 +38,6 @@ export interface UploadedPostImage {
 
 export interface PostImage extends UploadedPostImage {
   path: string;
-}
-
-export interface PostInlineImage extends PostImage {
   reference: string;
 }
 
@@ -59,7 +54,7 @@ export interface PostSummary {
 
 export interface Post extends PostSummary {
   content: string;
-  inlineImages: PostInlineImage[];
+  inlineImages: PostImage[];
 }
 
 export interface PostPagination {
@@ -70,11 +65,17 @@ export interface PostPagination {
   hasMore: boolean;
 }
 
-export const postHeaderImagePath = (postId: string) =>
-  `posts/${postId}/headerImage`;
-
-export const postInlineImagePath = (postId: string, name: string) =>
+export const postImagePath = (postId: string, name: string) =>
   `posts/${postId}/images/${name}`;
 
-export const postInlineImageReference = (name: string) =>
-  `./${POST_INLINE_IMAGES_DIRECTORY}/${name}`;
+export const postImageReference = (name: string) =>
+  `./${POST_IMAGES_DIRECTORY}/${name}`;
+
+export const postUploadImageNames = ({
+  headerImage,
+  inlineImages,
+}: {
+  headerImage?: string;
+  inlineImages: string[];
+}) =>
+  headerImage === undefined ? inlineImages : [headerImage, ...inlineImages];

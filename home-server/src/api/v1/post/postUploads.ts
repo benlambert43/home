@@ -1,11 +1,11 @@
-import { POST_HEADER_IMAGE_NAME } from "@home/shared";
+import { postUploadImageNames } from "@home/shared";
 import {
   deletePostUpload,
   inspectStagedPostImage,
   listStagedPostImages,
   resumePostUpload,
 } from "../fileOperations/uploadStorage";
-import { ApiMessage, inlineImageNotAnImage } from "../http/messages";
+import { ApiMessage, imageNotAnImage } from "../http/messages";
 import { StoredPostFile } from "../types/db";
 import { Decoded } from "../types/decoded";
 
@@ -13,11 +13,6 @@ export interface PostUploadImages {
   headerImage?: StoredPostFile;
   inlineImages: StoredPostFile[];
 }
-
-const postImageName = (stagedName: string, extension: string) =>
-  stagedName === POST_HEADER_IMAGE_NAME
-    ? `${POST_HEADER_IMAGE_NAME}.${extension}`
-    : stagedName;
 
 export const discardPostUpload = (uploadId: string) =>
   deletePostUpload(uploadId).catch((e: unknown) => {
@@ -44,9 +39,7 @@ export const collectPostUploadImages = async (
     return { ok: false, message: ApiMessage.POST_UPLOAD_NOT_FOUND };
   }
 
-  const expected = manifest.headerImage
-    ? [POST_HEADER_IMAGE_NAME, ...manifest.inlineImages]
-    : manifest.inlineImages;
+  const expected = postUploadImageNames(manifest);
   const staged = await listStagedPostImages(uploadId);
 
   if (!expected.every((name) => staged.includes(name))) {
@@ -55,28 +48,28 @@ export const collectPostUploadImages = async (
 
   const collected: StoredPostFile[] = [];
 
-  for (const stagedName of expected) {
+  for (const name of expected) {
     const { stagedFile, byteSize, imageType } = await inspectStagedPostImage(
       uploadId,
-      stagedName,
+      name,
     );
-    if (!imageType) {
-      return { ok: false, message: inlineImageNotAnImage(stagedName) };
-    }
+    if (!imageType) return { ok: false, message: imageNotAnImage(name) };
 
     collected.push({
-      name: postImageName(stagedName, imageType.extension),
+      name,
       file: stagedFile,
       contentType: imageType.contentType,
       byteSize,
     });
   }
 
+  const hasHeaderImage = manifest.headerImage !== undefined;
+
   return {
     ok: true,
     value: {
-      headerImage: manifest.headerImage ? collected[0] : undefined,
-      inlineImages: collected.slice(manifest.headerImage ? 1 : 0),
+      headerImage: hasHeaderImage ? collected[0] : undefined,
+      inlineImages: collected.slice(hasHeaderImage ? 1 : 0),
     },
   };
 };

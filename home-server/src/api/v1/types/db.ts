@@ -41,6 +41,12 @@ export interface StoredPost<Id = Types.ObjectId, Timestamp = Date> {
 
 export type PostDocument = StoredPost;
 
+export const revisionImages = ({
+  headerImage,
+  inlineImages,
+}: Pick<StoredPostRevision, "headerImage" | "inlineImages">) =>
+  headerImage ? [headerImage, ...inlineImages] : inlineImages;
+
 export const latestRevision = <Revision>(
   revisions: Revision[],
 ): Revision | undefined => revisions[revisions.length - 1];

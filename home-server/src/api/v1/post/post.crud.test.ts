@@ -4,17 +4,15 @@ import {
   MAX_POST_INLINE_IMAGES,
   MAX_POST_TITLE_CHARACTERS,
   POST_CONTENT_NAME,
-  POST_HEADER_IMAGE_NAME,
-  postHeaderImagePath,
   PostSummary,
   UserNoPassword,
 } from "@home/shared";
 import { createApiToken } from "../auth/createApiToken";
 import {
   ApiMessage,
-  inlineImageNotAnImage,
+  imageNotAnImage,
+  imageTypeMismatch,
   inlineImageNotOnPost,
-  inlineImageTypeMismatch,
 } from "../http/messages";
 import { PostModel } from "../model/postModel";
 import { deletePostStorage } from "../fileOperations/postStorage";
@@ -27,14 +25,15 @@ import {
   createPost,
   currentRevision,
   expectFailure,
+  HEADER_IMAGE_NAME,
   headerImageFile,
-  inlineImage,
-  inlineImageResponse,
+  imageResponse,
   JPEG_IMAGE,
   loggedErrors,
   makeUser,
   NOT_AN_IMAGE,
   PNG_IMAGE,
+  postImage,
   postResponse,
   postSummaryResponse,
   responsePost,
@@ -162,8 +161,8 @@ describe("the blog post api", () => {
         const response = await createPost(
           validBody({
             inlineImages: [
-              inlineImage("diagram.png", PNG_IMAGE),
-              inlineImage("screenshot.jpg", JPEG_IMAGE),
+              postImage("diagram.png", PNG_IMAGE),
+              postImage("screenshot.jpg", JPEG_IMAGE),
             ],
           }),
         );
@@ -177,18 +176,8 @@ describe("the blog post api", () => {
           ...createdBody(post),
           post: postResponse(post, {
             inlineImages: [
-              inlineImageResponse(
-                postId,
-                "diagram.png",
-                PNG_IMAGE,
-                "image/png",
-              ),
-              inlineImageResponse(
-                postId,
-                "screenshot.jpg",
-                JPEG_IMAGE,
-                "image/jpeg",
-              ),
+              imageResponse(postId, "diagram.png", PNG_IMAGE, "image/png"),
+              imageResponse(postId, "screenshot.jpg", JPEG_IMAGE, "image/jpeg"),
             ],
           }),
         });
@@ -238,17 +227,12 @@ describe("the blog post api", () => {
         ["loop.gif", GIF_IMAGE, "image/gif"],
       ])("stores %s as an inline image", async (name, data, contentType) => {
         const response = await createPost(
-          validBody({ inlineImages: [inlineImage(name, data)] }),
+          validBody({ inlineImages: [postImage(name, data)] }),
         );
 
         expect(response.status).toBe(200);
         expect(responsePost(response).inlineImages).toEqual([
-          inlineImageResponse(
-            savedPosts[0]._id.toString(),
-            name,
-            data,
-            contentType,
-          ),
+          imageResponse(savedPosts[0]._id.toString(), name, data, contentType),
         ]);
       });
     });
@@ -329,14 +313,14 @@ describe("the blog post api", () => {
         ],
         [
           "an inline image name with an unsupported extension",
-          validBody({ inlineImages: [inlineImage("diagram.bmp", PNG_IMAGE)] }),
+          validBody({ inlineImages: [postImage("diagram.bmp", PNG_IMAGE)] }),
         ],
         [
           "two inline images sharing a name",
           validBody({
             inlineImages: [
-              inlineImage("diagram.png", PNG_IMAGE),
-              inlineImage("Diagram.png", PNG_IMAGE),
+              postImage("diagram.png", PNG_IMAGE),
+              postImage("Diagram.png", PNG_IMAGE),
             ],
           }),
         ],
@@ -345,7 +329,7 @@ describe("the blog post api", () => {
           validBody({
             inlineImages: Array.from(
               { length: MAX_POST_INLINE_IMAGES + 1 },
-              (_value, index) => inlineImage(`diagram-${index}.png`, PNG_IMAGE),
+              (_value, index) => postImage(`diagram-${index}.png`, PNG_IMAGE),
             ),
           }),
         ],
@@ -358,20 +342,22 @@ describe("the blog post api", () => {
       it.each([
         [
           "a header image of an unsupported type",
-          validBody({ headerImage: NOT_AN_IMAGE }),
-          ApiMessage.POST_IMAGE_INVALID,
+          validBody({
+            headerImage: postImage(HEADER_IMAGE_NAME, NOT_AN_IMAGE),
+          }),
+          imageNotAnImage(HEADER_IMAGE_NAME),
         ],
         [
           "an inline image of an unsupported type",
           validBody({
-            inlineImages: [inlineImage("diagram.png", NOT_AN_IMAGE)],
+            inlineImages: [postImage("diagram.png", NOT_AN_IMAGE)],
           }),
-          inlineImageNotAnImage("diagram.png"),
+          imageNotAnImage("diagram.png"),
         ],
         [
           "an inline image whose contents do not match its name",
-          validBody({ inlineImages: [inlineImage("diagram.png", JPEG_IMAGE)] }),
-          inlineImageTypeMismatch("diagram.png"),
+          validBody({ inlineImages: [postImage("diagram.png", JPEG_IMAGE)] }),
+          imageTypeMismatch("diagram.png"),
         ],
       ])("is rejected for %s", async (_description, body, message) => {
         expectRejected(await createPost(body), 400, message);
@@ -385,7 +371,7 @@ describe("the blog post api", () => {
 
       it("removes the files it wrote and reports an unexpected failure", async () => {
         const response = await createPost(
-          validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
+          validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
         );
 
         const revision = currentRevision(savedPosts[0]);
@@ -458,7 +444,7 @@ describe("the blog post api", () => {
   describe("GET /api/v1/posts/:id", () => {
     it("returns the post with its content and images", async () => {
       const post = await publishPost(
-        validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
+        validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
       );
 
       const response = await apiCall("get", postPath(post));
@@ -468,7 +454,7 @@ describe("the blog post api", () => {
         error: false,
         post: postResponse(post, {
           inlineImages: [
-            inlineImageResponse(
+            imageResponse(
               post._id.toString(),
               "diagram.png",
               PNG_IMAGE,
@@ -523,22 +509,25 @@ describe("the blog post api", () => {
   });
 
   describe("GET /api/v1/posts/:id/images", () => {
-    it("returns the header image with its caching headers", async () => {
+    it("returns the header image by name with its caching headers", async () => {
       const post = await publishPost();
 
-      const response = await apiCall("get", `${postPath(post)}/headerImage`);
+      const response = await apiCall(
+        "get",
+        `${postPath(post)}/images/${HEADER_IMAGE_NAME}`,
+      );
 
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("image/png");
       expect(response.headers.etag).toBe(
-        `"${currentRevision(post).fingerprint}"`,
+        `"${currentRevision(post).fingerprint}-${HEADER_IMAGE_NAME}"`,
       );
       expect(response.body).toEqual(PNG_IMAGE);
     });
 
     it("returns an inline image by name", async () => {
       const post = await publishPost(
-        validBody({ inlineImages: [inlineImage("chart.jpg", JPEG_IMAGE)] }),
+        validBody({ inlineImages: [postImage("chart.jpg", JPEG_IMAGE)] }),
       );
 
       const response = await apiCall(
@@ -549,16 +538,6 @@ describe("the blog post api", () => {
       expect(response.status).toBe(200);
       expect(response.headers["content-type"]).toBe("image/jpeg");
       expect(response.body).toEqual(JPEG_IMAGE);
-    });
-
-    it("is not found when the post has no header image", async () => {
-      const post = await publishPost(validBody({ headerImage: undefined }));
-
-      expectFailure(
-        await apiCall("get", `${postPath(post)}/headerImage`),
-        404,
-        ApiMessage.POST_NOT_FOUND,
-      );
     });
 
     it("is not found for an image that is not on the post", async () => {
@@ -609,11 +588,11 @@ describe("the blog post api", () => {
 
     it("carries images forward and replaces the ones it is asked to", async () => {
       const post = await publishPost(
-        validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
+        validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
       );
 
       const response = await updatePost(post, {
-        inlineImages: [inlineImage("chart.jpg", JPEG_IMAGE)],
+        inlineImages: [postImage("chart.jpg", JPEG_IMAGE)],
         removeInlineImages: ["diagram.png"],
       });
 
@@ -621,7 +600,7 @@ describe("the blog post api", () => {
 
       expect(response.status).toBe(200);
       expect(responsePost(response).inlineImages).toEqual([
-        inlineImageResponse(
+        imageResponse(
           post._id.toString(),
           "chart.jpg",
           JPEG_IMAGE,
@@ -642,7 +621,7 @@ describe("the blog post api", () => {
 
     it("links the files it carries forward instead of copying them", async () => {
       const post = await publishPost(
-        validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
+        validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
       );
       const previous = currentRevision(post);
 
@@ -667,15 +646,19 @@ describe("the blog post api", () => {
     it("replaces the header image with a new one", async () => {
       const post = await publishPost();
 
-      const response = await updatePost(post, { headerImage: JPEG_IMAGE });
+      const response = await updatePost(post, {
+        headerImage: postImage("cover.jpg", JPEG_IMAGE),
+      });
 
       expect(response.status).toBe(200);
-      expect(responsePost(response).headerImage).toEqual({
-        name: `${POST_HEADER_IMAGE_NAME}.jpg`,
-        contentType: "image/jpeg",
-        byteSize: JPEG_IMAGE.byteLength,
-        path: postHeaderImagePath(post._id.toString()),
-      });
+      expect(responsePost(response).headerImage).toEqual(
+        imageResponse(
+          post._id.toString(),
+          "cover.jpg",
+          JPEG_IMAGE,
+          "image/jpeg",
+        ),
+      );
     });
 
     it("removes the header image when it is sent as null", async () => {
@@ -693,13 +676,13 @@ describe("the blog post api", () => {
     it.each([
       [
         "a header image that is not an image",
-        { headerImage: NOT_AN_IMAGE },
-        ApiMessage.POST_IMAGE_INVALID,
+        { headerImage: postImage(HEADER_IMAGE_NAME, NOT_AN_IMAGE) },
+        imageNotAnImage(HEADER_IMAGE_NAME),
       ],
       [
         "an inline image that is not an image",
-        { inlineImages: [inlineImage("diagram.png", NOT_AN_IMAGE)] },
-        inlineImageNotAnImage("diagram.png"),
+        { inlineImages: [postImage("diagram.png", NOT_AN_IMAGE)] },
+        imageNotAnImage("diagram.png"),
       ],
       [
         "removing an image that is not on the post",
@@ -822,7 +805,7 @@ describe("the blog post api", () => {
       [
         "a post id that is not an id on the image route",
         "get",
-        "/x/headerImage",
+        "/x/images/diagram.png",
       ],
       [
         "an image name the api does not allow",

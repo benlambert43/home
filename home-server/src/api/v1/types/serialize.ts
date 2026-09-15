@@ -3,10 +3,9 @@ import {
   Notification,
   NotificationFields,
   Post,
-  postHeaderImagePath,
   PostImage,
-  postInlineImagePath,
-  postInlineImageReference,
+  postImagePath,
+  postImageReference,
   PostSummary,
   UserNoPassword,
   UserFields,
@@ -54,11 +53,15 @@ export const serializeNotification = (
 
 type SerializablePost = StoredPost<MaybeId, MaybeDate>;
 
-const serializePostImage = (path: string, file: StoredPostFile): PostImage => ({
+const serializePostImage = (
+  postId: string,
+  file: StoredPostFile,
+): PostImage => ({
   name: file.name,
   contentType: file.contentType,
   byteSize: file.byteSize,
-  path,
+  path: postImagePath(postId, file.name),
+  reference: postImageReference(file.name),
 });
 
 export const serializePostSummary = (
@@ -77,7 +80,7 @@ export const serializePostSummary = (
     modifiedDate: toIsoDate(post.modifiedDate),
     revision: revision.fingerprint,
     headerImage: revision.headerImage
-      ? serializePostImage(postHeaderImagePath(_id), revision.headerImage)
+      ? serializePostImage(_id, revision.headerImage)
       : null,
   };
 };
@@ -92,12 +95,8 @@ export const serializePost = (
   return {
     ...summary,
     content,
-    inlineImages: requireLatestRevision(post).inlineImages.map((image) => ({
-      ...serializePostImage(
-        postInlineImagePath(summary._id, image.name),
-        image,
-      ),
-      reference: postInlineImageReference(image.name),
-    })),
+    inlineImages: requireLatestRevision(post).inlineImages.map((image) =>
+      serializePostImage(summary._id, image),
+    ),
   };
 };

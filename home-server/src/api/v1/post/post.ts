@@ -8,7 +8,7 @@ import {
   GetPostsResponse,
   MAX_POST_REQUEST_BODY_BYTES,
   postIdParamsSchema,
-  postInlineImageParamsSchema,
+  postImageParamsSchema,
   postListQuerySchema,
   postUploadImageParamsSchema,
   postUploadParamsSchema,
@@ -35,19 +35,14 @@ import { handleDeletePost } from "./handlers/handleDeletePost";
 import { handleDeletePostUpload } from "./handlers/handleDeletePostUpload";
 import { handleGetPost } from "./handlers/handleGetPost";
 import {
-  findPostHeaderImage,
-  findPostInlineImage,
-  handleGetPostHeaderImage,
-  handleGetPostInlineImage,
+  findPostImage,
+  handleGetPostImage,
   PostImageFile,
   StoredPostImage,
 } from "./handlers/handleGetPostImage";
 import { handleGetPosts } from "./handlers/handleGetPosts";
 import { handleUpdatePost } from "./handlers/handleUpdatePost";
-import {
-  handleUploadPostHeaderImage,
-  handleUploadPostInlineImage,
-} from "./handlers/handleUploadPostImage";
+import { handleUploadPostImage } from "./handlers/handleUploadPostImage";
 import { withReceivedPostImage } from "./uploadImage";
 
 const IMAGE_CACHE_SECONDS = 60;
@@ -177,51 +172,25 @@ postRouter.delete(
 );
 
 postRouter.get(
-  "/:id/headerImage",
-  route(async (req, res) => {
-    const params = parseRequest(postIdParamsSchema, req.params, res);
-    if (!params) return;
-
-    const image = await handleGetPostHeaderImage(params.id);
-    if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
-
-    sendImage(res, image);
-  }),
-);
-
-postRouter.get(
   "/:id/images/:name",
   route(async (req, res) => {
-    const params = parseRequest(postInlineImageParamsSchema, req.params, res);
+    const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;
 
-    const image = await handleGetPostInlineImage(params.id, params.name);
+    const image = await handleGetPostImage(params.id, params.name);
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendImage(res, image);
-  }),
-);
-
-postRouter.get(
-  "/:id/headerImage/fullSize",
-  route(async (req, res) => {
-    const params = parseRequest(postIdParamsSchema, req.params, res);
-    if (!params) return;
-
-    const image = await findPostHeaderImage(params.id);
-    if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
-
-    await sendFullSizeImage(res, image);
   }),
 );
 
 postRouter.get(
   "/:id/images/:name/fullSize",
   route(async (req, res) => {
-    const params = parseRequest(postInlineImageParamsSchema, req.params, res);
+    const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;
 
-    const image = await findPostInlineImage(params.id, params.name);
+    const image = await findPostImage(params.id, params.name);
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     await sendFullSizeImage(res, image);
@@ -263,29 +232,6 @@ postRouter.delete(
 );
 
 postRouter.put(
-  "/uploads/:uploadId/headerImage",
-  route(async (req: Request, res) => {
-    const admin = await requireAdmin(req.headers?.authorization, res);
-    if (!admin) return;
-
-    const params = parseRequest(postUploadParamsSchema, req.params, res);
-    if (!params) return;
-
-    const manifest = await resumePostUpload(params.uploadId);
-    if (!manifest) return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
-
-    const result = await withReceivedPostImage(
-      req,
-      res,
-      params.uploadId,
-      (image) => handleUploadPostHeaderImage(params.uploadId, manifest, image),
-    );
-
-    sendResult(res, result);
-  }),
-);
-
-postRouter.put(
   "/uploads/:uploadId/images/:name",
   route(async (req: Request, res) => {
     const admin = await requireAdmin(req.headers?.authorization, res);
@@ -302,12 +248,7 @@ postRouter.put(
       res,
       params.uploadId,
       (image) =>
-        handleUploadPostInlineImage(
-          params.uploadId,
-          manifest,
-          params.name,
-          image,
-        ),
+        handleUploadPostImage(params.uploadId, manifest, params.name, image),
     );
 
     sendResult(res, result);
