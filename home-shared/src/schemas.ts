@@ -9,6 +9,7 @@ import {
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
   MAX_POST_TITLE_CHARACTERS,
+  POST_HEADER_IMAGE_NAME,
 } from "./post";
 
 const nameField = (label: string) =>
@@ -185,7 +186,13 @@ const postInlineImageNameField = z
   .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*\.(png|jpe?g|webp|gif|avif)$/, {
     message:
       "An image name must be letters, numbers, dashes, or underscores, ending in .png, .jpg, .jpeg, .webp, .gif, or .avif.",
-  });
+  })
+  .refine(
+    (name) => !name.toLowerCase().startsWith(`${POST_HEADER_IMAGE_NAME}.`),
+    {
+      message: `An image may not be named ${POST_HEADER_IMAGE_NAME}, that name is reserved for the header image.`,
+    },
+  );
 
 const postInlineImagesField = z
   .array(
