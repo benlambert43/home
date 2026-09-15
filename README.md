@@ -27,6 +27,14 @@ home-shared must be built before web client and server are run.
 
 home-server stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores, and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
 
+Each post revision is a folder at `storage/blog-posts/<post>/<revision>/` holding exactly three entries. Files a revision did not change are hard links to the previous revision's copies.
+
+Images reach a post through an upload of up to 100 inline images plus a header image, each up to 100 MB:
+
+1. `POST /api/v1/posts/uploads` starts an upload with the list of images to expect.
+2. Each image is sent in its own `PUT` request. It streams into `storage/incoming/` and moves to `storage/uploads/<upload>/full_size_images/`.
+3. Creating or editing the post with the upload id moves the images into the new revision and deletes the upload.
+
 ## Linting
 
 Lint rules shared by every workspace live in eslint.config.base.mjs

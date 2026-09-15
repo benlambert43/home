@@ -2,9 +2,9 @@ export const MAX_POST_TITLE_CHARACTERS = 200;
 
 export const MAX_POST_CONTENT_CHARACTERS = 100_000;
 
-export const MAX_POST_IMAGE_BYTES = 8 * 1024 * 1024;
+export const MAX_POST_IMAGE_BYTES = 100 * 1024 * 1024;
 
-export const MAX_POST_INLINE_IMAGES = 8;
+export const MAX_POST_INLINE_IMAGES = 100;
 
 export const MAX_POST_INLINE_IMAGE_NAME_CHARACTERS = 64;
 
