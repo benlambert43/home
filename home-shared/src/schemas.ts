@@ -238,8 +238,7 @@ export const postUploadImageParamsSchema = postUploadParamsSchema.extend({
 export const createPostBodySchema = z.object({
   title: postTitleField,
   content: postContentField,
-  headerImage: postHeaderImageField.optional(),
-  inlineImages: postInlineImagesField.default([]),
+  uploadId: postUploadIdField.optional(),
 });
 
 export const createPostFormSchema = createPostBodySchema.pick({

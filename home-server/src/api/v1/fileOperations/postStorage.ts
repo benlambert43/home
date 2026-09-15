@@ -1,4 +1,4 @@
-import { link, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { link, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { POST_CONTENT_NAME } from "@home/shared";
 import { ApiError } from "../http/apiError";
@@ -21,7 +21,14 @@ export interface PostFileContent {
   data: Buffer;
 }
 
-export type PostFileSource = PostFileContent | StoredPostFile;
+export interface StagedPostFile {
+  name: string;
+  contentType: string;
+  byteSize: number;
+  stagedFile: string;
+}
+
+export type PostFileSource = PostFileContent | StagedPostFile | StoredPostFile;
 
 interface PostRevisionContent {
   content: string | StoredPostFile;
@@ -71,10 +78,23 @@ const linkStoredFile = async (
   return { name, file, contentType, byteSize };
 };
 
-const storeFile = (directory: string, source: PostFileSource) =>
-  "data" in source
-    ? writeStoredFile(directory, source)
-    : linkStoredFile(directory, source);
+const moveStoredFile = async (
+  directory: string,
+  { name, contentType, byteSize, stagedFile }: StagedPostFile,
+): Promise<StoredPostFile> => {
+  const { file, absolutePath } = await prepareStoredFile(directory, name);
+
+  await rename(resolveStoragePath(stagedFile), absolutePath);
+
+  return { name, file, contentType, byteSize };
+};
+
+const storeFile = (directory: string, source: PostFileSource) => {
+  if ("data" in source) return writeStoredFile(directory, source);
+  if ("stagedFile" in source) return moveStoredFile(directory, source);
+
+  return linkStoredFile(directory, source);
+};
 
 const markdownFile = (content: string): PostFileContent => ({
   name: `${POST_CONTENT_NAME}.md`,

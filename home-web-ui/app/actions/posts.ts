@@ -36,7 +36,7 @@ export const createPost = async (
     await apiFetch<CreatePostResponse, CreatePostRequestBody>(POSTS_URL, {
       method: "POST",
       authorization: await getApiSessionToken(),
-      body: { ...validatedFields.data, inlineImages: [] },
+      body: validatedFields.data,
     });
   } catch (error) {
     return { values, errors: [errorMessage(error)] };

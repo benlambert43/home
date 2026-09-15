@@ -9,14 +9,7 @@ import {
   detectImageType,
 } from "../fileOperations/imageType";
 import { PostFileContent } from "../fileOperations/postStorage";
-
-export type Decoded<Value> =
-  { ok: true; value: Value } | { ok: false; message: string };
-
-export interface PostImages {
-  headerImage?: PostFileContent;
-  inlineImages: PostFileContent[];
-}
+import { Decoded } from "../types/decoded";
 
 export const decodeHeaderImage = (
   encoded: string,
@@ -61,27 +54,4 @@ export const decodeInlineImages = (
   }
 
   return { ok: true, value: decoded };
-};
-
-export const decodePostImages = (
-  header: string | undefined,
-  inline: PostInlineImageRequest[],
-): Decoded<PostImages> => {
-  const headerImage =
-    header === undefined
-      ? ({ ok: true, value: undefined } as const)
-      : decodeHeaderImage(header);
-
-  if (!headerImage.ok) return headerImage;
-
-  const inlineImages = decodeInlineImages(inline);
-  if (!inlineImages.ok) return inlineImages;
-
-  return {
-    ok: true,
-    value: {
-      headerImage: headerImage.value,
-      inlineImages: inlineImages.value,
-    },
-  };
 };

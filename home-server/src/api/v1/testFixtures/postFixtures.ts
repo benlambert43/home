@@ -1,4 +1,4 @@
-import { readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import express from "express";
 import { Types } from "mongoose";
 import request, { Response } from "supertest";
@@ -7,6 +7,7 @@ import {
   Post,
   postHeaderImagePath,
   POST_HEADER_IMAGE_NAME,
+  POST_IMAGE_FIELD,
   postInlineImagePath,
   postInlineImageReference,
   PostSummary,
@@ -105,20 +106,60 @@ export const apiCall = (
   return body === undefined ? authorized : authorized.send(body);
 };
 
-export const createPost = (body: object, token?: string | null) =>
-  apiCall("post", "", { body, token });
+interface PostRequest {
+  headerImage?: Buffer;
+  inlineImages?: { name: string; data: Buffer }[];
+  [field: string]: unknown;
+}
+
+const uploadImage = (path: string, data: Buffer) =>
+  request(app)
+    .put(`/api/v1/posts/uploads/${path}`)
+    .set("Authorization", createApiToken(admin))
+    .attach(POST_IMAGE_FIELD, data, "image");
+
+export const createPost = async (
+  { headerImage, inlineImages = [], ...body }: PostRequest,
+  token?: string | null,
+): Promise<Response> => {
+  if (headerImage === undefined && inlineImages.length === 0) {
+    return apiCall("post", "", { body, token });
+  }
+
+  const upload = await apiCall("post", "/uploads", {
+    body: {
+      headerImage: headerImage !== undefined,
+      inlineImages: inlineImages.map((image) => image.name),
+    },
+  });
+  if (upload.status !== 200) return upload;
+
+  const { uploadId } = upload.body as { uploadId: string };
+
+  if (headerImage) {
+    const uploaded = await uploadImage(`${uploadId}/headerImage`, headerImage);
+    if (uploaded.status !== 200) return uploaded;
+  }
+
+  for (const { name, data } of inlineImages) {
+    const uploaded = await uploadImage(`${uploadId}/images/${name}`, data);
+    if (uploaded.status !== 200) return uploaded;
+  }
+
+  return apiCall("post", "", { body: { ...body, uploadId }, token });
+};
 
 export const validBody = (overrides: Record<string, unknown> = {}) => ({
   title: TITLE,
   content: CONTENT,
-  headerImage: PNG_IMAGE.toString("base64"),
+  headerImage: PNG_IMAGE,
   ...overrides,
 });
 
-export const inlineImage = (name: string, data: Buffer) => ({
-  name,
-  data: data.toString("base64"),
-});
+export const inlineImage = (name: string, data: Buffer) => ({ name, data });
+
+export const storedUploads = () =>
+  readdir(resolveStoragePath("uploads")).catch(() => []);
 
 export const headerImageFile = (revision: StoredPostRevision) => {
   const file = revision.headerImage?.file;

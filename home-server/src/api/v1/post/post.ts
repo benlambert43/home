@@ -19,6 +19,7 @@ import { ApiMessage } from "../http/messages";
 import { parseRequest } from "../http/parseRequest";
 import { requireAdmin } from "../http/requireAdmin";
 import {
+  sendFailure,
   sendForbidden,
   sendNotFound,
   sendResult,
@@ -42,7 +43,7 @@ import {
   handleUploadPostHeaderImage,
   handleUploadPostInlineImage,
 } from "./handlers/handleUploadPostImage";
-import { discardPostUploadOnFailure } from "./postUploads";
+import { discardPostUploadIn, discardPostUploadOnFailure } from "./postUploads";
 import { withReceivedPostImage } from "./uploadImage";
 
 const IMAGE_CACHE_SECONDS = 60;
@@ -91,10 +92,14 @@ postRouter.post(
     const admin = await requireAdmin(req.headers?.authorization, res);
     if (!admin) return;
 
-    const body = parseRequest(createPostBodySchema, req.body, res);
-    if (!body) return;
+    const body = createPostBodySchema.safeParse(req.body);
 
-    sendResult(res, await handleCreatePost(admin, body));
+    if (!body.success) {
+      await discardPostUploadIn(req.body);
+      return sendFailure(res, ApiMessage.INVALID_REQUEST);
+    }
+
+    sendResult(res, await handleCreatePost(admin, body.data));
   }),
 );
 

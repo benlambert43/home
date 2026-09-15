@@ -51,6 +51,7 @@ export const ApiMessage = {
   POST_UPLOAD_HAS_NO_HEADER_IMAGE:
     "This upload does not include a header image.",
   POST_IMAGE_UPLOADED: "Image uploaded.",
+  POST_UPLOAD_INCOMPLETE: "Not every image in this upload has been uploaded.",
 } as const;
 
 export const accountAlreadyExists = (field: "email" | "username") =>

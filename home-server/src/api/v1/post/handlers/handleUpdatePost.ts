@@ -6,7 +6,8 @@ import {
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import { requireLatestRevision, StoredPostFile } from "../../types/db";
-import { Decoded, decodeHeaderImage, decodeInlineImages } from "../postImages";
+import { Decoded } from "../../types/decoded";
+import { decodeHeaderImage, decodeInlineImages } from "../postImages";
 import { toPostResponse } from "../postResponse";
 
 const namesInLowercase = (names: string[]) =>

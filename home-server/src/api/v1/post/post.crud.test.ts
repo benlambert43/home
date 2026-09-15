@@ -28,7 +28,6 @@ import {
   currentRevision,
   expectFailure,
   headerImageFile,
-  headerImageResponse,
   inlineImage,
   inlineImageResponse,
   JPEG_IMAGE,
@@ -44,6 +43,7 @@ import {
   storedInode,
   storedText,
   stubSave,
+  storedUploads,
   stubUserLookup,
   validBody,
 } from "../testFixtures/postFixtures";
@@ -134,7 +134,9 @@ const stubPostDelete = (post: PostDocument | null) =>
         >,
     );
 
-const publishPost = async (body: object = validBody()) => {
+const publishPost = async (
+  body: Parameters<typeof createPost>[0] = validBody(),
+) => {
   await createPost(body);
 
   const post = savedPosts[savedPosts.length - 1];
@@ -226,19 +228,6 @@ describe("the blog post api", () => {
         await expect(storedText(revision.content.file)).resolves.toBe("a\n");
       });
 
-      it("accepts a header image sent as a data url", async () => {
-        const response = await createPost(
-          validBody({
-            headerImage: `data:image/png;base64,${PNG_IMAGE.toString("base64")}`,
-          }),
-        );
-
-        expect(response.status).toBe(200);
-        expect(responsePost(response).headerImage).toEqual(
-          headerImageResponse(savedPosts[0]._id.toString()),
-        );
-      });
-
       it.each([
         ["diagram.png", PNG_IMAGE, "image/png"],
         ["screenshot.jpg", JPEG_IMAGE, "image/jpeg"],
@@ -284,7 +273,11 @@ describe("the blog post api", () => {
           () => createApiToken(makeUser({ role: "user" })),
         ],
       ])("is refused for %s", async (_description, status, message, token) => {
-        expectRejected(await createPost(validBody(), token()), status, message);
+        expectRejected(
+          await createPost(validBody({ headerImage: undefined }), token()),
+          status,
+          message,
+        );
       });
 
       it.each<[string, number, string, UserNoPassword | null]>([
@@ -306,7 +299,11 @@ describe("the blog post api", () => {
         async (_description, status, message, author) => {
           stubUserLookup(author);
 
-          expectRejected(await createPost(validBody()), status, message);
+          expectRejected(
+            await createPost(validBody({ headerImage: undefined })),
+            status,
+            message,
+          );
         },
       );
     });
@@ -329,11 +326,6 @@ describe("the blog post api", () => {
           "content with control characters",
           validBody({ content: "Building\u0007the blog" }),
         ],
-        [
-          "a header image that is not base64",
-          validBody({ headerImage: "n0t b@se64" }),
-        ],
-        ["an empty header image", validBody({ headerImage: "" })],
         [
           "an inline image name with an unsupported extension",
           validBody({ inlineImages: [inlineImage("diagram.bmp", PNG_IMAGE)] }),
@@ -365,7 +357,7 @@ describe("the blog post api", () => {
       it.each([
         [
           "a header image of an unsupported type",
-          validBody({ headerImage: NOT_AN_IMAGE.toString("base64") }),
+          validBody({ headerImage: NOT_AN_IMAGE }),
           ApiMessage.POST_IMAGE_INVALID,
         ],
         [
@@ -408,6 +400,7 @@ describe("the blog post api", () => {
         await expect(
           storedFile(revision.inlineImages[0].file),
         ).rejects.toThrow();
+        await expect(storedUploads()).resolves.toEqual([]);
       });
 
       it("logs and keeps reporting the save failure when cleanup also fails", async () => {
@@ -620,7 +613,9 @@ describe("the blog post api", () => {
 
       const response = await apiCall("patch", postPath(post), {
         body: {
-          inlineImages: [inlineImage("chart.jpg", JPEG_IMAGE)],
+          inlineImages: [
+            { name: "chart.jpg", data: JPEG_IMAGE.toString("base64") },
+          ],
           removeInlineImages: ["diagram.png"],
         },
       });
@@ -708,7 +703,11 @@ describe("the blog post api", () => {
       ],
       [
         "an inline image that is not an image",
-        { inlineImages: [inlineImage("diagram.png", NOT_AN_IMAGE)] },
+        {
+          inlineImages: [
+            { name: "diagram.png", data: NOT_AN_IMAGE.toString("base64") },
+          ],
+        },
         inlineImageNotAnImage("diagram.png"),
       ],
       [

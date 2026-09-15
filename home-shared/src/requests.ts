@@ -45,5 +45,6 @@ export type CreatePostUploadRequestBody = z.infer<
   typeof createPostUploadBodySchema
 >;
 
-export type PostInlineImageRequest =
-  CreatePostRequestBody["inlineImages"][number];
+export type PostInlineImageRequest = NonNullable<
+  UpdatePostRequestBody["inlineImages"]
+>[number];

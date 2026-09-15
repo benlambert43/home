@@ -12,20 +12,28 @@ import {
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import { serializePost } from "../../types/serialize";
-import { decodePostImages } from "../postImages";
+import {
+  collectPostUploadImages,
+  discardPostUpload,
+  PostUploadImages,
+} from "../postUploads";
 
-const postMayExist = (_id: Types.ObjectId) =>
+const postMayExist = (_id: Types.ObjectId, postFingerprint: string) =>
   PostModel.exists({ _id })
     .then((post) => post !== null)
-    .catch(() => true);
+    .catch((lookupError: unknown) => {
+      console.error(
+        `Kept storage for post ${postFingerprint}, MongoDB could not confirm the post was not saved:`,
+        lookupError,
+      );
+      return true;
+    });
 
-export const handleCreatePost = async (
+const createPost = async (
   author: UserNoPassword,
   body: CreatePostRequestBody,
+  images: PostUploadImages,
 ): Promise<CreatePostResponse> => {
-  const decoded = decodePostImages(body.headerImage, body.inlineImages);
-  if (!decoded.ok) return { error: true, message: decoded.message };
-
   const _id = new Types.ObjectId();
   const createdDate = new Date();
   const postFingerprint = fingerprint(
@@ -44,7 +52,7 @@ export const handleCreatePost = async (
       revisions: [
         await writePostRevision(postFingerprint, {
           content: body.content,
-          ...decoded.value,
+          ...images,
         }),
       ],
     }).save();
@@ -55,7 +63,7 @@ export const handleCreatePost = async (
       post: serializePost(post, author.username, body.content),
     };
   } catch (e) {
-    if (!(await postMayExist(_id))) {
+    if (!(await postMayExist(_id, postFingerprint))) {
       await deletePostStorage(postFingerprint).catch(
         (cleanupError: unknown) => {
           console.error(
@@ -66,5 +74,23 @@ export const handleCreatePost = async (
       );
     }
     throw e;
+  }
+};
+
+export const handleCreatePost = async (
+  author: UserNoPassword,
+  body: CreatePostRequestBody,
+): Promise<CreatePostResponse> => {
+  if (body.uploadId === undefined) {
+    return createPost(author, body, { inlineImages: [] });
+  }
+
+  try {
+    const images = await collectPostUploadImages(body.uploadId);
+    if (!images.ok) return { error: true, message: images.message };
+
+    return await createPost(author, body, images.value);
+  } finally {
+    await discardPostUpload(body.uploadId);
   }
 };
