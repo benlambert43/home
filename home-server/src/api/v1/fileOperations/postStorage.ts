@@ -1,6 +1,6 @@
 import { link, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { POST_CONTENT_NAME, POST_INLINE_IMAGES_DIRECTORY } from "@home/shared";
+import { POST_CONTENT_NAME } from "@home/shared";
 import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
 import { StoredPostFile, StoredPostRevision } from "../types/db";
@@ -10,6 +10,10 @@ import { resolveStoragePath } from "./storagePath";
 const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 const BLOG_POSTS_DIRECTORY = "blog-posts";
+
+const FULL_SIZE_IMAGES_DIRECTORY = "full_size_images";
+
+const THUMBNAILS_DIRECTORY = "thumbnails";
 
 export interface PostFileContent {
   name: string;
@@ -85,8 +89,9 @@ export const writePostRevision = async (
   const createdDate = new Date();
   const revision = fingerprint(post, createdDate.toISOString());
   const directory = path.posix.join(postDirectory(post), revision);
+  const fullSizeImages = path.posix.join(directory, FULL_SIZE_IMAGES_DIRECTORY);
 
-  return {
+  const stored: StoredPostRevision = {
     fingerprint: revision,
     createdDate,
     content: await storeFile(
@@ -94,17 +99,22 @@ export const writePostRevision = async (
       typeof content === "string" ? markdownFile(content) : content,
     ),
     headerImage: headerImage
-      ? await storeFile(directory, headerImage)
+      ? await storeFile(fullSizeImages, headerImage)
       : undefined,
     inlineImages: await Promise.all(
-      inlineImages.map((image) =>
-        storeFile(
-          path.posix.join(directory, POST_INLINE_IMAGES_DIRECTORY),
-          image,
-        ),
-      ),
+      inlineImages.map((image) => storeFile(fullSizeImages, image)),
     ),
   };
+
+  await Promise.all(
+    [FULL_SIZE_IMAGES_DIRECTORY, THUMBNAILS_DIRECTORY].map((folder) =>
+      mkdir(resolveStoragePath(path.posix.join(directory, folder)), {
+        recursive: true,
+      }),
+    ),
+  );
+
+  return stored;
 };
 
 export const readPostFile = async (stored: StoredPostFile): Promise<Buffer> => {
