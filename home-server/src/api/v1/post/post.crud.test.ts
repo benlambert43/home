@@ -45,6 +45,7 @@ import {
   stubSave,
   storedUploads,
   stubUserLookup,
+  updatePost,
   validBody,
 } from "../testFixtures/postFixtures";
 import { storageControl } from "../testFixtures/storageControl";
@@ -611,13 +612,9 @@ describe("the blog post api", () => {
         validBody({ inlineImages: [inlineImage("diagram.png", PNG_IMAGE)] }),
       );
 
-      const response = await apiCall("patch", postPath(post), {
-        body: {
-          inlineImages: [
-            { name: "chart.jpg", data: JPEG_IMAGE.toString("base64") },
-          ],
-          removeInlineImages: ["diagram.png"],
-        },
+      const response = await updatePost(post, {
+        inlineImages: [inlineImage("chart.jpg", JPEG_IMAGE)],
+        removeInlineImages: ["diagram.png"],
       });
 
       const revision = currentRevision(post);
@@ -670,9 +667,7 @@ describe("the blog post api", () => {
     it("replaces the header image with a new one", async () => {
       const post = await publishPost();
 
-      const response = await apiCall("patch", postPath(post), {
-        body: { headerImage: JPEG_IMAGE.toString("base64") },
-      });
+      const response = await updatePost(post, { headerImage: JPEG_IMAGE });
 
       expect(response.status).toBe(200);
       expect(responsePost(response).headerImage).toEqual({
@@ -698,16 +693,12 @@ describe("the blog post api", () => {
     it.each([
       [
         "a header image that is not an image",
-        { headerImage: NOT_AN_IMAGE.toString("base64") },
+        { headerImage: NOT_AN_IMAGE },
         ApiMessage.POST_IMAGE_INVALID,
       ],
       [
         "an inline image that is not an image",
-        {
-          inlineImages: [
-            { name: "diagram.png", data: NOT_AN_IMAGE.toString("base64") },
-          ],
-        },
+        { inlineImages: [inlineImage("diagram.png", NOT_AN_IMAGE)] },
         inlineImageNotAnImage("diagram.png"),
       ],
       [
@@ -715,14 +706,10 @@ describe("the blog post api", () => {
         { removeInlineImages: ["diagram.png"] },
         inlineImageNotOnPost("diagram.png"),
       ],
-    ])("is rejected for %s", async (_description, body, message) => {
+    ])("is rejected for %s", async (_description, request, message) => {
       const post = await publishPost();
 
-      expectFailure(
-        await apiCall("patch", postPath(post), { body }),
-        400,
-        message,
-      );
+      expectFailure(await updatePost(post, request), 400, message);
     });
 
     it("reports a post whose files are missing from storage", async () => {

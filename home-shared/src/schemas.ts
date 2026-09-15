@@ -1,10 +1,8 @@
 import * as z from "zod";
 import { containsRawHtml, normalizePostContent } from "./markdown";
 import {
-  base64Characters,
   DEFAULT_POST_PAGE_SIZE,
   MAX_POST_CONTENT_CHARACTERS,
-  MAX_POST_IMAGE_BYTES,
   MAX_POST_INLINE_IMAGE_NAME_CHARACTERS,
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
@@ -115,10 +113,6 @@ export const resetPasswordFormSchema = resetPasswordBodySchema
 
 const DISALLOWED_TITLE_CHARACTERS = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
 
-const IMAGE_DATA_URL_PREFIX = /^data:image\/[a-z0-9.+-]+;base64,/i;
-
-const BASE64_CHARACTERS = /^[A-Za-z0-9+/]+={0,2}$/;
-
 const hasDisallowedContentCharacters = (content: string) =>
   /\p{Cc}/u.test(content.replace(/[\n\t]/g, ""));
 
@@ -151,33 +145,6 @@ const postContentField = z
     message: "Post content may not contain HTML. Please use Markdown instead.",
   });
 
-const base64ImageField = (label: string, maxBytes: number) => {
-  const maxCharacters = base64Characters(maxBytes);
-
-  return z
-    .string()
-    .transform((image) =>
-      image.replace(IMAGE_DATA_URL_PREFIX, "").replace(/\s+/g, ""),
-    )
-    .refine((image) => image.length > 0, {
-      message: `Please choose a ${label}.`,
-    })
-    .refine((image) => image.length <= maxCharacters, {
-      message: `A ${label} must be smaller than ${maxBytes / (1024 * 1024)} MB.`,
-    })
-    .refine(
-      (image) => image.length % 4 === 0 && BASE64_CHARACTERS.test(image),
-      {
-        message: `A ${label} must be a base64 encoded image.`,
-      },
-    );
-};
-
-const postHeaderImageField = base64ImageField(
-  "header image",
-  MAX_POST_IMAGE_BYTES,
-);
-
 const postInlineImageNameField = z
   .string()
   .max(MAX_POST_INLINE_IMAGE_NAME_CHARACTERS, {
@@ -201,18 +168,6 @@ const UNIQUE_IMAGE_NAMES_MESSAGE =
 
 const hasUniqueImageNames = (names: string[]) =>
   new Set(names.map((name) => name.toLowerCase())).size === names.length;
-
-const postInlineImagesField = z
-  .array(
-    z.object({
-      name: postInlineImageNameField,
-      data: base64ImageField("post image", MAX_POST_IMAGE_BYTES),
-    }),
-  )
-  .max(MAX_POST_INLINE_IMAGES, { message: MAX_INLINE_IMAGES_MESSAGE })
-  .refine((images) => hasUniqueImageNames(images.map((image) => image.name)), {
-    message: UNIQUE_IMAGE_NAMES_MESSAGE,
-  });
 
 const postUploadIdField = z
   .string()
@@ -250,8 +205,8 @@ export const updatePostBodySchema = z
   .object({
     title: postTitleField.optional(),
     content: postContentField.optional(),
-    headerImage: postHeaderImageField.nullable().optional(),
-    inlineImages: postInlineImagesField.optional(),
+    headerImage: z.null().optional(),
+    uploadId: postUploadIdField.optional(),
     removeInlineImages: z.array(postInlineImageNameField).optional(),
   })
   .refine(
@@ -259,7 +214,7 @@ export const updatePostBodySchema = z
       body.title !== undefined ||
       body.content !== undefined ||
       body.headerImage !== undefined ||
-      (body.inlineImages?.length ?? 0) > 0 ||
+      body.uploadId !== undefined ||
       (body.removeInlineImages?.length ?? 0) > 0,
     { message: "Please change the title, the content, or the images." },
   );

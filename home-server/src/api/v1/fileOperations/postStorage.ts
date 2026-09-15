@@ -39,6 +39,9 @@ interface PostRevisionContent {
 const postDirectory = (post: string) =>
   path.posix.join(BLOG_POSTS_DIRECTORY, post);
 
+const revisionDirectory = (post: string, revision: string) =>
+  path.posix.join(postDirectory(post), revision);
+
 const prepareStoredFile = async (directory: string, name: string) => {
   const file = path.posix.join(directory, name);
   const absolutePath = resolveStoragePath(file);
@@ -102,39 +105,55 @@ const markdownFile = (content: string): PostFileContent => ({
   data: Buffer.from(content, "utf8"),
 });
 
+export const deletePostRevision = (post: string, revision: string) =>
+  rm(resolveStoragePath(revisionDirectory(post, revision)), {
+    recursive: true,
+    force: true,
+  });
+
 export const writePostRevision = async (
   post: string,
   { content, headerImage, inlineImages }: PostRevisionContent,
 ): Promise<StoredPostRevision> => {
   const createdDate = new Date();
   const revision = fingerprint(post, createdDate.toISOString());
-  const directory = path.posix.join(postDirectory(post), revision);
+  const directory = revisionDirectory(post, revision);
   const fullSizeImages = path.posix.join(directory, FULL_SIZE_IMAGES_DIRECTORY);
 
-  const stored: StoredPostRevision = {
-    fingerprint: revision,
-    createdDate,
-    content: await storeFile(
-      directory,
-      typeof content === "string" ? markdownFile(content) : content,
-    ),
-    headerImage: headerImage
-      ? await storeFile(fullSizeImages, headerImage)
-      : undefined,
-    inlineImages: await Promise.all(
-      inlineImages.map((image) => storeFile(fullSizeImages, image)),
-    ),
-  };
+  try {
+    const stored: StoredPostRevision = {
+      fingerprint: revision,
+      createdDate,
+      content: await storeFile(
+        directory,
+        typeof content === "string" ? markdownFile(content) : content,
+      ),
+      headerImage: headerImage
+        ? await storeFile(fullSizeImages, headerImage)
+        : undefined,
+      inlineImages: await Promise.all(
+        inlineImages.map((image) => storeFile(fullSizeImages, image)),
+      ),
+    };
 
-  await Promise.all(
-    [FULL_SIZE_IMAGES_DIRECTORY, THUMBNAILS_DIRECTORY].map((folder) =>
-      mkdir(resolveStoragePath(path.posix.join(directory, folder)), {
-        recursive: true,
-      }),
-    ),
-  );
+    await Promise.all(
+      [FULL_SIZE_IMAGES_DIRECTORY, THUMBNAILS_DIRECTORY].map((folder) =>
+        mkdir(resolveStoragePath(path.posix.join(directory, folder)), {
+          recursive: true,
+        }),
+      ),
+    );
 
-  return stored;
+    return stored;
+  } catch (e) {
+    await deletePostRevision(post, revision).catch((cleanupError: unknown) => {
+      console.error(
+        `Failed to clean up storage for revision ${revision} of post ${post}:`,
+        cleanupError,
+      );
+    });
+    throw e;
+  }
 };
 
 export const readPostFile = async (stored: StoredPostFile): Promise<Buffer> => {

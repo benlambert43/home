@@ -17,17 +17,7 @@ import {
   discardPostUpload,
   PostUploadImages,
 } from "../postUploads";
-
-const postMayExist = (_id: Types.ObjectId, postFingerprint: string) =>
-  PostModel.exists({ _id })
-    .then((post) => post !== null)
-    .catch((lookupError: unknown) => {
-      console.error(
-        `Kept storage for post ${postFingerprint}, MongoDB could not confirm the post was not saved:`,
-        lookupError,
-      );
-      return true;
-    });
+import { deleteUnsavedStorage } from "../unsavedStorage";
 
 const createPost = async (
   author: UserNoPassword,
@@ -63,16 +53,9 @@ const createPost = async (
       post: serializePost(post, author.username, body.content),
     };
   } catch (e) {
-    if (!(await postMayExist(_id, postFingerprint))) {
-      await deletePostStorage(postFingerprint).catch(
-        (cleanupError: unknown) => {
-          console.error(
-            `Failed to clean up storage for post ${postFingerprint}:`,
-            cleanupError,
-          );
-        },
-      );
-    }
+    await deleteUnsavedStorage({ _id }, `post ${postFingerprint}`, () =>
+      deletePostStorage(postFingerprint),
+    );
     throw e;
   }
 };

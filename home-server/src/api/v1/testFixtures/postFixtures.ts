@@ -118,12 +118,14 @@ const uploadImage = (path: string, data: Buffer) =>
     .set("Authorization", createApiToken(admin))
     .attach(POST_IMAGE_FIELD, data, "image");
 
-export const createPost = async (
+const sendWithImages = async (
+  method: "post" | "patch",
+  path: string,
   { headerImage, inlineImages = [], ...body }: PostRequest,
   token?: string | null,
 ): Promise<Response> => {
   if (headerImage === undefined && inlineImages.length === 0) {
-    return apiCall("post", "", { body, token });
+    return apiCall(method, path, { body, token });
   }
 
   const upload = await apiCall("post", "/uploads", {
@@ -146,8 +148,17 @@ export const createPost = async (
     if (uploaded.status !== 200) return uploaded;
   }
 
-  return apiCall("post", "", { body: { ...body, uploadId }, token });
+  return apiCall(method, path, { body: { ...body, uploadId }, token });
 };
+
+export const createPost = (request: PostRequest, token?: string | null) =>
+  sendWithImages("post", "", request, token);
+
+export const updatePost = (
+  post: PostDocument,
+  request: PostRequest,
+  token?: string | null,
+) => sendWithImages("patch", `/${post._id.toString()}`, request, token);
 
 export const validBody = (overrides: Record<string, unknown> = {}) => ({
   title: TITLE,

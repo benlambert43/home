@@ -124,13 +124,15 @@ postRouter.patch(
     const admin = await requireAdmin(req.headers?.authorization, res);
     if (!admin) return;
 
-    const params = parseRequest(postIdParamsSchema, req.params, res);
-    if (!params) return;
+    const params = postIdParamsSchema.safeParse(req.params);
+    const body = updatePostBodySchema.safeParse(req.body);
 
-    const body = parseRequest(updatePostBodySchema, req.body, res);
-    if (!body) return;
+    if (!params.success || !body.success) {
+      await discardPostUploadIn(req.body);
+      return sendFailure(res, ApiMessage.INVALID_REQUEST);
+    }
 
-    const result = await handleUpdatePost(params.id, body);
+    const result = await handleUpdatePost(params.data.id, body.data);
     if (!result) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendResult(res, result);
