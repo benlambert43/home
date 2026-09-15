@@ -4,20 +4,11 @@ import {
   inlineImageNotAnImage,
   inlineImageTypeMismatch,
 } from "../http/messages";
-import { detectImageType } from "../fileOperations/imageType";
+import {
+  contentTypeForName,
+  detectImageType,
+} from "../fileOperations/imageType";
 import { PostFileContent } from "../fileOperations/postStorage";
-
-const EXTENSION_CONTENT_TYPES: Record<string, string> = {
-  png: "image/png",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  webp: "image/webp",
-  gif: "image/gif",
-  avif: "image/avif",
-};
-
-const extensionOf = (name: string) =>
-  name.slice(name.lastIndexOf(".") + 1).toLowerCase();
 
 export type Decoded<Value> =
   { ok: true; value: Value } | { ok: false; message: string };
@@ -58,9 +49,7 @@ export const decodeInlineImages = (
       return { ok: false, message: inlineImageNotAnImage(image.name) };
     }
 
-    if (
-      EXTENSION_CONTENT_TYPES[extensionOf(image.name)] !== imageType.contentType
-    ) {
+    if (contentTypeForName(image.name) !== imageType.contentType) {
       return { ok: false, message: inlineImageTypeMismatch(image.name) };
     }
 

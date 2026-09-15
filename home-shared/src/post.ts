@@ -35,10 +35,15 @@ export const POST_HEADER_IMAGE_NAME = "image-header";
 
 export const POST_INLINE_IMAGES_DIRECTORY = "images";
 
-export interface PostImage {
+export const POST_IMAGE_FIELD = "image";
+
+export interface UploadedPostImage {
   name: string;
   contentType: string;
   byteSize: number;
+}
+
+export interface PostImage extends UploadedPostImage {
   path: string;
 }
 

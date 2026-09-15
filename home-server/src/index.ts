@@ -3,7 +3,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 import apiRouter from "./api/api";
 import { STORAGE_ROOT } from "./api/v1/fileOperations/storagePath";
-import { deleteExpiredPostUploads } from "./api/v1/fileOperations/uploadStorage";
 import { handleRequestError } from "./api/v1/http/handleRequestError";
 import { sendSuccess } from "./api/v1/http/respond";
 
@@ -42,15 +41,7 @@ app.use("/api", apiRouter);
 
 app.use(handleRequestError);
 
-const startServer = async () => {
-  await deleteExpiredPostUploads().catch((err: unknown) =>
-    console.error("Failed to delete expired post uploads:", err),
-  );
-
-  app.listen(API_PORT, () => {
-    console.log(`home-server is running on port ${API_PORT}`);
-    console.log(`home-server stores post files in ${STORAGE_ROOT}`);
-  });
-};
-
-void startServer();
+app.listen(API_PORT, () => {
+  console.log(`home-server is running on port ${API_PORT}`);
+  console.log(`home-server stores post files in ${STORAGE_ROOT}`);
+});

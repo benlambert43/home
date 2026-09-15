@@ -1,5 +1,5 @@
 import { Notification } from "./notification";
-import { Post, PostPagination, PostSummary } from "./post";
+import { Post, PostPagination, PostSummary, UploadedPostImage } from "./post";
 import { UserNoPassword } from "./user";
 
 export interface ApiFailure {
@@ -63,3 +63,7 @@ export type DeletePostResponse = ApiResponse;
 export type CreatePostUploadResponse = ApiResponse<{ uploadId: string }>;
 
 export type DeletePostUploadResponse = ApiResponse;
+
+export type UploadPostImageResponse = ApiResponse<{
+  image: UploadedPostImage;
+}>;

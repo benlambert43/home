@@ -48,6 +48,9 @@ export const ApiMessage = {
   POST_UPLOAD_STARTED: "Upload started.",
   POST_UPLOAD_DISCARDED: "Upload discarded.",
   POST_UPLOAD_NOT_FOUND: "That upload could not be found. Please start again.",
+  POST_UPLOAD_HAS_NO_HEADER_IMAGE:
+    "This upload does not include a header image.",
+  POST_IMAGE_UPLOADED: "Image uploaded.",
 } as const;
 
 export const accountAlreadyExists = (field: "email" | "username") =>
@@ -61,6 +64,12 @@ export const inlineImageTypeMismatch = (name: string) =>
 
 export const inlineImageNotOnPost = (name: string) =>
   `${name} is not an image on this post.`;
+
+export const inlineImageNotInUpload = (name: string) =>
+  `${name} is not an image in this upload.`;
+
+export const imageAlreadyUploaded = (name: string) =>
+  `${name} has already been uploaded.`;
 
 export const pendingEmailVerification = (email: string, expiresAt: string) =>
   `You already have a pending email verification. Please check your ${email} account's spam and junk mail folders. You may send another email after ${expiresAt}.`;

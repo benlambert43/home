@@ -1,4 +1,4 @@
-import express, { RequestHandler, Response, Router } from "express";
+import express, { Request, RequestHandler, Response, Router } from "express";
 import {
   createPostBodySchema,
   createPostUploadBodySchema,
@@ -10,6 +10,7 @@ import {
   postIdParamsSchema,
   postInlineImageParamsSchema,
   postListQuerySchema,
+  postUploadImageParamsSchema,
   postUploadParamsSchema,
   updatePostBodySchema,
 } from "@home/shared";
@@ -37,6 +38,12 @@ import {
 } from "./handlers/handleGetPostImage";
 import { handleGetPosts } from "./handlers/handleGetPosts";
 import { handleUpdatePost } from "./handlers/handleUpdatePost";
+import {
+  handleUploadPostHeaderImage,
+  handleUploadPostInlineImage,
+} from "./handlers/handleUploadPostImage";
+import { discardPostUploadOnFailure } from "./postUploads";
+import { withReceivedPostImage } from "./uploadImage";
 
 const IMAGE_CACHE_SECONDS = 60;
 
@@ -199,6 +206,46 @@ postRouter.delete(
     sendSuccess<DeletePostUploadResponse>(res, {
       message: ApiMessage.POST_UPLOAD_DISCARDED,
     });
+  }),
+);
+
+postRouter.put(
+  "/uploads/:uploadId/headerImage",
+  route(async (req: Request, res) => {
+    const admin = await requireAdmin(req.headers?.authorization, res);
+    if (!admin) return;
+
+    const params = parseRequest(postUploadParamsSchema, req.params, res);
+    if (!params) return;
+
+    const result = await discardPostUploadOnFailure(params.uploadId, () =>
+      withReceivedPostImage(req, res, (image) =>
+        handleUploadPostHeaderImage(params.uploadId, image),
+      ),
+    );
+    if (!result) return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
+
+    sendResult(res, result);
+  }),
+);
+
+postRouter.put(
+  "/uploads/:uploadId/images/:name",
+  route(async (req: Request, res) => {
+    const admin = await requireAdmin(req.headers?.authorization, res);
+    if (!admin) return;
+
+    const params = parseRequest(postUploadImageParamsSchema, req.params, res);
+    if (!params) return;
+
+    const result = await discardPostUploadOnFailure(params.uploadId, () =>
+      withReceivedPostImage(req, res, (image) =>
+        handleUploadPostInlineImage(params.uploadId, params.name, image),
+      ),
+    );
+    if (!result) return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
+
+    sendResult(res, result);
   }),
 );
 

@@ -1,9 +1,21 @@
+import { open } from "node:fs/promises";
 import { PostImageContentType } from "@home/shared";
 
 interface PostImageType {
   contentType: PostImageContentType;
   extension: string;
 }
+
+const EXTENSION_CONTENT_TYPES: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  gif: "image/gif",
+  avif: "image/avif",
+};
+
+const SIGNATURE_BYTES = 16;
 
 const PNG_SIGNATURE = "\x89PNG\r\n\x1a\n";
 
@@ -44,3 +56,25 @@ const IMAGE_TYPES: {
 
 export const detectImageType = (data: Buffer): PostImageType | undefined =>
   IMAGE_TYPES.find(({ matches }) => matches(data))?.type;
+
+export const detectFileImageType = async (
+  file: string,
+): Promise<PostImageType | undefined> => {
+  const handle = await open(file);
+
+  try {
+    const { buffer, bytesRead } = await handle.read(
+      Buffer.alloc(SIGNATURE_BYTES),
+      0,
+      SIGNATURE_BYTES,
+      0,
+    );
+
+    return detectImageType(buffer.subarray(0, bytesRead));
+  } finally {
+    await handle.close();
+  }
+};
+
+export const contentTypeForName = (name: string): string | undefined =>
+  EXTENSION_CONTENT_TYPES[name.slice(name.lastIndexOf(".") + 1).toLowerCase()];
