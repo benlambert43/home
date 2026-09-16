@@ -3,6 +3,7 @@ node_modules
 .DS_Store
 *.pem
 
+storage
 home-server/build/
 home-server/storage
 home-shared/build/
