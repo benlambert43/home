@@ -11,19 +11,21 @@ import {
   deletePostStorage,
   writePostRevision,
 } from "../../fileOperations/postStorage";
+import { requireLatestRevision } from "../../types/db";
 import { serializePost } from "../../types/serialize";
 import {
   collectPostUploadImages,
   discardPostUpload,
   PostUploadImages,
 } from "../postUploads";
+import { PostWrite, refusedPostWrite } from "../postThumbnails";
 import { deleteUnsavedStorage } from "../unsavedStorage";
 
-const createPost = async (
+const savePost = async (
   author: UserNoPassword,
   body: CreatePostRequestBody,
   images: PostUploadImages,
-): Promise<CreatePostResponse> => {
+) => {
   const _id = new Types.ObjectId();
   const createdDate = new Date();
   const postFingerprint = fingerprint(
@@ -32,7 +34,7 @@ const createPost = async (
   );
 
   try {
-    const post = await new PostModel({
+    return await new PostModel({
       _id,
       title: body.title,
       fingerprint: postFingerprint,
@@ -46,12 +48,6 @@ const createPost = async (
         }),
       ],
     }).save();
-
-    return {
-      error: false,
-      message: ApiMessage.POST_CREATED,
-      post: serializePost(post, author.username, body.content),
-    };
   } catch (e) {
     await deleteUnsavedStorage({ _id }, `post ${postFingerprint}`, () =>
       deletePostStorage(postFingerprint),
@@ -60,19 +56,39 @@ const createPost = async (
   }
 };
 
+const createPost = async (
+  author: UserNoPassword,
+  body: CreatePostRequestBody,
+  images: PostUploadImages,
+): Promise<PostWrite<CreatePostResponse>> => {
+  const post = await savePost(author, body, images);
+  const created: PostWrite<CreatePostResponse> = {
+    response: {
+      error: false,
+      message: ApiMessage.POST_CREATED,
+      post: serializePost(post, author.username, body.content),
+    },
+    thumbnails: {
+      post: post.fingerprint,
+      revision: requireLatestRevision(post),
+    },
+  };
+
+  if (body.uploadId !== undefined) await discardPostUpload(body.uploadId);
+
+  return created;
+};
+
 export const handleCreatePost = async (
   author: UserNoPassword,
   body: CreatePostRequestBody,
-): Promise<CreatePostResponse> => {
+): Promise<PostWrite<CreatePostResponse>> => {
   if (body.uploadId === undefined) {
     return createPost(author, body, { inlineImages: [] });
   }
 
   const images = await collectPostUploadImages(body.uploadId);
-  if (!images.ok) return { error: true, message: images.message };
+  if (!images.ok) return refusedPostWrite(images.message);
 
-  const created = await createPost(author, body, images.value);
-  await discardPostUpload(body.uploadId);
-
-  return created;
+  return createPost(author, body, images.value);
 };

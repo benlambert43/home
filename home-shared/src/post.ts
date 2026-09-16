@@ -8,6 +8,16 @@ export const MAX_POST_INLINE_IMAGES = 100;
 
 export const MAX_POST_IMAGE_NAME_CHARACTERS = 64;
 
+export const POST_THUMBNAIL_SIZES = ["large", "medium", "small"] as const;
+
+export type PostThumbnailSize = (typeof POST_THUMBNAIL_SIZES)[number];
+
+export const MAX_POST_THUMBNAIL_BYTES: Record<PostThumbnailSize, number> = {
+  large: 8 * 1024 * 1024,
+  medium: 64 * 1024,
+  small: 16 * 1024,
+};
+
 const MAX_UTF8_BYTES_PER_CHARACTER = 4;
 
 const POST_REQUEST_ENVELOPE_BYTES = 1024 * 1024;

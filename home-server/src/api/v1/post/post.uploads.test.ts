@@ -80,6 +80,15 @@ vi.mock("node:fs/promises", async (importOriginal) => {
   );
 });
 
+vi.mock("./postThumbnails", async (importOriginal) => {
+  const { trackedThumbnailQueue } =
+    await import("../testFixtures/storageTestControl");
+
+  return trackedThumbnailQueue(
+    await importOriginal<typeof import("./postThumbnails")>(),
+  );
+});
+
 const DIAGRAM = "diagram.png";
 
 const CHART = "chart.jpg";

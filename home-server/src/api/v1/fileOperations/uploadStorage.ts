@@ -15,6 +15,7 @@ import {
   createPostUploadBodySchema,
   CreatePostUploadRequestBody,
 } from "@home/shared";
+import { hasErrorCode, isMissing, unlessMissing } from "./fileErrors";
 import { detectFileImageType } from "./imageType";
 import { FULL_SIZE_IMAGES_DIRECTORY } from "./postStorage";
 import { resolveStoragePath } from "./storagePath";
@@ -34,23 +35,6 @@ const uploadFile = (upload: string, ...names: string[]) =>
 
 const uploadPath = (upload: string, ...names: string[]) =>
   resolveStoragePath(uploadFile(upload, ...names));
-
-const hasErrorCode = (error: unknown, code: string) =>
-  error instanceof Error && "code" in error && error.code === code;
-
-export const isMissing = (error: unknown) => hasErrorCode(error, "ENOENT");
-
-const unlessMissing = async <Value, Fallback>(
-  attempt: () => Promise<Value>,
-  fallback: Fallback,
-): Promise<Value | Fallback> => {
-  try {
-    return await attempt();
-  } catch (e) {
-    if (isMissing(e)) return fallback;
-    throw e;
-  }
-};
 
 export const newPostUploadId = () =>
   randomBytes(UPLOAD_ID_BYTES).toString("hex");

@@ -35,7 +35,7 @@ import {
 } from "../fileOperations/postStorage";
 import { resolveStoragePath } from "../fileOperations/storagePath";
 import { PostDocument, StoredPostRevision } from "../types/db";
-import { storageControl } from "./storageTestControl";
+import { queuedThumbnailsSettled, storageControl } from "./storageTestControl";
 
 export const PNG_IMAGE = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -190,18 +190,29 @@ export const stubPostExists = (exists: boolean | Error) =>
             )) as unknown as ReturnType<typeof PostModel.exists>,
     );
 
-export const apiCall = (
-  method: "get" | "post" | "patch" | "delete",
+type ApiMethod = "get" | "post" | "patch" | "delete";
+
+export const apiRequest = (
+  method: ApiMethod,
   path: string,
-  {
-    body,
-    token = createApiToken(admin),
-  }: { body?: object; token?: string | null } = {},
+  token: string | null = createApiToken(admin),
 ) => {
   const call = request(app)[method](`/api/v1/posts${path}`);
-  const authorized = token === null ? call : call.set("Authorization", token);
 
-  return body === undefined ? authorized : authorized.send(body);
+  return token === null ? call : call.set("Authorization", token);
+};
+
+export const apiCall = async (
+  method: ApiMethod,
+  path: string,
+  { body, token }: { body?: object; token?: string | null } = {},
+) => {
+  const call = apiRequest(method, path, token);
+  const response = await (body === undefined ? call : call.send(body));
+
+  await queuedThumbnailsSettled();
+
+  return response;
 };
 
 const requireSuccess = (response: Response, attempt: string) => {

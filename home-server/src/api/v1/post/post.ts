@@ -1,5 +1,6 @@
 import express, { Request, RequestHandler, Response, Router } from "express";
 import {
+  ApiResponse,
   createPostBodySchema,
   createPostUploadBodySchema,
   DeletePostResponse,
@@ -10,6 +11,8 @@ import {
   postIdParamsSchema,
   postImageParamsSchema,
   postListQuerySchema,
+  postThumbnailParamsSchema,
+  PostThumbnailSize,
   postUploadImageParamsSchema,
   postUploadParamsSchema,
   updatePostBodySchema,
@@ -36,16 +39,18 @@ import { handleDeletePostUpload } from "./handlers/handleDeletePostUpload";
 import { handleGetPost } from "./handlers/handleGetPost";
 import {
   findPostImage,
-  handleGetPostImage,
+  findPostThumbnail,
   PostImageFile,
-  StoredPostImage,
 } from "./handlers/handleGetPostImage";
 import { handleGetPosts } from "./handlers/handleGetPosts";
 import { handleUpdatePost } from "./handlers/handleUpdatePost";
 import { handleUploadPostImage } from "./handlers/handleUploadPostImage";
+import { PostWrite, queuePostThumbnails } from "./postThumbnails";
 import { withReceivedPostImage } from "./uploadImage";
 
 const IMAGE_CACHE_SECONDS = 60;
+
+const DEFAULT_IMAGE_SIZE: PostThumbnailSize = "large";
 
 const adminBodyGuard: RequestHandler = (req, res, next) => {
   const token = authenticateApiToken(req.headers?.authorization);
@@ -66,18 +71,13 @@ const imageHeaders = (contentType: string, etag: string) => ({
   "Cache-Control": `public, max-age=${IMAGE_CACHE_SECONDS}, must-revalidate`,
 });
 
-const sendImage = (res: Response, image: PostImageFile) => {
-  res.set(imageHeaders(image.contentType, image.etag));
-  res.send(image.data);
-};
-
-const sendFullSizeImage = (res: Response, image: StoredPostImage) =>
+const sendImage = (res: Response, image: PostImageFile) =>
   new Promise<void>((resolve, reject) => {
     res.sendFile(
-      image.file.file,
+      image.file,
       {
         root: STORAGE_ROOT,
-        headers: imageHeaders(image.file.contentType, image.etag),
+        headers: imageHeaders(image.contentType, image.etag),
       },
       (error) => {
         if (!error || res.headersSent) return resolve();
@@ -86,12 +86,20 @@ const sendFullSizeImage = (res: Response, image: StoredPostImage) =>
           new ApiError(
             ApiMessage.POST_FILES_UNAVAILABLE,
             500,
-            `Could not send ${image.file.file}: ${String(error)}`,
+            `Could not send ${image.file}: ${String(error)}`,
           ),
         );
       },
     );
   });
+
+const sendPostWrite = (
+  res: Response,
+  { response, thumbnails }: PostWrite<ApiResponse>,
+) => {
+  sendResult(res, response);
+  if (thumbnails) void queuePostThumbnails(thumbnails);
+};
 
 const postRouter = Router();
 
@@ -116,7 +124,7 @@ postRouter.post(
     const body = parseRequest(createPostBodySchema, req.body, res);
     if (!body) return;
 
-    sendResult(res, await handleCreatePost(admin, body));
+    sendPostWrite(res, await handleCreatePost(admin, body));
   }),
 );
 
@@ -147,10 +155,10 @@ postRouter.patch(
     const body = parseRequest(updatePostBodySchema, req.body, res);
     if (!body) return;
 
-    const result = await handleUpdatePost(params.id, body);
-    if (!result) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+    const written = await handleUpdatePost(params.id, body);
+    if (!written) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
-    sendResult(res, result);
+    sendPostWrite(res, written);
   }),
 );
 
@@ -177,10 +185,14 @@ postRouter.get(
     const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;
 
-    const image = await handleGetPostImage(params.id, params.name);
+    const image = await findPostThumbnail(
+      params.id,
+      params.name,
+      DEFAULT_IMAGE_SIZE,
+    );
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
-    sendImage(res, image);
+    await sendImage(res, image);
   }),
 );
 
@@ -193,7 +205,20 @@ postRouter.get(
     const image = await findPostImage(params.id, params.name);
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
-    await sendFullSizeImage(res, image);
+    await sendImage(res, image);
+  }),
+);
+
+postRouter.get(
+  "/:id/images/:name/:size",
+  route(async (req, res) => {
+    const params = parseRequest(postThumbnailParamsSchema, req.params, res);
+    if (!params) return;
+
+    const image = await findPostThumbnail(params.id, params.name, params.size);
+    if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+
+    await sendImage(res, image);
   }),
 );
 

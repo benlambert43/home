@@ -7,6 +7,7 @@ import {
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
   MAX_POST_TITLE_CHARACTERS,
+  POST_THUMBNAIL_SIZES,
   postUploadImageNames,
 } from "./post";
 
@@ -225,6 +226,10 @@ export const postIdParamsSchema = z.object({
 
 export const postImageParamsSchema = postIdParamsSchema.extend({
   name: postImageNameField,
+});
+
+export const postThumbnailParamsSchema = postImageParamsSchema.extend({
+  size: z.enum(POST_THUMBNAIL_SIZES),
 });
 
 export const postListQuerySchema = z.object({

@@ -2,10 +2,8 @@ import { rm } from "node:fs/promises";
 import { Request, Response } from "express";
 import multer, { MulterError } from "multer";
 import { MAX_POST_IMAGE_BYTES, POST_IMAGE_FIELD } from "@home/shared";
-import {
-  incomingPostUploadPath,
-  isMissing,
-} from "../fileOperations/uploadStorage";
+import { isMissing } from "../fileOperations/fileErrors";
+import { incomingPostUploadPath } from "../fileOperations/uploadStorage";
 import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
 

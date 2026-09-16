@@ -1,6 +1,7 @@
 // Unit test helpers
 
 import { CreatePostUploadRequestBody } from "@home/shared";
+import type { PostThumbnailsJob } from "../post/postThumbnails";
 
 export const storageControl = {
   cleanupFails: false,
@@ -9,6 +10,8 @@ export const storageControl = {
   incomingImageCleanupFails: false,
   maxImageBytes: undefined as number | undefined,
 };
+
+const queuedThumbnails: Promise<void>[] = [];
 
 const unreachable = () => Promise.reject(new Error("storage is unreachable"));
 
@@ -77,3 +80,24 @@ export const cappedImageBytes = <Shared extends ImageByteLimit>(
     return storageControl.maxImageBytes ?? shared.MAX_POST_IMAGE_BYTES;
   },
 });
+
+interface ThumbnailQueue {
+  queuePostThumbnails: (job: PostThumbnailsJob) => Promise<void>;
+}
+
+export const trackedThumbnailQueue = <Queue extends ThumbnailQueue>(
+  queue: Queue,
+): Queue => ({
+  ...queue,
+  queuePostThumbnails: (job: PostThumbnailsJob) => {
+    const done = queue.queuePostThumbnails(job);
+    queuedThumbnails.push(done);
+    return done;
+  },
+});
+
+export const queuedThumbnailsSettled = async () => {
+  while (queuedThumbnails.length > 0) {
+    await Promise.all(queuedThumbnails.splice(0));
+  }
+};

@@ -1,12 +1,24 @@
 import { randomUUID } from "node:crypto";
-import { link, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { link, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { POST_CONTENT_NAME } from "@home/shared";
+import {
+  MAX_POST_THUMBNAIL_BYTES,
+  POST_CONTENT_NAME,
+  POST_THUMBNAIL_SIZES,
+  PostThumbnailSize,
+} from "@home/shared";
 import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
-import { StoredPostFile, StoredPostRevision } from "../types/db";
+import {
+  revisionImages,
+  StoredPostFile,
+  StoredPostRevision,
+} from "../types/db";
+import { hasErrorCode, isMissing, unlessMissing } from "./fileErrors";
 import { fingerprint } from "./fingerprint";
+import { detectFileImageType } from "./imageType";
 import { resolveStoragePath } from "./storagePath";
+import { createThumbnail } from "./thumbnails";
 
 const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
@@ -15,6 +27,8 @@ const BLOG_POSTS_DIRECTORY = "blog-posts";
 export const FULL_SIZE_IMAGES_DIRECTORY = "full_size_images";
 
 const THUMBNAILS_DIRECTORY = "thumbnails";
+
+const STORAGE_REMOVAL_RETRIES = 5;
 
 export interface PostFileContent {
   name: string;
@@ -30,11 +44,45 @@ interface PostRevisionContent {
   inlineImages: PostFileSource[];
 }
 
+export interface StoredThumbnail {
+  size: PostThumbnailSize;
+  file: string;
+  contentType: string;
+}
+
+export interface ThumbnailFailure {
+  size: PostThumbnailSize;
+  error: unknown;
+}
+
+interface ThumbnailSource {
+  file: string;
+  byteSize: number;
+}
+
 const postDirectory = (post: string) =>
   path.posix.join(BLOG_POSTS_DIRECTORY, post);
 
 const revisionDirectory = (post: string, revision: string) =>
   path.posix.join(postDirectory(post), revision);
+
+const thumbnailsDirectory = (
+  post: string,
+  revision: string,
+  size: PostThumbnailSize,
+) =>
+  path.posix.join(
+    revisionDirectory(post, revision),
+    THUMBNAILS_DIRECTORY,
+    size,
+  );
+
+const thumbnailFile = (
+  post: string,
+  revision: string,
+  size: PostThumbnailSize,
+  name: string,
+) => path.posix.join(thumbnailsDirectory(post, revision, size), name);
 
 const prepareStoredFile = async (directory: string, name: string) => {
   const file = path.posix.join(directory, name);
@@ -154,4 +202,206 @@ export const readPostContent = async (revision: StoredPostRevision) =>
   (await readPostFile(revision.content)).toString("utf8");
 
 export const deletePostStorage = (post: string) =>
-  rm(resolveStoragePath(postDirectory(post)), { recursive: true, force: true });
+  rm(resolveStoragePath(postDirectory(post)), {
+    recursive: true,
+    force: true,
+    maxRetries: STORAGE_REMOVAL_RETRIES,
+  });
+
+const isSameFile = async (first: string, second: string) => {
+  const [firstStats, secondStats] = await Promise.all(
+    [first, second].map((file) =>
+      unlessMissing(() => stat(resolveStoragePath(file)), undefined),
+    ),
+  );
+
+  return (
+    firstStats !== undefined &&
+    secondStats !== undefined &&
+    firstStats.dev === secondStats.dev &&
+    firstStats.ino === secondStats.ino
+  );
+};
+
+const revisionWithSameImage = async (
+  image: StoredPostFile,
+  previous: StoredPostRevision | undefined,
+) => {
+  if (!previous) return undefined;
+
+  const earlier = revisionImages(previous).find(
+    (candidate) => candidate.name === image.name,
+  );
+
+  return earlier && (await isSameFile(earlier.file, image.file))
+    ? previous.fingerprint
+    : undefined;
+};
+
+const oversizedMarker = (absolutePath: string) => `${absolutePath}.oversized`;
+
+const markOversized = (absolutePath: string) =>
+  writeFile(oversizedMarker(absolutePath), "").catch((e: unknown) => {
+    console.error(`Failed to mark ${absolutePath} as oversized:`, e);
+  });
+
+const prepareThumbnailFile = async (
+  post: string,
+  revision: string,
+  size: PostThumbnailSize,
+  name: string,
+) => {
+  const file = thumbnailFile(post, revision, size, name);
+  const absolutePath = resolveStoragePath(file);
+
+  try {
+    await mkdir(path.dirname(absolutePath));
+  } catch (e) {
+    if (isMissing(e)) return undefined;
+    if (!hasErrorCode(e, "EEXIST")) throw e;
+  }
+
+  return { file, absolutePath };
+};
+
+const reuseThumbnail = async (
+  post: string,
+  revision: string | undefined,
+  size: PostThumbnailSize,
+  name: string,
+  absolutePath: string,
+) => {
+  if (revision === undefined) return false;
+
+  const earlier = resolveStoragePath(thumbnailFile(post, revision, size, name));
+  const earlierStats = await unlessMissing(() => stat(earlier), undefined);
+  if (!earlierStats) return false;
+
+  const oversized = earlierStats.size > MAX_POST_THUMBNAIL_BYTES[size];
+  const reusable =
+    !oversized ||
+    (await unlessMissing(
+      () => stat(oversizedMarker(earlier)).then(() => true),
+      false,
+    ));
+  if (!reusable) return false;
+
+  const reused = await unlessMissing(
+    () => link(earlier, absolutePath).then(() => true),
+    false,
+  );
+  if (reused && oversized) await markOversized(absolutePath);
+
+  return reused;
+};
+
+const writeCompleteFile = async (absolutePath: string, data: Buffer) => {
+  const temporaryPath = `${absolutePath}.${randomUUID()}.tmp`;
+
+  try {
+    await writeFile(temporaryPath, data, { flag: "wx" });
+    await link(temporaryPath, absolutePath);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
+};
+
+const makeThumbnail = async (
+  source: ThumbnailSource,
+  size: PostThumbnailSize,
+  absolutePath: string,
+) => {
+  const data = await createThumbnail(
+    resolveStoragePath(source.file),
+    source.byteSize,
+    MAX_POST_THUMBNAIL_BYTES[size],
+  );
+  if (!data) return false;
+
+  await writeCompleteFile(absolutePath, data);
+
+  return true;
+};
+
+export const writePostThumbnails = async (
+  post: string,
+  revision: StoredPostRevision,
+  image: StoredPostFile,
+  previous?: StoredPostRevision,
+): Promise<ThumbnailFailure[]> => {
+  const reusableRevision = await revisionWithSameImage(image, previous).catch(
+    () => undefined,
+  );
+  const failures: ThumbnailFailure[] = [];
+  let source: ThumbnailSource = image;
+
+  for (const size of POST_THUMBNAIL_SIZES) {
+    const fail = (error: unknown) => {
+      failures.push({ size, error });
+      return false;
+    };
+
+    try {
+      const prepared = await prepareThumbnailFile(
+        post,
+        revision.fingerprint,
+        size,
+        image.name,
+      );
+      if (!prepared) return failures;
+
+      const { file, absolutePath } = prepared;
+      const stored =
+        (await reuseThumbnail(
+          post,
+          reusableRevision,
+          size,
+          image.name,
+          absolutePath,
+        ).catch(fail)) ||
+        (await makeThumbnail(source, size, absolutePath).catch(fail));
+
+      if (!stored) {
+        await link(resolveStoragePath(source.file), absolutePath);
+
+        const failed = failures.some((failure) => failure.size === size);
+        if (!failed && source.byteSize > MAX_POST_THUMBNAIL_BYTES[size]) {
+          await markOversized(absolutePath);
+        }
+      }
+
+      source = { file, byteSize: (await stat(absolutePath)).size };
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  return failures;
+};
+
+const sizesFrom = (size: PostThumbnailSize) =>
+  POST_THUMBNAIL_SIZES.slice(
+    0,
+    POST_THUMBNAIL_SIZES.indexOf(size) + 1,
+  ).reverse();
+
+export const findStoredThumbnail = async (
+  post: string,
+  revision: string,
+  name: string,
+  size: PostThumbnailSize,
+): Promise<StoredThumbnail | undefined> => {
+  for (const candidate of sizesFrom(size)) {
+    const file = thumbnailFile(post, revision, candidate, name);
+    const imageType = await unlessMissing(
+      () => detectFileImageType(resolveStoragePath(file)),
+      undefined,
+    );
+
+    if (imageType) {
+      return { size: candidate, file, contentType: imageType.contentType };
+    }
+  }
+
+  return undefined;
+};

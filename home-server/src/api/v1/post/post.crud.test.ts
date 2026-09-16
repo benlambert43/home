@@ -14,6 +14,7 @@ import { deletePostStorage } from "../fileOperations/postStorage";
 import {
   afterEachPostTest,
   apiCall,
+  apiRequest,
   beforeEachPostTest,
   breakPostStorage,
   CONTENT,
@@ -53,6 +54,15 @@ vi.mock("../fileOperations/postStorage", async (importOriginal) => {
 
   return failableStorage(
     await importOriginal<typeof import("../fileOperations/postStorage")>(),
+  );
+});
+
+vi.mock("./postThumbnails", async (importOriginal) => {
+  const { trackedThumbnailQueue } =
+    await import("../testFixtures/storageTestControl");
+
+  return trackedThumbnailQueue(
+    await importOriginal<typeof import("./postThumbnails")>(),
   );
 });
 
@@ -314,7 +324,7 @@ describe("the blog post api", () => {
 
       it("is rejected when the body is not the json it says it is", async () => {
         expectRejected(
-          await apiCall("post", "")
+          await apiRequest("post", "")
             .set("Content-Type", "application/json")
             .send("{ not json"),
           400,

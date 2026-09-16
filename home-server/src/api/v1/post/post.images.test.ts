@@ -1,5 +1,5 @@
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST_CONTENT_NAME, PostImage } from "@home/shared";
 import {
   ApiMessage,
@@ -49,6 +49,15 @@ import {
   WEBP_IMAGE,
 } from "../testFixtures/postTestFixtures";
 
+vi.mock("./postThumbnails", async (importOriginal) => {
+  const { trackedThumbnailQueue } =
+    await import("../testFixtures/storageTestControl");
+
+  return trackedThumbnailQueue(
+    await importOriginal<typeof import("./postThumbnails")>(),
+  );
+});
+
 type SavedPost = (typeof savedPosts)[number];
 
 const THUMBNAILS_DIRECTORY = "thumbnails";
@@ -67,9 +76,9 @@ const IMAGE_TYPES: [string, Buffer, string][] = [
   ["loop.gif", GIF_IMAGE, "image/gif"],
 ];
 
-const IMAGE_ROUTES: [string, "" | "/fullSize"][] = [
-  ["the image route", ""],
-  ["the full size image route", "/fullSize"],
+const IMAGE_ROUTES: [string, "" | "/fullSize", string][] = [
+  ["the image route", "", "large-"],
+  ["the full size image route", "/fullSize", ""],
 ];
 
 const postWithHeaderAndDiagram = () =>
@@ -898,7 +907,7 @@ describe("images on a blog post", () => {
         "public, max-age=60, must-revalidate",
       );
       expect(response.headers.etag).toBe(
-        `"${currentRevision(post).fingerprint}-${HEADER_IMAGE_NAME}"`,
+        `"${currentRevision(post).fingerprint}-large-${HEADER_IMAGE_NAME}"`,
       );
       expect(response.body).toEqual(PNG_IMAGE);
     });
@@ -1050,7 +1059,7 @@ describe("images on a blog post", () => {
 
     it.each(IMAGE_ROUTES)(
       "serve the new bytes of a replaced image under a new etag through %s",
-      async (_route, size) => {
+      async (_route, size, etagSize) => {
         const post = await publishPost(postWithHeaderAndDiagram());
         const before = await getImage(post, DIAGRAM, size);
         expect(before.status).toBe(200);
@@ -1065,7 +1074,7 @@ describe("images on a blog post", () => {
         expect(after.status).toBe(200);
         expect(after.body).toEqual(LONGER_PNG_IMAGE);
         expect(after.headers.etag).toBe(
-          `"${currentRevision(post).fingerprint}-${DIAGRAM}"`,
+          `"${currentRevision(post).fingerprint}-${etagSize}${DIAGRAM}"`,
         );
         expect(after.headers.etag).not.toBe(before.headers.etag);
       },

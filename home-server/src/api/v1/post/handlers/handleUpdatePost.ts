@@ -1,5 +1,5 @@
-import { Error as MongooseError } from "mongoose";
-import { UpdatePostRequestBody, UpdatePostResponse } from "@home/shared";
+import { HydratedDocument, Error as MongooseError } from "mongoose";
+import { Post, UpdatePostRequestBody, UpdatePostResponse } from "@home/shared";
 import { ApiError } from "../../http/apiError";
 import {
   ApiMessage,
@@ -12,9 +12,11 @@ import {
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import {
+  PostDocument,
   requireLatestRevision,
   revisionImages,
   StoredPostFile,
+  StoredPostRevision,
 } from "../../types/db";
 import { Decoded } from "../../types/decoded";
 import {
@@ -23,6 +25,7 @@ import {
   PostUploadImages,
 } from "../postUploads";
 import { toPostResponse } from "../postResponse";
+import { PostWrite, refusedPostWrite } from "../postThumbnails";
 import { deleteUnsavedStorage } from "../unsavedStorage";
 
 const namesInLowercase = (names: string[]) =>
@@ -72,56 +75,16 @@ const duplicateImageName = (images: StoredPostFile[]) => {
   )?.name;
 };
 
-const updatePost = async (
-  postId: string,
-  body: UpdatePostRequestBody,
-  uploaded: PostUploadImages,
-): Promise<UpdatePostResponse | undefined> => {
-  const post = await PostModel.findById(postId);
-  if (!post) return undefined;
-
-  const previous = requireLatestRevision(post);
-
-  const headerImage = resolveHeaderImage(
-    body.headerImage,
-    uploaded.headerImage,
-    previous.headerImage,
-  );
-  if (!headerImage.ok) return { error: true, message: headerImage.message };
-
-  const inlineImages = resolveInlineImages(
-    previous.inlineImages,
-    uploaded.inlineImages,
-    body.removeInlineImages ?? [],
-  );
-  if (!inlineImages.ok) return { error: true, message: inlineImages.message };
-
-  const duplicate = duplicateImageName(
-    revisionImages({
-      headerImage: headerImage.value,
-      inlineImages: inlineImages.value,
-    }),
-  );
-  if (duplicate) return { error: true, message: imageNameTaken(duplicate) };
-
-  const revision = await writePostRevision(post.fingerprint, {
-    content: body.content ?? previous.content,
-    headerImage: headerImage.value,
-    inlineImages: inlineImages.value,
-  });
-
-  post.revisions.push(revision);
-
-  if (body.title !== undefined) post.title = body.title;
-
-  post.modifiedDate = new Date();
-
+const saveEdit = async (
+  post: HydratedDocument<PostDocument>,
+  revision: StoredPostRevision,
+): Promise<Post> => {
   try {
     const edited = await toPostResponse(post);
 
     await post.save();
 
-    return { error: false, message: ApiMessage.POST_UPDATED, post: edited };
+    return edited;
   } catch (e) {
     await deleteUnsavedStorage(
       { _id: post._id, "revisions.fingerprint": revision.fingerprint },
@@ -137,19 +100,70 @@ const updatePost = async (
   }
 };
 
+const updatePost = async (
+  postId: string,
+  body: UpdatePostRequestBody,
+  uploaded: PostUploadImages,
+): Promise<PostWrite<UpdatePostResponse> | undefined> => {
+  const post = await PostModel.findById(postId);
+  if (!post) return undefined;
+
+  const previous = requireLatestRevision(post);
+
+  const headerImage = resolveHeaderImage(
+    body.headerImage,
+    uploaded.headerImage,
+    previous.headerImage,
+  );
+  if (!headerImage.ok) return refusedPostWrite(headerImage.message);
+
+  const inlineImages = resolveInlineImages(
+    previous.inlineImages,
+    uploaded.inlineImages,
+    body.removeInlineImages ?? [],
+  );
+  if (!inlineImages.ok) return refusedPostWrite(inlineImages.message);
+
+  const duplicate = duplicateImageName(
+    revisionImages({
+      headerImage: headerImage.value,
+      inlineImages: inlineImages.value,
+    }),
+  );
+  if (duplicate) return refusedPostWrite(imageNameTaken(duplicate));
+
+  const revision = await writePostRevision(post.fingerprint, {
+    content: body.content ?? previous.content,
+    headerImage: headerImage.value,
+    inlineImages: inlineImages.value,
+  });
+
+  post.revisions.push(revision);
+
+  if (body.title !== undefined) post.title = body.title;
+
+  post.modifiedDate = new Date();
+
+  const edited = await saveEdit(post, revision);
+
+  if (body.uploadId !== undefined) await discardPostUpload(body.uploadId);
+
+  return {
+    response: { error: false, message: ApiMessage.POST_UPDATED, post: edited },
+    thumbnails: { post: post.fingerprint, revision, previous },
+  };
+};
+
 export const handleUpdatePost = async (
   postId: string,
   body: UpdatePostRequestBody,
-): Promise<UpdatePostResponse | undefined> => {
+): Promise<PostWrite<UpdatePostResponse> | undefined> => {
   if (body.uploadId === undefined) {
     return updatePost(postId, body, { inlineImages: [] });
   }
 
   const images = await collectPostUploadImages(body.uploadId);
-  if (!images.ok) return { error: true, message: images.message };
+  if (!images.ok) return refusedPostWrite(images.message);
 
-  const updated = await updatePost(postId, body, images.value);
-  if (updated?.error === false) await discardPostUpload(body.uploadId);
-
-  return updated;
+  return updatePost(postId, body, images.value);
 };
