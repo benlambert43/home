@@ -1,16 +1,6 @@
 // Unit test helpers
 
-import {
-  mkdir,
-  readdir,
-  readFile,
-  rm,
-  stat,
-  symlink,
-  utimes,
-  writeFile,
-} from "node:fs/promises";
-import path from "node:path";
+import { readdir, readFile, rm } from "node:fs/promises";
 import express from "express";
 import { Types } from "mongoose";
 import request, { Response } from "supertest";
@@ -35,43 +25,17 @@ import {
 } from "../fileOperations/postStorage";
 import { resolveStoragePath } from "../fileOperations/storagePath";
 import { PostDocument, StoredPostRevision } from "../types/db";
-import { queuedThumbnailsSettled, storageControl } from "./storageTestControl";
+import { queuedThumbnailsSettled } from "./storageTestControl";
 
 export const PNG_IMAGE = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64",
 );
 
-export const OTHER_PNG_IMAGE = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-  "base64",
-);
-
-export const LONGER_PNG_IMAGE = Buffer.concat([PNG_IMAGE, Buffer.alloc(8)]);
-
 export const JPEG_IMAGE = Buffer.from(
   "ffd8ffe000104a46494600010100000100010000fffe0004686900ffd9",
   "hex",
 );
-
-export const WEBP_IMAGE = Buffer.concat([
-  Buffer.from("RIFF", "latin1"),
-  Buffer.from([0x1a, 0x00, 0x00, 0x00]),
-  Buffer.from("WEBPVP8L", "latin1"),
-  Buffer.alloc(18),
-]);
-
-export const GIF_IMAGE = Buffer.concat([
-  Buffer.from("GIF89a", "latin1"),
-  Buffer.from([0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00]),
-]);
-
-export const avifImage = (brand: string) =>
-  Buffer.concat([
-    Buffer.from([0x00, 0x00, 0x00, 0x20]),
-    Buffer.from(`ftyp${brand}${brand}mif1miaf`, "latin1"),
-    Buffer.alloc(12),
-  ]);
 
 export const NOT_AN_IMAGE = Buffer.from("# Markdown, not an image.", "utf8");
 
@@ -89,13 +53,9 @@ export const MISSING_UPLOAD_ID = "0".repeat(32);
 
 export const savedPosts: PostDocument[] = [];
 
-export const loggedErrors: unknown[][] = [];
-
 const app = express().use("/api/v1/posts", postRouter).use(handleRequestError);
 
-export const makeUser = (
-  overrides: Partial<UserNoPassword> = {},
-): UserNoPassword => ({
+const admin: UserNoPassword = {
   _id: new Types.ObjectId().toHexString(),
   firstname: "Ben",
   lastname: "Lambert",
@@ -106,10 +66,7 @@ export const makeUser = (
   createdDate: "2026-01-01T00:00:00.000Z",
   modifiedDate: "2026-01-01T00:00:00.000Z",
   role: "admin",
-  ...overrides,
-});
-
-const admin = makeUser();
+};
 
 const asQuery = <Result>(result: Result) => ({
   select: () => Promise.resolve(result),
@@ -117,15 +74,12 @@ const asQuery = <Result>(result: Result) => ({
     Promise.resolve(result).then(resolve),
 });
 
-export const stubUserLookup = (user: UserNoPassword | null) => {
+const stubUserLookup = (user: UserNoPassword) => {
   vi.spyOn(UserModel, "findById").mockImplementation(
     () => asQuery(user) as unknown as ReturnType<typeof UserModel.findById>,
   );
   vi.spyOn(UserModel, "find").mockImplementation(
-    () =>
-      asQuery(user ? [user] : []) as unknown as ReturnType<
-        typeof UserModel.find
-      >,
+    () => asQuery([user]) as unknown as ReturnType<typeof UserModel.find>,
   );
 };
 
@@ -133,12 +87,12 @@ const postDocumentPrototype = PostModel.prototype as {
   save: () => Promise<PostDocument>;
 };
 
-export const stubSave = (failure?: Error) =>
+const stubSave = () =>
   vi.spyOn(postDocumentPrototype, "save").mockImplementation(function (
     this: PostDocument,
   ) {
     savedPosts.push(this);
-    return failure ? Promise.reject(failure) : Promise.resolve(this);
+    return Promise.resolve(this);
   });
 
 export const stubPostLookup = (post: PostDocument | null) =>
@@ -178,21 +132,9 @@ export const stubPostDelete = (post: PostDocument | null) =>
         >,
     );
 
-export const stubPostExists = (exists: boolean | Error) =>
-  vi
-    .spyOn(PostModel, "exists")
-    .mockImplementation(
-      () =>
-        (exists instanceof Error
-          ? Promise.reject(exists)
-          : Promise.resolve(
-              exists ? { _id: new Types.ObjectId() } : null,
-            )) as unknown as ReturnType<typeof PostModel.exists>,
-    );
-
 type ApiMethod = "get" | "post" | "patch" | "delete";
 
-export const apiRequest = (
+const apiRequest = (
   method: ApiMethod,
   path: string,
   token: string | null = createApiToken(admin),
@@ -234,20 +176,11 @@ export const startUpload = async (manifest: CreatePostUploadRequestBody) => {
   return (response.body as { uploadId: string }).uploadId;
 };
 
-export const putPostImage = (
-  uploadId: string,
-  name: string,
-  token: string | null = createApiToken(admin),
-) => {
-  const call = request(app).put(
-    `/api/v1/posts/uploads/${uploadId}/images/${name}`,
-  );
-
-  return token === null ? call : call.set("Authorization", token);
-};
-
 export const uploadPostImage = (uploadId: string, name: string, data: Buffer) =>
-  putPostImage(uploadId, name).attach(POST_IMAGE_FIELD, data, "image");
+  request(app)
+    .put(`/api/v1/posts/uploads/${uploadId}/images/${name}`)
+    .set("Authorization", createApiToken(admin))
+    .attach(POST_IMAGE_FIELD, data, "image");
 
 interface NamedImage {
   name: string;
@@ -341,47 +274,6 @@ export const storedUploads = () =>
 export const stagedImages = (uploadId: string) =>
   readdir(uploadPath(uploadId, FULL_SIZE_IMAGES_DIRECTORY));
 
-export const writeStagedImage = (
-  uploadId: string,
-  name: string,
-  data: Buffer,
-) => writeFile(uploadPath(uploadId, FULL_SIZE_IMAGES_DIRECTORY, name), data);
-
-export const corruptUploadManifest = (uploadId: string) =>
-  writeFile(uploadPath(uploadId, "manifest.json"), "{ not json");
-
-export const removeIncomingDirectory = (uploadId: string) =>
-  rm(uploadPath(uploadId, "incoming"), { recursive: true, force: true });
-
-export const removeStagedImageDirectory = (uploadId: string) =>
-  rm(uploadPath(uploadId, FULL_SIZE_IMAGES_DIRECTORY), {
-    recursive: true,
-    force: true,
-  });
-
-const UPLOAD_IDLE_MILLISECONDS = 24 * 60 * 60 * 1000;
-
-export const makeUploadIdle = (uploadId: string) => {
-  const idle = new Date(Date.now() - UPLOAD_IDLE_MILLISECONDS - 1000);
-
-  return utimes(uploadPath(uploadId), idle, idle);
-};
-
-export const addDanglingUpload = (name: string) =>
-  symlink("nowhere", uploadPath(name));
-
-const replaceWithAFile = async (directory: string) => {
-  await mkdir(path.dirname(directory), { recursive: true });
-  await rm(directory, { recursive: true, force: true });
-  await writeFile(directory, "not a directory");
-};
-
-export const breakPostStorage = (fingerprint: string) =>
-  replaceWithAFile(resolveStoragePath(`blog-posts/${fingerprint}`));
-
-export const breakUploadStorage = () =>
-  replaceWithAFile(resolveStoragePath("uploads"));
-
 export const headerImageFile = (revision: StoredPostRevision) => {
   const file = revision.headerImage?.file;
   if (!file) {
@@ -395,12 +287,6 @@ export const storedFile = (file: string) => readFile(resolveStoragePath(file));
 
 export const storedText = (file: string) =>
   readFile(resolveStoragePath(file), "utf8");
-
-export const storedEntries = (directory: string) =>
-  readdir(resolveStoragePath(directory));
-
-export const storedInode = async (file: string) =>
-  (await stat(resolveStoragePath(file))).ino;
 
 export const currentRevision = (post: PostDocument) =>
   post.revisions[post.revisions.length - 1];
@@ -449,9 +335,6 @@ export const postResponse = (
 export const responsePost = (response: Response) =>
   (response.body as { post: Post }).post;
 
-export const responseSummaries = (response: Response) =>
-  (response.body as { posts: PostSummary[] }).posts;
-
 export const expectFailure = (
   response: Response,
   status: number,
@@ -463,22 +346,12 @@ export const expectFailure = (
 
 export const beforeEachPostTest = () => {
   vi.stubEnv("API_SESSION_SECRET", "test-api-session-secret");
-  vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
-    loggedErrors.push(args);
-  });
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
   stubUserLookup(admin);
   stubSave();
-  stubPostExists(false);
 };
 
 export const afterEachPostTest = async () => {
-  storageControl.cleanupFails = false;
-  storageControl.uploadCreateFails = false;
-  storageControl.uploadCleanupFails = false;
-  storageControl.incomingImageCleanupFails = false;
-  storageControl.maxImageBytes = undefined;
-  loggedErrors.splice(0);
-
   try {
     for (const post of savedPosts.splice(0)) {
       await deletePostStorage(post.fingerprint);

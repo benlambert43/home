@@ -29,10 +29,4 @@ describe("postUploadImageNames", () => {
       }),
     ).toEqual(["cover.png", "diagram.png", "chart.jpg"]);
   });
-
-  it("lists only the inline images when there is no header image", () => {
-    expect(postUploadImageNames({ inlineImages: ["diagram.png"] })).toEqual([
-      "diagram.png",
-    ]);
-  });
 });

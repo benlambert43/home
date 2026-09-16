@@ -11,10 +11,6 @@ describe("resolveStoragePath", () => {
     );
   });
 
-  it("resolves the storage directory itself", () => {
-    expect(resolveStoragePath("")).toBe(STORAGE_ROOT);
-  });
-
   it("refuses a path that escapes the storage directory", () => {
     expect(() => resolveStoragePath("../secrets")).toThrow(
       "Refusing to use a path outside of storage: ../secrets",

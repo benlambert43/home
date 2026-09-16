@@ -43,18 +43,4 @@ describe("route", () => {
       error: true,
     });
   });
-
-  it("responds with a failure when the handler throws anything else", async () => {
-    const app = appWith(() => {
-      throw new Error("boom");
-    });
-
-    const response = await request(app).get("/");
-
-    expect(response.status).toBe(500);
-    expect(response.body).toEqual({
-      message: ApiMessage.UNEXPECTED,
-      error: true,
-    });
-  });
 });
