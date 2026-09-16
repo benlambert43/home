@@ -20,8 +20,8 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "server-only": ["./test/emptyModule.ts"],
-      "client-only": ["./test/emptyModule.ts"]
+      "server-only": ["./test/emptyTestModule.ts"],
+      "client-only": ["./test/emptyTestModule.ts"]
     }
   },
   "include": [
