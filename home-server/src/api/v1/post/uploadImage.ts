@@ -38,6 +38,11 @@ const receivePostImage = (req: Request, res: Response, uploadId: string) =>
     });
   });
 
+const discardIncomingImage = (file: string) =>
+  rm(file, { force: true }).catch((e: unknown) => {
+    console.error(`Failed to clean up incoming image ${file}:`, e);
+  });
+
 export const withReceivedPostImage = async <Result>(
   req: Request,
   res: Response,
@@ -54,6 +59,6 @@ export const withReceivedPostImage = async <Result>(
 
     throw new ApiError(ApiMessage.POST_UPLOAD_NOT_FOUND, 404, String(e));
   } finally {
-    if (image) await rm(image.path, { force: true });
+    if (image) await discardIncomingImage(image.path);
   }
 };

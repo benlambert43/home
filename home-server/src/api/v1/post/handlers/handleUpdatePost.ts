@@ -117,7 +117,11 @@ const updatePost = async (
   post.modifiedDate = new Date();
 
   try {
+    const edited = await toPostResponse(post);
+
     await post.save();
+
+    return { error: false, message: ApiMessage.POST_UPDATED, post: edited };
   } catch (e) {
     await deleteUnsavedStorage(
       { _id: post._id, "revisions.fingerprint": revision.fingerprint },
@@ -131,12 +135,6 @@ const updatePost = async (
 
     throw e;
   }
-
-  return {
-    error: false,
-    message: ApiMessage.POST_UPDATED,
-    post: await toPostResponse(post),
-  };
 };
 
 export const handleUpdatePost = async (

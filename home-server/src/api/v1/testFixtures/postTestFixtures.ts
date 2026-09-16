@@ -1,3 +1,5 @@
+// Unit test helpers
+
 import {
   mkdir,
   readdir,
