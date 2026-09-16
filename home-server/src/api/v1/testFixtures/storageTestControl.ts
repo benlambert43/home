@@ -6,6 +6,7 @@ export const storageControl = {
   cleanupFails: false,
   uploadCreateFails: false,
   uploadCleanupFails: false,
+  incomingImageCleanupFails: false,
   maxImageBytes: undefined as number | undefined,
 };
 
@@ -48,6 +49,20 @@ export const failableUploadStorage = <Storage extends UploadStorage>(
     storageControl.uploadCleanupFails
       ? unreachable()
       : storage.deletePostUpload(upload),
+});
+
+interface FileRemoval {
+  rm: (path: string, options?: { force?: boolean }) => Promise<void>;
+}
+
+export const failableIncomingImageRemoval = <FileSystem extends FileRemoval>(
+  fileSystem: FileSystem,
+): FileSystem => ({
+  ...fileSystem,
+  rm: (path: string, options?: { force?: boolean }) =>
+    storageControl.incomingImageCleanupFails && path.includes("/incoming/")
+      ? unreachable()
+      : fileSystem.rm(path, options),
 });
 
 interface ImageByteLimit {

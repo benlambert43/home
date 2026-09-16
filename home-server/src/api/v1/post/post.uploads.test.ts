@@ -71,6 +71,15 @@ vi.mock("../fileOperations/uploadStorage", async (importOriginal) => {
   );
 });
 
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const { failableIncomingImageRemoval } =
+    await import("../testFixtures/storageTestControl");
+
+  return failableIncomingImageRemoval(
+    await importOriginal<typeof import("node:fs/promises")>(),
+  );
+});
+
 const DIAGRAM = "diagram.png";
 
 const CHART = "chart.jpg";
@@ -305,6 +314,19 @@ describe("blog post image uploads", () => {
       });
 
       await expect(stagedImages(uploadId)).resolves.toEqual([DIAGRAM]);
+    });
+
+    it("logs when the received image cannot be discarded", async () => {
+      const uploadId = await startUpload({ inlineImages: [DIAGRAM] });
+      storageControl.incomingImageCleanupFails = true;
+
+      const response = await uploadPostImage(uploadId, DIAGRAM, PNG_IMAGE);
+
+      expect(response.status).toBe(200);
+      expect(loggedErrors).toContainEqual([
+        expect.stringMatching(/^Failed to clean up incoming image .+:$/),
+        expect.any(Error),
+      ]);
     });
 
     it("accepts the same image sent again", async () => {

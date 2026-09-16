@@ -464,6 +464,7 @@ export const afterEachPostTest = async () => {
   storageControl.cleanupFails = false;
   storageControl.uploadCreateFails = false;
   storageControl.uploadCleanupFails = false;
+  storageControl.incomingImageCleanupFails = false;
   storageControl.maxImageBytes = undefined;
   loggedErrors.splice(0);
 
