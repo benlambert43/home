@@ -1,87 +1,73 @@
-import { Types } from "mongoose";
+import { Error as MongooseError } from "mongoose";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  MAX_POST_INLINE_IMAGES,
+  MAX_POST_CONTENT_CHARACTERS,
+  MAX_POST_PAGE_SIZE,
+  MAX_POST_REQUEST_BODY_BYTES,
   MAX_POST_TITLE_CHARACTERS,
   POST_CONTENT_NAME,
-  PostSummary,
   UserNoPassword,
 } from "@home/shared";
 import { createApiToken } from "../auth/createApiToken";
-import {
-  ApiMessage,
-  imageNotAnImage,
-  imageTypeMismatch,
-  inlineImageNotOnPost,
-} from "../http/messages";
-import { PostModel } from "../model/postModel";
+import { ApiMessage } from "../http/messages";
 import { deletePostStorage } from "../fileOperations/postStorage";
-import { PostDocument } from "../types/db";
 import {
   afterEachPostTest,
   apiCall,
   beforeEachPostTest,
+  breakPostStorage,
   CONTENT,
   createPost,
   currentRevision,
   expectFailure,
   HEADER_IMAGE_NAME,
   headerImageFile,
-  imageResponse,
-  JPEG_IMAGE,
+  imagePath,
   loggedErrors,
   makeUser,
-  NOT_AN_IMAGE,
-  PNG_IMAGE,
-  postImage,
+  MARKDOWN_CONTENT_TYPE,
+  MISSING_POST_ID,
+  postPath,
   postResponse,
   postSummaryResponse,
+  postWithoutHeaderImage,
+  publishPost,
   responsePost,
+  responseSummaries,
   savedPosts,
   storedFile,
-  storedInode,
   storedText,
+  stubPostDelete,
+  stubPostExists,
+  stubPostList,
+  stubPostLookup,
   stubSave,
-  storedUploads,
   stubUserLookup,
-  updatePost,
-  validBody,
-} from "../testFixtures/postFixtures";
-import { storageControl } from "../testFixtures/storageControl";
+  TITLE,
+} from "../testFixtures/postTestFixtures";
+import { storageControl } from "../testFixtures/storageTestControl";
 
 vi.mock("../fileOperations/postStorage", async (importOriginal) => {
-  const { failableStorage } = await import("../testFixtures/storageControl");
+  const { failableStorage } =
+    await import("../testFixtures/storageTestControl");
 
   return failableStorage(
     await importOriginal<typeof import("../fileOperations/postStorage")>(),
   );
 });
 
-const WEBP_IMAGE = Buffer.concat([
-  Buffer.from("RIFF", "latin1"),
-  Buffer.from([0x1a, 0x00, 0x00, 0x00]),
-  Buffer.from("WEBPVP8L", "latin1"),
-  Buffer.alloc(18),
-]);
+type SavedPost = (typeof savedPosts)[number];
 
-const avifImage = (brand: string) =>
-  Buffer.concat([
-    Buffer.from([0x00, 0x00, 0x00, 0x20]),
-    Buffer.from(`ftyp${brand}${brand}mif1miaf`, "latin1"),
-    Buffer.alloc(12),
-  ]);
+const NEW_CONTENT = "# Take two\n\nThe post, rewritten.\n";
 
-const GIF_IMAGE = Buffer.concat([
-  Buffer.from("GIF89a", "latin1"),
-  Buffer.from([0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00]),
-]);
+const PUBLISHED_AT = new Date("2026-01-01T00:00:00.000Z");
 
-const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
+const EDITED_AT = new Date("2026-01-02T00:00:00.000Z");
 
-const createdBody = (post: (typeof savedPosts)[number]) => ({
+const publishedBody = (post: SavedPost) => ({
   error: false,
   message: ApiMessage.POST_CREATED,
-  post: postResponse(post),
+  post: postResponse(post, { headerImage: null }),
 });
 
 const expectRejected = (
@@ -93,62 +79,8 @@ const expectRejected = (
   expect(savedPosts).toHaveLength(0);
 };
 
-const MISSING_POST_ID = new Types.ObjectId().toHexString();
-
-const NEW_CONTENT = "# Take two\n\nThe post, rewritten.\n";
-
-const stubPostLookup = (post: PostDocument | null) =>
-  vi
-    .spyOn(PostModel, "findById")
-    .mockImplementation(
-      () =>
-        Promise.resolve(post) as unknown as ReturnType<
-          typeof PostModel.findById
-        >,
-    );
-
-const stubPostList = (posts: PostDocument[]) => {
-  vi.spyOn(PostModel, "countDocuments").mockImplementation(
-    () =>
-      Promise.resolve(posts.length) as unknown as ReturnType<
-        typeof PostModel.countDocuments
-      >,
-  );
-  vi.spyOn(PostModel, "find").mockImplementation(
-    () =>
-      ({
-        sort: () => ({
-          skip: () => ({ limit: () => Promise.resolve(posts) }),
-        }),
-      }) as unknown as ReturnType<typeof PostModel.find>,
-  );
-};
-
-const stubPostDelete = (post: PostDocument | null) =>
-  vi
-    .spyOn(PostModel, "findByIdAndDelete")
-    .mockImplementation(
-      () =>
-        Promise.resolve(post) as unknown as ReturnType<
-          typeof PostModel.findByIdAndDelete
-        >,
-    );
-
-const publishPost = async (
-  body: Parameters<typeof createPost>[0] = validBody(),
-) => {
-  await createPost(body);
-
-  const post = savedPosts[savedPosts.length - 1];
-  stubPostLookup(post);
-
-  return post;
-};
-
-const postPath = (post: PostDocument) => `/${post._id.toString()}`;
-
-const responseSummaries = (body: unknown) =>
-  (body as { posts: PostSummary[] }).posts;
+const editPost = (post: SavedPost, body: object, token?: string | null) =>
+  apiCall("patch", postPath(post), { body, token });
 
 describe("the blog post api", () => {
   beforeEach(beforeEachPostTest);
@@ -157,83 +89,95 @@ describe("the blog post api", () => {
 
   describe("POST /api/v1/posts", () => {
     describe("a published post", () => {
-      it("stores the title, markdown content, and every image", async () => {
-        const response = await createPost(
-          validBody({
-            inlineImages: [
-              postImage("diagram.png", PNG_IMAGE),
-              postImage("screenshot.jpg", JPEG_IMAGE),
-            ],
-          }),
-        );
+      it("stores the title and the markdown content", async () => {
+        const response = await createPost(postWithoutHeaderImage());
 
         const post = savedPosts[0];
-        const postId = post._id.toString();
         const revision = currentRevision(post);
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({
-          ...createdBody(post),
-          post: postResponse(post, {
-            inlineImages: [
-              imageResponse(postId, "diagram.png", PNG_IMAGE, "image/png"),
-              imageResponse(postId, "screenshot.jpg", JPEG_IMAGE, "image/jpeg"),
-            ],
-          }),
-        });
-
+        expect(response.body).toEqual(publishedBody(post));
+        expect(post.title).toBe(TITLE);
         expect(post.createdDate).toEqual(post.modifiedDate);
         expect(revision.content.name).toBe(`${POST_CONTENT_NAME}.md`);
         expect(revision.content.contentType).toBe(MARKDOWN_CONTENT_TYPE);
+        expect(revision.headerImage).toBeUndefined();
+        expect(revision.inlineImages).toEqual([]);
 
         await expect(storedText(revision.content.file)).resolves.toBe(CONTENT);
-        await expect(storedFile(headerImageFile(revision))).resolves.toEqual(
-          PNG_IMAGE,
-        );
-        await expect(
-          storedFile(revision.inlineImages[0].file),
-        ).resolves.toEqual(PNG_IMAGE);
-        await expect(
-          storedFile(revision.inlineImages[1].file),
-        ).resolves.toEqual(JPEG_IMAGE);
       });
 
-      it("stores a post that has only a title and content", async () => {
+      it("stores a title and content of a single character", async () => {
         const response = await createPost({ title: "a", content: "a" });
 
         const post = savedPosts[0];
-        const revision = currentRevision(post);
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
-          ...createdBody(post),
+          ...publishedBody(post),
           post: postResponse(post, {
             title: "a",
             content: "a\n",
             headerImage: null,
           }),
         });
-        expect(revision.headerImage).toBeUndefined();
 
-        await expect(storedText(revision.content.file)).resolves.toBe("a\n");
+        await expect(
+          storedText(currentRevision(post).content.file),
+        ).resolves.toBe("a\n");
       });
 
-      it.each([
-        ["diagram.png", PNG_IMAGE, "image/png"],
-        ["screenshot.jpg", JPEG_IMAGE, "image/jpeg"],
-        ["chart.webp", WEBP_IMAGE, "image/webp"],
-        ["photo.avif", avifImage("avif"), "image/avif"],
-        ["sequence.avif", avifImage("avis"), "image/avif"],
-        ["loop.gif", GIF_IMAGE, "image/gif"],
-      ])("stores %s as an inline image", async (name, data, contentType) => {
+      it("stores a title of the greatest length the api allows", async () => {
+        const title = "a".repeat(MAX_POST_TITLE_CHARACTERS);
+
+        const response = await createPost(postWithoutHeaderImage({ title }));
+
+        expect(response.status).toBe(200);
+        expect(responsePost(response).title).toBe(title);
+      });
+
+      it("counts a title's length after trimming it", async () => {
+        const title = "a".repeat(MAX_POST_TITLE_CHARACTERS);
+
         const response = await createPost(
-          validBody({ inlineImages: [postImage(name, data)] }),
+          postWithoutHeaderImage({ title: `  ${title}  ` }),
         );
 
         expect(response.status).toBe(200);
-        expect(responsePost(response).inlineImages).toEqual([
-          imageResponse(savedPosts[0]._id.toString(), name, data, contentType),
-        ]);
+        expect(responsePost(response).title).toBe(title);
+      });
+
+      it("counts a title in characters rather than in code units", async () => {
+        const title = "🌱".repeat(MAX_POST_TITLE_CHARACTERS);
+
+        const response = await createPost(postWithoutHeaderImage({ title }));
+
+        expect(response.status).toBe(200);
+        expect(responsePost(response).title).toBe(title);
+      });
+
+      it("stores content of the greatest length the api allows", async () => {
+        const content = "a".repeat(MAX_POST_CONTENT_CHARACTERS - 1);
+
+        const response = await createPost(postWithoutHeaderImage({ content }));
+
+        expect(response.status).toBe(200);
+        expect(responsePost(response).content).toHaveLength(
+          MAX_POST_CONTENT_CHARACTERS,
+        );
+      });
+
+      it("trims and normalizes the title and the content it is given", async () => {
+        const response = await createPost(
+          postWithoutHeaderImage({
+            title: "  Building the blog  ",
+            content: "a\r\n\r\n\r\n\r\nb\r\n\r\n",
+          }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(responsePost(response).title).toBe(TITLE);
+        expect(responsePost(response).content).toBe("a\n\nb\n");
       });
     });
 
@@ -259,7 +203,7 @@ describe("the blog post api", () => {
         ],
       ])("is refused for %s", async (_description, status, message, token) => {
         expectRejected(
-          await createPost(validBody({ headerImage: undefined }), token()),
+          await createPost(postWithoutHeaderImage(), token()),
           status,
           message,
         );
@@ -285,7 +229,7 @@ describe("the blog post api", () => {
           stubUserLookup(author);
 
           expectRejected(
-            await createPost(validBody({ headerImage: undefined })),
+            await createPost(postWithoutHeaderImage()),
             status,
             message,
           );
@@ -295,72 +239,87 @@ describe("the blog post api", () => {
 
     describe("a request body the api will not accept", () => {
       it.each([
-        ["a missing title", validBody({ title: undefined })],
-        ["a blank title", validBody({ title: "   " })],
+        ["a missing title", postWithoutHeaderImage({ title: undefined })],
+        ["a title that is null", postWithoutHeaderImage({ title: null })],
+        ["an empty title", postWithoutHeaderImage({ title: "" })],
+        ["a blank title", postWithoutHeaderImage({ title: "   " })],
+        [
+          "a title of unicode spaces",
+          postWithoutHeaderImage({ title: "\u00A0\u3000\uFEFF" }),
+        ],
+        ["a title that is not a string", postWithoutHeaderImage({ title: 7 })],
         [
           "an overlong title",
-          validBody({ title: "a".repeat(MAX_POST_TITLE_CHARACTERS + 1) }),
+          postWithoutHeaderImage({
+            title: "a".repeat(MAX_POST_TITLE_CHARACTERS + 1),
+          }),
+        ],
+        [
+          "an overlong title counted in characters",
+          postWithoutHeaderImage({
+            title: "🌱".repeat(MAX_POST_TITLE_CHARACTERS + 1),
+          }),
         ],
         [
           "a title with bidirectional override characters",
-          validBody({ title: "Building\u202Ethe blog" }),
+          postWithoutHeaderImage({ title: "Building\u202Ethe blog" }),
         ],
-        ["missing content", validBody({ content: undefined })],
-        ["blank content", validBody({ content: " \n " })],
+        ["missing content", postWithoutHeaderImage({ content: undefined })],
+        ["content that is null", postWithoutHeaderImage({ content: null })],
+        ["empty content", postWithoutHeaderImage({ content: "" })],
+        ["blank content", postWithoutHeaderImage({ content: " \n " })],
+        [
+          "content of only line breaks",
+          postWithoutHeaderImage({ content: "\r\n\r\n\r" }),
+        ],
+        [
+          "content that is not a string",
+          postWithoutHeaderImage({ content: 7 }),
+        ],
+        [
+          "content over the limit once it is normalized",
+          postWithoutHeaderImage({
+            content: "a".repeat(MAX_POST_CONTENT_CHARACTERS),
+          }),
+        ],
         [
           "content with control characters",
-          validBody({ content: "Building\u0007the blog" }),
+          postWithoutHeaderImage({ content: "Building\u0007the blog" }),
         ],
         [
-          "an inline image name with an unsupported extension",
-          validBody({ inlineImages: [postImage("diagram.bmp", PNG_IMAGE)] }),
+          "content with raw html",
+          postWithoutHeaderImage({ content: "<script>alert(1)</script>" }),
         ],
         [
-          "two inline images sharing a name",
-          validBody({
-            inlineImages: [
-              postImage("diagram.png", PNG_IMAGE),
-              postImage("Diagram.png", PNG_IMAGE),
-            ],
-          }),
-        ],
-        [
-          "more inline images than a post may add at once",
-          validBody({
-            inlineImages: Array.from(
-              { length: MAX_POST_INLINE_IMAGES + 1 },
-              (_value, index) => postImage(`diagram-${index}.png`, PNG_IMAGE),
-            ),
-          }),
+          "an upload id that is not an upload id",
+          postWithoutHeaderImage({ uploadId: "x" }),
         ],
       ])("is rejected for %s", async (_description, body) => {
         expectRejected(await createPost(body), 400, ApiMessage.INVALID_REQUEST);
       });
     });
 
-    describe("an image that is not an image", () => {
-      it.each([
-        [
-          "a header image of an unsupported type",
-          validBody({
-            headerImage: postImage(HEADER_IMAGE_NAME, NOT_AN_IMAGE),
-          }),
-          imageNotAnImage(HEADER_IMAGE_NAME),
-        ],
-        [
-          "an inline image of an unsupported type",
-          validBody({
-            inlineImages: [postImage("diagram.png", NOT_AN_IMAGE)],
-          }),
-          imageNotAnImage("diagram.png"),
-        ],
-        [
-          "an inline image whose contents do not match its name",
-          validBody({ inlineImages: [postImage("diagram.png", JPEG_IMAGE)] }),
-          imageTypeMismatch("diagram.png"),
-        ],
-      ])("is rejected for %s", async (_description, body, message) => {
-        expectRejected(await createPost(body), 400, message);
+    describe("a request body the api will not read", () => {
+      it("is rejected when the body is larger than the api will parse", async () => {
+        expectRejected(
+          await createPost(
+            postWithoutHeaderImage({
+              content: "a".repeat(MAX_POST_REQUEST_BODY_BYTES),
+            }),
+          ),
+          413,
+          ApiMessage.REQUEST_TOO_LARGE,
+        );
+      });
+
+      it("is rejected when the body is not the json it says it is", async () => {
+        expectRejected(
+          await apiCall("post", "")
+            .set("Content-Type", "application/json")
+            .send("{ not json"),
+          400,
+          ApiMessage.INVALID_REQUEST,
+        );
       });
     });
 
@@ -369,31 +328,29 @@ describe("the blog post api", () => {
         stubSave(new Error("mongo is unreachable"));
       });
 
-      it("removes the files it wrote and reports an unexpected failure", async () => {
-        const response = await createPost(
-          validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
-        );
+      it("removes the files it wrote once mongodb confirms the post was not saved", async () => {
+        const exists = stubPostExists(false);
 
-        const revision = currentRevision(savedPosts[0]);
+        const response = await createPost(postWithoutHeaderImage());
+
+        const post = savedPosts[0];
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
           error: true,
           message: ApiMessage.UNEXPECTED,
         });
+        expect(exists).toHaveBeenCalledWith({ _id: post._id });
 
-        await expect(storedFile(revision.content.file)).rejects.toThrow();
-        await expect(storedFile(headerImageFile(revision))).rejects.toThrow();
         await expect(
-          storedFile(revision.inlineImages[0].file),
+          storedFile(currentRevision(post).content.file),
         ).rejects.toThrow();
-        await expect(storedUploads()).resolves.toHaveLength(1);
       });
 
       it("logs and keeps reporting the save failure when cleanup also fails", async () => {
         storageControl.cleanupFails = true;
 
-        const response = await createPost(validBody());
+        const response = await createPost(postWithoutHeaderImage());
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
@@ -404,6 +361,36 @@ describe("the blog post api", () => {
           `Failed to clean up storage for post ${savedPosts[0].fingerprint}:`,
           expect.any(Error),
         ]);
+      });
+
+      it("keeps the files when the post turns out to have been saved", async () => {
+        stubPostExists(true);
+
+        const response = await createPost(postWithoutHeaderImage());
+
+        expect(response.status).toBe(500);
+
+        await expect(
+          storedFile(currentRevision(savedPosts[0]).content.file),
+        ).resolves.toBeDefined();
+      });
+
+      it("keeps the files when mongodb cannot say whether the post was saved", async () => {
+        stubPostExists(new Error("mongo is unreachable"));
+
+        const response = await createPost(postWithoutHeaderImage());
+
+        const post = savedPosts[0];
+
+        expect(response.status).toBe(500);
+        expect(loggedErrors).toContainEqual([
+          `Kept storage for post ${post.fingerprint}, MongoDB could not confirm it was not saved:`,
+          expect.any(Error),
+        ]);
+
+        await expect(
+          storedFile(currentRevision(post).content.file),
+        ).resolves.toBeDefined();
       });
     });
   });
@@ -429,6 +416,28 @@ describe("the blog post api", () => {
       });
     });
 
+    it("reports more pages when a page does not reach the last post", async () => {
+      const post = await publishPost();
+      stubPostList([post, post, post]);
+
+      const response = await apiCall("get", "?page=1&pageSize=2");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        pagination: { totalPages: 2, hasMore: true },
+      });
+    });
+
+    it("lists a post that has no header image", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
+      stubPostList([post]);
+
+      const response = await apiCall("get", "");
+
+      expect(response.status).toBe(200);
+      expect(responseSummaries(response)[0].headerImage).toBeNull();
+    });
+
     it("lists a post whose author no longer has an account", async () => {
       const post = await publishPost();
       stubUserLookup(null);
@@ -437,31 +446,20 @@ describe("the blog post api", () => {
       const response = await apiCall("get", "");
 
       expect(response.status).toBe(200);
-      expect(responseSummaries(response.body)[0].authorUsername).toBeNull();
+      expect(responseSummaries(response)[0].authorUsername).toBeNull();
     });
   });
 
   describe("GET /api/v1/posts/:id", () => {
-    it("returns the post with its content and images", async () => {
-      const post = await publishPost(
-        validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
-      );
+    it("returns the post with its title and content", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
 
       const response = await apiCall("get", postPath(post));
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
         error: false,
-        post: postResponse(post, {
-          inlineImages: [
-            imageResponse(
-              post._id.toString(),
-              "diagram.png",
-              PNG_IMAGE,
-              "image/png",
-            ),
-          ],
-        }),
+        post: postResponse(post, { headerImage: null }),
       });
     });
 
@@ -508,66 +506,36 @@ describe("the blog post api", () => {
     });
   });
 
-  describe("GET /api/v1/posts/:id/images", () => {
-    it("returns the header image by name with its caching headers", async () => {
+  describe("a reader who is not signed in", () => {
+    it.each<[string, (post: SavedPost) => string]>([
+      ["the list of posts", () => ""],
+      ["a post", (post) => postPath(post)],
+      ["a post's image", (post) => imagePath(post, HEADER_IMAGE_NAME)],
+      [
+        "a post's full size image",
+        (post) => imagePath(post, HEADER_IMAGE_NAME, "/fullSize"),
+      ],
+    ])("can read %s", async (_description, path) => {
       const post = await publishPost();
+      stubPostList([post]);
 
-      const response = await apiCall(
-        "get",
-        `${postPath(post)}/images/${HEADER_IMAGE_NAME}`,
-      );
+      const response = await apiCall("get", path(post), { token: null });
 
       expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("image/png");
-      expect(response.headers.etag).toBe(
-        `"${currentRevision(post).fingerprint}-${HEADER_IMAGE_NAME}"`,
-      );
-      expect(response.body).toEqual(PNG_IMAGE);
-    });
-
-    it("returns an inline image by name", async () => {
-      const post = await publishPost(
-        validBody({ inlineImages: [postImage("chart.jpg", JPEG_IMAGE)] }),
-      );
-
-      const response = await apiCall(
-        "get",
-        `${postPath(post)}/images/chart.jpg`,
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("image/jpeg");
-      expect(response.body).toEqual(JPEG_IMAGE);
-    });
-
-    it("is not found for an image that is not on the post", async () => {
-      const post = await publishPost();
-
-      expectFailure(
-        await apiCall("get", `${postPath(post)}/images/missing.png`),
-        404,
-        ApiMessage.POST_NOT_FOUND,
-      );
-    });
-
-    it("is not found when the post does not exist", async () => {
-      stubPostLookup(null);
-
-      expectFailure(
-        await apiCall("get", `/${MISSING_POST_ID}/images/diagram.png`),
-        404,
-        ApiMessage.POST_NOT_FOUND,
-      );
     });
   });
 
   describe("PATCH /api/v1/posts/:id", () => {
     it("publishes a new revision with the updated title and content", async () => {
-      const post = await publishPost();
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(PUBLISHED_AT);
+      const post = await publishPost(postWithoutHeaderImage());
       const previous = currentRevision(post);
+      vi.setSystemTime(EDITED_AT);
 
-      const response = await apiCall("patch", postPath(post), {
-        body: { title: "Take two", content: NEW_CONTENT },
+      const response = await editPost(post, {
+        title: "Take two",
+        content: NEW_CONTENT,
       });
 
       const revision = currentRevision(post);
@@ -576,123 +544,82 @@ describe("the blog post api", () => {
       expect(response.body).toEqual({
         error: false,
         message: ApiMessage.POST_UPDATED,
-        post: postResponse(post, { title: "Take two", content: NEW_CONTENT }),
+        post: postResponse(post, {
+          title: "Take two",
+          content: NEW_CONTENT,
+          headerImage: null,
+        }),
       });
       expect(post.revisions).toHaveLength(2);
       expect(revision.fingerprint).not.toBe(previous.fingerprint);
+      expect(post.createdDate).toEqual(PUBLISHED_AT);
+      expect(post.modifiedDate).toEqual(EDITED_AT);
+      expect(revision.createdDate).toEqual(EDITED_AT);
 
       await expect(storedText(revision.content.file)).resolves.toBe(
         NEW_CONTENT,
       );
+      await expect(storedText(previous.content.file)).resolves.toBe(CONTENT);
     });
 
-    it("carries images forward and replaces the ones it is asked to", async () => {
-      const post = await publishPost(
-        validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
-      );
+    it("keeps the content when only the title changes", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
 
-      const response = await updatePost(post, {
-        inlineImages: [postImage("chart.jpg", JPEG_IMAGE)],
-        removeInlineImages: ["diagram.png"],
-      });
-
-      const revision = currentRevision(post);
+      const response = await editPost(post, { title: "Take two" });
 
       expect(response.status).toBe(200);
-      expect(responsePost(response).inlineImages).toEqual([
-        imageResponse(
-          post._id.toString(),
-          "chart.jpg",
-          JPEG_IMAGE,
-          "image/jpeg",
-        ),
-      ]);
+      expect(responsePost(response).content).toBe(CONTENT);
 
-      await expect(storedText(revision.content.file)).resolves.toBe(
-        postResponse(post).content,
-      );
-      await expect(storedFile(headerImageFile(revision))).resolves.toEqual(
-        PNG_IMAGE,
-      );
-      await expect(storedFile(revision.inlineImages[0].file)).resolves.toEqual(
-        JPEG_IMAGE,
-      );
+      await expect(
+        storedText(currentRevision(post).content.file),
+      ).resolves.toBe(CONTENT);
     });
 
-    it("links the files it carries forward instead of copying them", async () => {
-      const post = await publishPost(
-        validBody({ inlineImages: [postImage("diagram.png", PNG_IMAGE)] }),
-      );
-      const previous = currentRevision(post);
+    it("keeps the title when only the content changes", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
 
-      const response = await apiCall("patch", postPath(post), {
-        body: { title: "Take two" },
-      });
-
-      const revision = currentRevision(post);
+      const response = await editPost(post, { content: NEW_CONTENT });
 
       expect(response.status).toBe(200);
-
-      for (const [file, original] of [
-        [revision.content.file, previous.content.file],
-        [headerImageFile(revision), headerImageFile(previous)],
-        [revision.inlineImages[0].file, previous.inlineImages[0].file],
-      ]) {
-        expect(file).not.toBe(original);
-        expect(await storedInode(file)).toBe(await storedInode(original));
-      }
-    });
-
-    it("replaces the header image with a new one", async () => {
-      const post = await publishPost();
-
-      const response = await updatePost(post, {
-        headerImage: postImage("cover.jpg", JPEG_IMAGE),
-      });
-
-      expect(response.status).toBe(200);
-      expect(responsePost(response).headerImage).toEqual(
-        imageResponse(
-          post._id.toString(),
-          "cover.jpg",
-          JPEG_IMAGE,
-          "image/jpeg",
-        ),
-      );
-    });
-
-    it("removes the header image when it is sent as null", async () => {
-      const post = await publishPost();
-
-      const response = await apiCall("patch", postPath(post), {
-        body: { headerImage: null },
-      });
-
-      expect(response.status).toBe(200);
-      expect(responsePost(response).headerImage).toBeNull();
-      expect(currentRevision(post).headerImage).toBeUndefined();
+      expect(responsePost(response).title).toBe(TITLE);
+      expect(post.title).toBe(TITLE);
     });
 
     it.each([
+      ["a body that changes nothing", {}],
+      ["a body that only asks to remove no images", { removeInlineImages: [] }],
+      ["an empty title", { title: "" }],
+      ["a blank title", { title: "   " }],
+      ["a title that is not a string", { title: 7 }],
       [
-        "a header image that is not an image",
-        { headerImage: postImage(HEADER_IMAGE_NAME, NOT_AN_IMAGE) },
-        imageNotAnImage(HEADER_IMAGE_NAME),
+        "an overlong title",
+        { title: "a".repeat(MAX_POST_TITLE_CHARACTERS + 1) },
       ],
+      ["a title that is explicitly null", { title: null }],
+      ["empty content", { content: "" }],
+      ["blank content", { content: " \n " }],
+      ["content that is not a string", { content: 7 }],
+      ["content that is explicitly null", { content: null }],
       [
-        "an inline image that is not an image",
-        { inlineImages: [postImage("diagram.png", NOT_AN_IMAGE)] },
-        imageNotAnImage("diagram.png"),
+        "content over the limit once it is normalized",
+        { content: "a".repeat(MAX_POST_CONTENT_CHARACTERS) },
       ],
+      ["content with raw html", { content: "<b>bold</b>" }],
+      ["a header image that is not null", { headerImage: "cover.png" }],
       [
-        "removing an image that is not on the post",
-        { removeInlineImages: ["diagram.png"] },
-        inlineImageNotOnPost("diagram.png"),
+        "an inline image name the api does not allow",
+        { title: "Take two", removeInlineImages: ["diagram.PNG"] },
       ],
-    ])("is rejected for %s", async (_description, request, message) => {
-      const post = await publishPost();
+      ["an upload id that is not an upload id", { uploadId: "x" }],
+    ])("is rejected for %s", async (_description, body) => {
+      const post = await publishPost(postWithoutHeaderImage());
 
-      expectFailure(await updatePost(post, request), 400, message);
+      expectFailure(
+        await editPost(post, body),
+        400,
+        ApiMessage.INVALID_REQUEST,
+      );
+      expect(post.revisions).toHaveLength(1);
     });
 
     it("reports a post whose files are missing from storage", async () => {
@@ -700,12 +627,84 @@ describe("the blog post api", () => {
       await deletePostStorage(post.fingerprint);
 
       expectFailure(
-        await apiCall("patch", postPath(post), {
-          body: { title: "Take two" },
-        }),
+        await editPost(post, { title: "Take two" }),
         500,
         ApiMessage.POST_FILES_UNAVAILABLE,
       );
+    });
+
+    it("logs a revision it could not finish writing or clean up", async () => {
+      const post = await publishPost();
+      await breakPostStorage(post.fingerprint);
+
+      const response = await editPost(post, { title: "Take two" });
+
+      expect(response.status).toBe(500);
+      expect(loggedErrors).toContainEqual([
+        expect.stringContaining("Failed to clean up storage for revision"),
+        expect.any(Error),
+      ]);
+    });
+
+    it("removes the files of a revision once mongodb confirms it was not saved", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
+      stubSave(new Error("mongo is unreachable"));
+      const exists = stubPostExists(false);
+
+      const response = await editPost(post, { title: "Take two" });
+
+      const revision = currentRevision(post);
+
+      expect(response.status).toBe(500);
+      expect(exists).toHaveBeenCalledWith({
+        _id: post._id,
+        "revisions.fingerprint": revision.fingerprint,
+      });
+
+      await expect(storedFile(revision.content.file)).rejects.toThrow();
+      await expect(
+        storedFile(post.revisions[0].content.file),
+      ).resolves.toBeDefined();
+    });
+
+    it("keeps the files of a revision that turns out to have been saved", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
+      stubSave(new Error("mongo is unreachable"));
+      stubPostExists(true);
+
+      const response = await editPost(post, { title: "Take two" });
+
+      expect(response.status).toBe(500);
+
+      await expect(
+        storedFile(currentRevision(post).content.file),
+      ).resolves.toBeDefined();
+    });
+
+    it("reports a post that was changed while the edit was being saved and removes the revision's files", async () => {
+      const post = await publishPost(postWithoutHeaderImage());
+      stubSave(
+        new MongooseError.VersionError(
+          post as unknown as ConstructorParameters<
+            typeof MongooseError.VersionError
+          >[0],
+          0,
+          ["revisions"],
+        ),
+      );
+
+      expectFailure(
+        await editPost(post, { title: "Take two" }),
+        409,
+        ApiMessage.POST_CHANGED_DURING_UPDATE,
+      );
+
+      await expect(
+        storedFile(currentRevision(post).content.file),
+      ).rejects.toThrow();
+      await expect(
+        storedFile(post.revisions[0].content.file),
+      ).resolves.toBeDefined();
     });
 
     it("is not found when the post does not exist", async () => {
@@ -724,10 +723,11 @@ describe("the blog post api", () => {
       const post = await publishPost();
 
       expectFailure(
-        await apiCall("patch", postPath(post), {
-          body: { title: "Take two" },
-          token: createApiToken(makeUser({ role: "user" })),
-        }),
+        await editPost(
+          post,
+          { title: "Take two" },
+          createApiToken(makeUser({ role: "user" })),
+        ),
         403,
         ApiMessage.FORBIDDEN,
       );
@@ -738,9 +738,7 @@ describe("the blog post api", () => {
       stubUserLookup(null);
 
       expectFailure(
-        await apiCall("patch", postPath(post), {
-          body: { title: "Take two" },
-        }),
+        await editPost(post, { title: "Take two" }),
         401,
         ApiMessage.UNAUTHENTICATED,
       );
@@ -748,9 +746,13 @@ describe("the blog post api", () => {
   });
 
   describe("DELETE /api/v1/posts/:id", () => {
-    it("deletes the post and the files it stored", async () => {
+    it("deletes the post and the files of every revision", async () => {
       const post = await publishPost();
-      const revision = currentRevision(post);
+      await editPost(post, { title: "Take two" });
+      const files = post.revisions.flatMap((revision) => [
+        revision.content.file,
+        headerImageFile(revision),
+      ]);
       stubPostDelete(post);
 
       const response = await apiCall("delete", postPath(post));
@@ -760,9 +762,11 @@ describe("the blog post api", () => {
         error: false,
         message: ApiMessage.POST_DELETED,
       });
+      expect(files).toHaveLength(4);
 
-      await expect(storedFile(revision.content.file)).rejects.toThrow();
-      await expect(storedFile(headerImageFile(revision))).rejects.toThrow();
+      for (const file of files) {
+        await expect(storedFile(file)).rejects.toThrow();
+      }
     });
 
     it("reports the post deleted when its files cannot be removed", async () => {
@@ -796,33 +800,32 @@ describe("the blog post api", () => {
         ApiMessage.UNAUTHENTICATED,
       );
     });
+
+    it("is forbidden when the author is no longer an admin", async () => {
+      stubUserLookup(makeUser({ role: "user" }));
+
+      expectFailure(
+        await apiCall("delete", `/${MISSING_POST_ID}`),
+        403,
+        ApiMessage.FORBIDDEN,
+      );
+    });
   });
 
-  describe("a request the router will not route", () => {
+  describe("a request whose path or query the api will not accept", () => {
     it.each<[string, "get" | "patch" | "delete", string, object?]>([
       ["a page that is not a page number", "get", "?page=0"],
+      [
+        "a page size above the greatest the api allows",
+        "get",
+        `?pageSize=${MAX_POST_PAGE_SIZE + 1}`,
+      ],
       ["a post id that is not an id", "get", "/not-an-id"],
-      [
-        "a post id that is not an id on the image route",
-        "get",
-        "/x/images/diagram.png",
-      ],
-      [
-        "an image name the api does not allow",
-        "get",
-        `/${MISSING_POST_ID}/images/not-an-image`,
-      ],
       [
         "a post id that is not an id on an update",
         "patch",
         "/not-an-id",
         { title: "Take two" },
-      ],
-      [
-        "an update body the api will not accept",
-        "patch",
-        `/${MISSING_POST_ID}`,
-        { title: "   " },
       ],
       ["a post id that is not an id on a delete", "delete", "/not-an-id"],
     ])("is rejected for %s", async (_description, method, path, body) => {

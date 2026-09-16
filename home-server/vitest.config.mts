@@ -9,6 +9,7 @@ const fullyCovered = {
 
 export default defineConfig({
   test: {
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
