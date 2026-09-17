@@ -1,5 +1,9 @@
 import { PostListQuery, PostSummary, PostPagination } from "@home/shared";
-import { CURRENT_REVISION_ONLY, PostModel } from "../../model/postModel";
+import {
+  CURRENT_REVISION_ONLY,
+  PostModel,
+  WITH_REVISIONS,
+} from "../../model/postModel";
 import { serializePostSummary } from "../../types/serialize";
 import { findAuthorUsernames } from "../postAuthors";
 
@@ -10,9 +14,9 @@ export const handleGetPosts = async ({
   posts: PostSummary[];
   pagination: PostPagination;
 }> => {
-  const totalPosts = await PostModel.countDocuments();
+  const totalPosts = await PostModel.countDocuments(WITH_REVISIONS);
 
-  const posts = await PostModel.find({}, CURRENT_REVISION_ONLY)
+  const posts = await PostModel.find(WITH_REVISIONS, CURRENT_REVISION_ONLY)
     .sort({ createdDate: -1 })
     .skip((page - 1) * pageSize)
     .limit(pageSize);

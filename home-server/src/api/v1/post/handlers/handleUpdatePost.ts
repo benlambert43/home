@@ -14,8 +14,8 @@ import {
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import {
+  latestRevision,
   PostDocument,
-  requireLatestRevision,
   revisionImages,
   StoredPostFile,
   StoredPostRevision,
@@ -30,6 +30,32 @@ import {
 import { toPostResponse } from "../postResponse";
 import { PostWrite, refusedPostWrite } from "../postThumbnails";
 import { deleteUnsavedStorage } from "../unsavedStorage";
+
+interface EditedContent {
+  markdown: string;
+  stored: string | StoredPostFile;
+}
+
+const resolveContent = async (
+  edited: string | undefined,
+  previous: StoredPostRevision | undefined,
+): Promise<Decoded<EditedContent>> => {
+  if (edited !== undefined) {
+    return { ok: true, value: { markdown: edited, stored: edited } };
+  }
+
+  if (!previous) {
+    return { ok: false, message: ApiMessage.POST_CONTENT_REQUIRED };
+  }
+
+  return {
+    ok: true,
+    value: {
+      markdown: await readPostContent(previous),
+      stored: previous.content,
+    },
+  };
+};
 
 const resolveHeaderImage = (
   removed: null | undefined,
@@ -105,17 +131,20 @@ const updatePost = async (
   const post = await PostModel.findById(postId);
   if (!post) return undefined;
 
-  const previous = requireLatestRevision(post);
+  const previous = latestRevision(post.revisions);
+
+  const content = await resolveContent(body.content, previous);
+  if (!content.ok) return refusedPostWrite(content.message);
 
   const headerImage = resolveHeaderImage(
     body.headerImage,
     uploaded.headerImage,
-    previous.headerImage,
+    previous?.headerImage,
   );
   if (!headerImage.ok) return refusedPostWrite(headerImage.message);
 
   const inlineImages = resolveInlineImages(
-    previous.inlineImages,
+    previous?.inlineImages ?? [],
     uploaded.inlineImages,
     body.removeInlineImages ?? [],
   );
@@ -129,14 +158,11 @@ const updatePost = async (
   const taken = takenImageName(images, revisionImages(uploaded));
   if (taken) return refusedPostWrite(imageNameTaken(taken));
 
-  const unmatched = unmatchedImageReference(
-    body.content ?? (await readPostContent(previous)),
-    images,
-  );
+  const unmatched = unmatchedImageReference(content.value.markdown, images);
   if (unmatched) return refusedPostWrite(imageReferenceNotOnPost(unmatched));
 
   const revision = await writePostRevision(post.fingerprint, {
-    content: body.content ?? previous.content,
+    content: content.value.stored,
     headerImage: headerImage.value,
     inlineImages: inlineImages.value,
   });
