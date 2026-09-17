@@ -2,7 +2,7 @@ import { rm } from "node:fs/promises";
 import { Request, Response } from "express";
 import multer, { MulterError } from "multer";
 import { MAX_POST_IMAGE_BYTES, POST_IMAGE_FIELD } from "@home/shared";
-import { isMissing } from "../fileOperations/fileErrors";
+import { isMissing, isSystemError } from "../fileOperations/fileErrors";
 import { incomingPostUploadPath } from "../fileOperations/uploadStorage";
 import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
@@ -26,11 +26,15 @@ const toApiError = (error: MulterError) =>
     ? new ApiError(ApiMessage.REQUEST_TOO_LARGE, 413, error.message)
     : new ApiError(ApiMessage.INVALID_REQUEST, 400, error.message);
 
+const unreadableUpload = (error: Error) =>
+  new ApiError(ApiMessage.POST_IMAGE_UNREADABLE, 400, error.message);
+
 const receivePostImage = (req: Request, res: Response, uploadId: string) =>
   new Promise<ReceivedPostImage | undefined>((resolve, reject) => {
     void imageReceiver(uploadId)(req, res, (error: unknown) => {
       if (error instanceof MulterError) return reject(toApiError(error));
-      if (error instanceof Error) return reject(error);
+      if (isSystemError(error)) return reject(error);
+      if (error instanceof Error) return reject(unreadableUpload(error));
 
       resolve(req.file && { path: req.file.path, byteSize: req.file.size });
     });

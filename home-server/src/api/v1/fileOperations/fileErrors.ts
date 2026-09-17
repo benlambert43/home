@@ -3,6 +3,9 @@ export const hasErrorCode = (error: unknown, code: string) =>
 
 export const isMissing = (error: unknown) => hasErrorCode(error, "ENOENT");
 
+export const isSystemError = (error: unknown) =>
+  error instanceof Error && "syscall" in error;
+
 export const unlessMissing = async <Value, Fallback>(
   attempt: () => Promise<Value>,
   fallback: Fallback,

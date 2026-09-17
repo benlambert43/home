@@ -53,6 +53,8 @@ export const ApiMessage = {
   POST_UPLOAD_DISCARDED: "Upload discarded.",
   POST_UPLOAD_NOT_FOUND: "That upload could not be found. Please start again.",
   POST_IMAGE_UPLOADED: "Image uploaded.",
+  POST_IMAGE_UNREADABLE:
+    "That image upload was incomplete or malformed. Please try uploading it again.",
   POST_UPLOAD_INCOMPLETE: "Not every image in this upload has been uploaded.",
   POST_HEADER_IMAGE_REMOVED_AND_UPLOADED:
     "Please either remove the header image or upload a new one, not both.",
