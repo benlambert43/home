@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import apiRouter from "./api/api";
 import { STORAGE_ROOT } from "./api/v1/fileOperations/storagePath";
+import { handleNotFound } from "./api/v1/http/handleNotFound";
 import { handleRequestError } from "./api/v1/http/handleRequestError";
 import { sendSuccess } from "./api/v1/http/respond";
 import { resumePostThumbnails } from "./api/v1/post/postThumbnails";
@@ -40,6 +41,8 @@ app.get("/", (req, res) =>
 );
 
 app.use("/api", apiRouter);
+
+app.use(handleNotFound);
 
 app.use(handleRequestError);
 

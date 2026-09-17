@@ -4,6 +4,8 @@ export const ApiMessage = {
   UNAUTHENTICATED:
     "Unable to authenticate request. Please sign in and try again.",
   NOT_IMPLEMENTED: "This endpoint is not implemented yet.",
+  ENDPOINT_NOT_FOUND:
+    "That endpoint does not exist. Please check the request method and address.",
   FORBIDDEN: "You do not have permission to do that.",
   REQUEST_TOO_LARGE:
     "That request is too large. Please use fewer or smaller images and try again.",
