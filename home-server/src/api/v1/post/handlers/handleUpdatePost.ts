@@ -4,11 +4,13 @@ import { ApiError } from "../../http/apiError";
 import {
   ApiMessage,
   imageNameTaken,
+  imageReferenceNotOnPost,
   inlineImageNotOnPost,
 } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
 import {
   deletePostRevision,
+  readPostContent,
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import {
@@ -19,6 +21,7 @@ import {
   StoredPostRevision,
 } from "../../types/db";
 import { Decoded } from "../../types/decoded";
+import { unmatchedImageReference } from "../postImageReferences";
 import {
   collectPostUploadImages,
   discardPostUpload,
@@ -27,9 +30,6 @@ import {
 import { toPostResponse } from "../postResponse";
 import { PostWrite, refusedPostWrite } from "../postThumbnails";
 import { deleteUnsavedStorage } from "../unsavedStorage";
-
-const namesInLowercase = (names: string[]) =>
-  new Set(names.map((name) => name.toLowerCase()));
 
 const resolveHeaderImage = (
   removed: null | undefined,
@@ -53,27 +53,24 @@ const resolveInlineImages = (
   uploaded: StoredPostFile[],
   removed: string[],
 ): Decoded<StoredPostFile[]> => {
-  const onPost = namesInLowercase(stored.map((image) => image.name));
-  const missing = removed.find((name) => !onPost.has(name.toLowerCase()));
+  const onPost = new Set(stored.map((image) => image.name));
+  const missing = removed.find((name) => !onPost.has(name));
 
   if (missing) return { ok: false, message: inlineImageNotOnPost(missing) };
 
-  const dropped = namesInLowercase([
-    ...uploaded.map((image) => image.name),
-    ...removed,
-  ]);
-  const kept = stored.filter((image) => !dropped.has(image.name.toLowerCase()));
+  const dropped = new Set([...uploaded.map((image) => image.name), ...removed]);
+  const kept = stored.filter((image) => !dropped.has(image.name));
 
   return { ok: true, value: [...kept, ...uploaded] };
 };
 
-const duplicateImageName = (images: StoredPostFile[]) => {
-  const names = images.map((image) => image.name.toLowerCase());
+const sameName = (first: StoredPostFile, second: StoredPostFile) =>
+  first.name.toLowerCase() === second.name.toLowerCase();
 
-  return images.find(
-    (image, index) => names.indexOf(image.name.toLowerCase()) !== index,
+const takenImageName = (images: StoredPostFile[], uploaded: StoredPostFile[]) =>
+  images.find((image) =>
+    uploaded.some((added) => added !== image && sameName(added, image)),
   )?.name;
-};
 
 const saveEdit = async (
   post: HydratedDocument<PostDocument>,
@@ -124,13 +121,19 @@ const updatePost = async (
   );
   if (!inlineImages.ok) return refusedPostWrite(inlineImages.message);
 
-  const duplicate = duplicateImageName(
-    revisionImages({
-      headerImage: headerImage.value,
-      inlineImages: inlineImages.value,
-    }),
+  const images = revisionImages({
+    headerImage: headerImage.value,
+    inlineImages: inlineImages.value,
+  });
+
+  const taken = takenImageName(images, revisionImages(uploaded));
+  if (taken) return refusedPostWrite(imageNameTaken(taken));
+
+  const unmatched = unmatchedImageReference(
+    body.content ?? (await readPostContent(previous)),
+    images,
   );
-  if (duplicate) return refusedPostWrite(imageNameTaken(duplicate));
+  if (unmatched) return refusedPostWrite(imageReferenceNotOnPost(unmatched));
 
   const revision = await writePostRevision(post.fingerprint, {
     content: body.content ?? previous.content,
