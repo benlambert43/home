@@ -201,6 +201,22 @@ export const readPostFile = async (stored: StoredPostFile): Promise<Buffer> => {
 export const readPostContent = async (revision: StoredPostRevision) =>
   (await readPostFile(revision.content)).toString("utf8");
 
+export const storedFileTag = async (file: string) => {
+  try {
+    const { dev, ino, size, mtimeNs } = await stat(resolveStoragePath(file), {
+      bigint: true,
+    });
+
+    return fingerprint(...[dev, ino, size, mtimeNs].map(String));
+  } catch (e) {
+    throw new ApiError(
+      ApiMessage.POST_FILES_UNAVAILABLE,
+      500,
+      `Could not read ${file}: ${String(e)}`,
+    );
+  }
+};
+
 export const deletePostStorage = (post: string) =>
   rm(resolveStoragePath(postDirectory(post)), {
     recursive: true,
@@ -293,6 +309,35 @@ const reuseThumbnail = async (
   if (reused && oversized) await markOversized(absolutePath);
 
   return reused;
+};
+
+export const reusePostThumbnails = async (
+  post: string,
+  revision: StoredPostRevision,
+  previous: StoredPostRevision | undefined,
+) => {
+  for (const image of revisionImages(revision)) {
+    const reusableRevision = await revisionWithSameImage(image, previous);
+    if (!reusableRevision) continue;
+
+    for (const size of POST_THUMBNAIL_SIZES) {
+      const prepared = await prepareThumbnailFile(
+        post,
+        revision.fingerprint,
+        size,
+        image.name,
+      );
+      if (!prepared) return;
+
+      await reuseThumbnail(
+        post,
+        reusableRevision,
+        size,
+        image.name,
+        prepared.absolutePath,
+      );
+    }
+  }
 };
 
 const writeCompleteFile = async (absolutePath: string, data: Buffer) => {

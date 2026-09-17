@@ -1,6 +1,9 @@
 import { PostThumbnailSize } from "@home/shared";
 import { CURRENT_REVISION_ONLY, PostModel } from "../../model/postModel";
-import { findStoredThumbnail } from "../../fileOperations/postStorage";
+import {
+  findStoredThumbnail,
+  storedFileTag,
+} from "../../fileOperations/postStorage";
 import { latestRevision, revisionImages, StoredPostFile } from "../../types/db";
 
 export interface PostImageFile {
@@ -21,13 +24,12 @@ const findCurrentImage = async (postId: string, name: string) => {
     : undefined;
 };
 
-const fullSizeImage = (
-  revision: string,
+const fullSizeImage = async (
   image: StoredPostFile,
-): PostImageFile => ({
+): Promise<PostImageFile> => ({
   file: image.file,
   contentType: image.contentType,
-  etag: `${revision}-${image.name}`,
+  etag: await storedFileTag(image.file),
 });
 
 export const findPostImage = async (
@@ -36,7 +38,7 @@ export const findPostImage = async (
 ): Promise<PostImageFile | undefined> => {
   const found = await findCurrentImage(postId, name);
 
-  return found && fullSizeImage(found.revision, found.image);
+  return found && fullSizeImage(found.image);
 };
 
 export const findPostThumbnail = async (
@@ -53,11 +55,11 @@ export const findPostThumbnail = async (
     found.image.name,
     size,
   );
-  if (!thumbnail) return fullSizeImage(found.revision, found.image);
+  if (!thumbnail) return fullSizeImage(found.image);
 
   return {
     file: thumbnail.file,
     contentType: thumbnail.contentType,
-    etag: `${found.revision}-${thumbnail.size}-${found.image.name}`,
+    etag: await storedFileTag(thumbnail.file),
   };
 };

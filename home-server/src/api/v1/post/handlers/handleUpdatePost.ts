@@ -11,6 +11,7 @@ import { PostModel } from "../../model/postModel";
 import {
   deletePostRevision,
   readPostContent,
+  reusePostThumbnails,
   writePostRevision,
 } from "../../fileOperations/postStorage";
 import {
@@ -166,6 +167,10 @@ const updatePost = async (
     headerImage: headerImage.value,
     inlineImages: inlineImages.value,
   });
+
+  await reusePostThumbnails(post.fingerprint, revision, previous).catch(
+    () => undefined,
+  );
 
   post.revisions.push(revision);
 

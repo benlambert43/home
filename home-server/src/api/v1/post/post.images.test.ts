@@ -179,9 +179,7 @@ describe("images on a blog post", () => {
       expect(response.headers["cache-control"]).toBe(
         "public, max-age=60, must-revalidate",
       );
-      expect(response.headers.etag).toBe(
-        `"${currentRevision(post).fingerprint}-large-${HEADER_IMAGE_NAME}"`,
-      );
+      expect(response.headers.etag).toMatch(/^"[0-9a-f]{32}"$/);
       expect(response.body).toEqual(PNG_IMAGE);
     });
 
@@ -209,9 +207,7 @@ describe("images on a blog post", () => {
       expect(response.headers["cache-control"]).toBe(
         "public, max-age=60, must-revalidate",
       );
-      expect(response.headers.etag).toBe(
-        `"${currentRevision(post).fingerprint}-${HEADER_IMAGE_NAME}"`,
-      );
+      expect(response.headers.etag).toMatch(/^"[0-9a-f]{32}"$/);
       expect(response.body).toEqual(PNG_IMAGE);
     });
 

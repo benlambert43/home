@@ -9,6 +9,8 @@ export const ApiMessage = {
   FORBIDDEN: "You do not have permission to do that.",
   REQUEST_TOO_LARGE:
     "That request is too large. Please use fewer or smaller images and try again.",
+  DATABASE_UNAVAILABLE:
+    "The server cannot reach its database right now. Please try again in a few moments.",
 
   ACCOUNT_CREATED: "New account created.",
   SIGNED_IN: "Sign in successful.",

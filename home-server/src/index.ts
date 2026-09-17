@@ -1,3 +1,4 @@
+import { setTimeout as sleep } from "node:timers/promises";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -5,6 +6,7 @@ import apiRouter from "./api/api";
 import { STORAGE_ROOT } from "./api/v1/fileOperations/storagePath";
 import { handleNotFound } from "./api/v1/http/handleNotFound";
 import { handleRequestError } from "./api/v1/http/handleRequestError";
+import { requireDatabase } from "./api/v1/http/requireDatabase";
 import { sendSuccess } from "./api/v1/http/respond";
 import { resumePostThumbnails } from "./api/v1/post/postThumbnails";
 
@@ -27,20 +29,43 @@ app.use(
 
 const API_PORT = process.env.API_PORT;
 
-mongoose
-  .set("strictQuery", false)
-  .connect(process.env.MONGO_URI || "", {})
-  .then(() => {
+const MONGO_RETRY_SECONDS = 5;
+
+const connectToMongo = async () => {
+  for (;;) {
+    try {
+      await mongoose.connect(process.env.MONGO_URI || "", {});
+      return;
+    } catch (e) {
+      if (!(e instanceof mongoose.Error.MongooseServerSelectionError)) throw e;
+
+      console.error(
+        `MongoDB connection failed, retrying in ${MONGO_RETRY_SECONDS} seconds:`,
+        e,
+      );
+      await sleep(MONGO_RETRY_SECONDS * 1000);
+    }
+  }
+};
+
+mongoose.set("strictQuery", false);
+
+connectToMongo().then(
+  () => {
     console.log("MongoDB connected.");
     void resumePostThumbnails();
-  })
-  .catch((err: unknown) => console.error("MongoDB connection failed:", err));
+  },
+  (e: unknown) => {
+    console.error("MongoDB connection failed:", e);
+    process.exit(1);
+  },
+);
 
 app.get("/", (req, res) =>
   sendSuccess(res, { message: "Welcome to home-server." }),
 );
 
-app.use("/api", apiRouter);
+app.use("/api", requireDatabase, apiRouter);
 
 app.use(handleNotFound);
 

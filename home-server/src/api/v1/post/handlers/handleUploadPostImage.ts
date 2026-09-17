@@ -1,8 +1,4 @@
-import {
-  CreatePostUploadRequestBody,
-  postUploadImageNames,
-  UploadPostImageResponse,
-} from "@home/shared";
+import { UploadPostImageResponse } from "@home/shared";
 import {
   contentTypeForName,
   detectFileImageType,
@@ -12,7 +8,6 @@ import {
   ApiMessage,
   imageAlreadyUploaded,
   imageNotAnImage,
-  imageNotInUpload,
   imageTypeMismatch,
 } from "../../http/messages";
 import { ReceivedPostImage } from "../uploadImage";
@@ -24,14 +19,9 @@ const failure = (message: string): UploadPostImageResponse => ({
 
 export const handleUploadPostImage = async (
   uploadId: string,
-  manifest: CreatePostUploadRequestBody,
   name: string,
   image: ReceivedPostImage | undefined,
 ): Promise<UploadPostImageResponse> => {
-  if (!postUploadImageNames(manifest).includes(name)) {
-    return failure(imageNotInUpload(name));
-  }
-
   if (!image) return failure(ApiMessage.INVALID_REQUEST);
 
   const imageType = await detectFileImageType(image.path);

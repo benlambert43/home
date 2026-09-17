@@ -185,7 +185,7 @@ export const postUploadParamsSchema = z.object({
 });
 
 export const postUploadImageParamsSchema = postUploadParamsSchema.extend({
-  name: z.string(),
+  name: postImageNameField,
 });
 
 export const createPostBodySchema = z.object({

@@ -13,6 +13,7 @@ import {
   postListQuerySchema,
   postThumbnailParamsSchema,
   PostThumbnailSize,
+  postUploadImageNames,
   postUploadImageParamsSchema,
   postUploadParamsSchema,
   updatePostBodySchema,
@@ -21,7 +22,7 @@ import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { STORAGE_ROOT } from "../fileOperations/storagePath";
 import { resumePostUpload } from "../fileOperations/uploadStorage";
 import { ApiError } from "../http/apiError";
-import { ApiMessage } from "../http/messages";
+import { ApiMessage, imageNotInUpload } from "../http/messages";
 import { parseRequest } from "../http/parseRequest";
 import { requireAdmin } from "../http/requireAdmin";
 import {
@@ -299,12 +300,15 @@ postRouter.put(
     const manifest = await resumePostUpload(params.uploadId);
     if (!manifest) return sendNotFound(res, ApiMessage.POST_UPLOAD_NOT_FOUND);
 
+    if (!postUploadImageNames(manifest).includes(params.name)) {
+      return sendFailure(res, imageNotInUpload(params.name));
+    }
+
     const result = await withReceivedPostImage(
       req,
       res,
       params.uploadId,
-      (image) =>
-        handleUploadPostImage(params.uploadId, manifest, params.name, image),
+      (image) => handleUploadPostImage(params.uploadId, params.name, image),
     );
 
     sendResult(res, result);
