@@ -19,6 +19,7 @@ import {
   PostDocument,
   revisionImages,
   StoredPostFile,
+  StoredPostImage,
   StoredPostRevision,
 } from "../../types/db";
 import { Decoded } from "../../types/decoded";
@@ -60,9 +61,9 @@ const resolveContent = async (
 
 const resolveHeaderImage = (
   removed: null | undefined,
-  uploaded: StoredPostFile | undefined,
-  stored: StoredPostFile | undefined,
-): Decoded<StoredPostFile | undefined> => {
+  uploaded: StoredPostImage | undefined,
+  stored: StoredPostImage | undefined,
+): Decoded<StoredPostImage | undefined> => {
   if (removed === null && uploaded) {
     return {
       ok: false,
@@ -76,10 +77,10 @@ const resolveHeaderImage = (
 };
 
 const resolveInlineImages = (
-  stored: StoredPostFile[],
-  uploaded: StoredPostFile[],
+  stored: StoredPostImage[],
+  uploaded: StoredPostImage[],
   removed: string[],
-): Decoded<StoredPostFile[]> => {
+): Decoded<StoredPostImage[]> => {
   const onPost = new Set(stored.map((image) => image.name));
   const missing = removed.find((name) => !onPost.has(name));
 

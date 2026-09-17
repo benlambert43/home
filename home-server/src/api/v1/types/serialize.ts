@@ -10,7 +10,7 @@ import {
   UserNoPassword,
   UserFields,
 } from "@home/shared";
-import { requireLatestRevision, StoredPost, StoredPostFile } from "./db";
+import { requireLatestRevision, StoredPost, StoredPostImage } from "./db";
 
 type MaybeId = Types.ObjectId | string;
 type MaybeDate = Date | string;
@@ -55,11 +55,13 @@ type SerializablePost = StoredPost<MaybeId, MaybeDate>;
 
 const serializePostImage = (
   postId: string,
-  file: StoredPostFile,
+  file: StoredPostImage,
 ): PostImage => ({
   name: file.name,
   contentType: file.contentType,
   byteSize: file.byteSize,
+  width: file.width,
+  height: file.height,
   path: postImagePath(postId, file.name),
   reference: postImageReference(file.name),
 });

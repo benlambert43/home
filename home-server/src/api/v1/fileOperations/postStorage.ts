@@ -12,6 +12,7 @@ import { ApiMessage } from "../http/messages";
 import {
   revisionImages,
   StoredPostFile,
+  StoredPostImage,
   StoredPostRevision,
 } from "../types/db";
 import { hasErrorCode, isMissing, unlessMissing } from "./fileErrors";
@@ -40,8 +41,8 @@ export type PostFileSource = PostFileContent | StoredPostFile;
 
 interface PostRevisionContent {
   content: string | StoredPostFile;
-  headerImage?: PostFileSource;
-  inlineImages: PostFileSource[];
+  headerImage?: StoredPostImage;
+  inlineImages: StoredPostImage[];
 }
 
 export interface StoredThumbnail {
@@ -129,6 +130,15 @@ const storeFile = (directory: string, source: PostFileSource) => {
   return linkStoredFile(directory, source);
 };
 
+const storeImage = async (
+  directory: string,
+  image: StoredPostImage,
+): Promise<StoredPostImage> => ({
+  ...(await linkStoredFile(directory, image)),
+  width: image.width,
+  height: image.height,
+});
+
 const markdownFile = (content: string): PostFileContent => ({
   name: `${POST_CONTENT_NAME}.md`,
   contentType: MARKDOWN_CONTENT_TYPE,
@@ -159,10 +169,10 @@ export const writePostRevision = async (
         typeof content === "string" ? markdownFile(content) : content,
       ),
       headerImage: headerImage
-        ? await storeFile(fullSizeImages, headerImage)
+        ? await storeImage(fullSizeImages, headerImage)
         : undefined,
       inlineImages: await Promise.all(
-        inlineImages.map((image) => storeFile(fullSizeImages, image)),
+        inlineImages.map((image) => storeImage(fullSizeImages, image)),
       ),
     };
 

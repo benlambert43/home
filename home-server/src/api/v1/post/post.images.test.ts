@@ -14,7 +14,9 @@ import {
   imagePath,
   imageResponse,
   JPEG_IMAGE,
+  JPEG_IMAGE_SIZE,
   PNG_IMAGE,
+  PNG_IMAGE_SIZE,
   postImage,
   postResponse,
   postWithHeaderImage,
@@ -74,8 +76,20 @@ describe("images on a blog post", () => {
         message: ApiMessage.POST_CREATED,
         post: postResponse(post, {
           inlineImages: [
-            imageResponse(postId, DIAGRAM, PNG_IMAGE, "image/png"),
-            imageResponse(postId, CHART, JPEG_IMAGE, "image/jpeg"),
+            imageResponse(
+              postId,
+              DIAGRAM,
+              PNG_IMAGE,
+              "image/png",
+              PNG_IMAGE_SIZE,
+            ),
+            imageResponse(
+              postId,
+              CHART,
+              JPEG_IMAGE,
+              "image/jpeg",
+              JPEG_IMAGE_SIZE,
+            ),
           ],
         }),
       });

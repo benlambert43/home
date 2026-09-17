@@ -9,6 +9,7 @@ import {
   MISSING_UPLOAD_ID,
   NOT_AN_IMAGE,
   PNG_IMAGE,
+  PNG_IMAGE_SIZE,
   postPath,
   postWithoutHeaderImage,
   publishPost,
@@ -99,6 +100,7 @@ describe("blog post image uploads", () => {
           name: DIAGRAM,
           contentType: "image/png",
           byteSize: PNG_IMAGE.byteLength,
+          ...PNG_IMAGE_SIZE,
         },
       });
 

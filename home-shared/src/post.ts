@@ -44,6 +44,8 @@ export interface UploadedPostImage {
   name: string;
   contentType: string;
   byteSize: number;
+  width: number;
+  height: number;
 }
 
 export interface PostImage extends UploadedPostImage {

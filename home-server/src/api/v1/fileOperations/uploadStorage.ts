@@ -16,6 +16,7 @@ import {
   CreatePostUploadRequestBody,
 } from "@home/shared";
 import { hasErrorCode, isMissing, unlessMissing } from "./fileErrors";
+import { readImageDimensions } from "./imageDimensions";
 import { detectFileImageType } from "./imageType";
 import { FULL_SIZE_IMAGES_DIRECTORY } from "./postStorage";
 import { resolveStoragePath } from "./storagePath";
@@ -151,6 +152,7 @@ export const inspectStagedPostImage = async (upload: string, name: string) => {
     stagedFile,
     byteSize: (await stat(absolutePath)).size,
     imageType: await detectFileImageType(absolutePath),
+    dimensions: await readImageDimensions(absolutePath),
   };
 };
 

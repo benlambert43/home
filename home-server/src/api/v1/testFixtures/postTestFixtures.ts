@@ -32,10 +32,14 @@ export const PNG_IMAGE = Buffer.from(
   "base64",
 );
 
+export const PNG_IMAGE_SIZE = { width: 1, height: 1 };
+
 export const JPEG_IMAGE = Buffer.from(
-  "ffd8ffe000104a46494600010100000100010000fffe0004686900ffd9",
-  "hex",
+  "/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAABAAIDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AKAAD//Z",
+  "base64",
 );
+
+export const JPEG_IMAGE_SIZE = { width: 2, height: 1 };
 
 export const NOT_AN_IMAGE = Buffer.from("# Markdown, not an image.", "utf8");
 
@@ -296,16 +300,24 @@ export const imageResponse = (
   name: string,
   data: Buffer,
   contentType: string,
+  size: { width: number; height: number },
 ) => ({
   name,
   contentType,
   byteSize: data.byteLength,
+  ...size,
   path: postImagePath(postId, name),
   reference: postImageReference(name),
 });
 
 export const headerImageResponse = (postId: string) =>
-  imageResponse(postId, HEADER_IMAGE_NAME, PNG_IMAGE, "image/png");
+  imageResponse(
+    postId,
+    HEADER_IMAGE_NAME,
+    PNG_IMAGE,
+    "image/png",
+    PNG_IMAGE_SIZE,
+  );
 
 export const postSummaryResponse = (
   post: PostDocument,

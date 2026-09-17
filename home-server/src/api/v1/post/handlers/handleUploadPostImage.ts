@@ -1,4 +1,5 @@
 import { UploadPostImageResponse } from "@home/shared";
+import { readImageDimensions } from "../../fileOperations/imageDimensions";
 import {
   contentTypeForName,
   detectFileImageType,
@@ -31,6 +32,9 @@ export const handleUploadPostImage = async (
     return failure(imageTypeMismatch(name));
   }
 
+  const dimensions = await readImageDimensions(image.path);
+  if (!dimensions) return failure(imageNotAnImage(name));
+
   if (!(await stagePostImage(uploadId, name, image.path))) {
     return failure(imageAlreadyUploaded(name));
   }
@@ -42,6 +46,8 @@ export const handleUploadPostImage = async (
       name,
       contentType: imageType.contentType,
       byteSize: image.byteSize,
+      width: dimensions.width,
+      height: dimensions.height,
     },
   };
 };

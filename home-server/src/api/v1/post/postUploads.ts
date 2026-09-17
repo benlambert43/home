@@ -6,12 +6,12 @@ import {
   resumePostUpload,
 } from "../fileOperations/uploadStorage";
 import { ApiMessage, imageNotAnImage } from "../http/messages";
-import { StoredPostFile } from "../types/db";
+import { StoredPostImage } from "../types/db";
 import { Decoded } from "../types/decoded";
 
 export interface PostUploadImages {
-  headerImage?: StoredPostFile;
-  inlineImages: StoredPostFile[];
+  headerImage?: StoredPostImage;
+  inlineImages: StoredPostImage[];
 }
 
 export const discardPostUpload = (uploadId: string) =>
@@ -46,20 +46,22 @@ export const collectPostUploadImages = async (
     return { ok: false, message: ApiMessage.POST_UPLOAD_INCOMPLETE };
   }
 
-  const collected: StoredPostFile[] = [];
+  const collected: StoredPostImage[] = [];
 
   for (const name of expected) {
-    const { stagedFile, byteSize, imageType } = await inspectStagedPostImage(
-      uploadId,
-      name,
-    );
-    if (!imageType) return { ok: false, message: imageNotAnImage(name) };
+    const { stagedFile, byteSize, imageType, dimensions } =
+      await inspectStagedPostImage(uploadId, name);
+    if (!imageType || !dimensions) {
+      return { ok: false, message: imageNotAnImage(name) };
+    }
 
     collected.push({
       name,
       file: stagedFile,
       contentType: imageType.contentType,
       byteSize,
+      width: dimensions.width,
+      height: dimensions.height,
     });
   }
 

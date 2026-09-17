@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { readImageFrame } from "./imageDimensions";
 import { isAnimatedPngOrAvifSequence } from "./imageType";
 
 const MAX_DECODED_PIXELS = 2 ** 32;
@@ -34,18 +35,12 @@ const readSource = async (
   file: string,
   byteSize: number,
 ): Promise<SourceImage> => {
-  const {
-    width,
-    height,
-    pages = 1,
-    autoOrient,
-  } = await sharp(file, { limitInputPixels: MAX_DECODED_PIXELS }).metadata();
-  const animated = pages > 1;
+  const { frame, animated } = await readImageFrame(file, MAX_DECODED_PIXELS);
 
   return {
     file,
     byteSize,
-    frame: animated ? { width, height } : autoOrient,
+    frame,
     animated,
     deadline: Date.now() + TIME_LIMIT_MILLISECONDS,
   };

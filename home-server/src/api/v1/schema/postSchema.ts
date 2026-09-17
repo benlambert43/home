@@ -1,11 +1,19 @@
 import mongoose, { Schema } from "mongoose";
 
-const postFileSchema = new mongoose.Schema(
+const postFileFields = {
+  name: { type: String, required: true },
+  file: { type: String, required: true },
+  contentType: { type: String, required: true },
+  byteSize: { type: Number, required: true },
+};
+
+const postFileSchema = new mongoose.Schema(postFileFields, { _id: false });
+
+const postImageSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    file: { type: String, required: true },
-    contentType: { type: String, required: true },
-    byteSize: { type: Number, required: true },
+    ...postFileFields,
+    width: { type: Number, required: true },
+    height: { type: Number, required: true },
   },
   { _id: false },
 );
@@ -15,8 +23,8 @@ const postRevisionSchema = new mongoose.Schema(
     fingerprint: { type: String, required: true },
     createdDate: { type: Date, required: true },
     content: { type: postFileSchema, required: true },
-    headerImage: { type: postFileSchema, required: false },
-    inlineImages: { type: [postFileSchema], required: true },
+    headerImage: { type: postImageSchema, required: false },
+    inlineImages: { type: [postImageSchema], required: true },
   },
   { _id: false },
 );

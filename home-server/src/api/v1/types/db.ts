@@ -21,12 +21,17 @@ export interface StoredPostFile {
   byteSize: number;
 }
 
+export interface StoredPostImage extends StoredPostFile {
+  width: number;
+  height: number;
+}
+
 export interface StoredPostRevision<Timestamp = Date> {
   fingerprint: string;
   createdDate: Timestamp;
   content: StoredPostFile;
-  headerImage?: StoredPostFile;
-  inlineImages: StoredPostFile[];
+  headerImage?: StoredPostImage;
+  inlineImages: StoredPostImage[];
 }
 
 export interface StoredPost<Id = Types.ObjectId, Timestamp = Date> {
