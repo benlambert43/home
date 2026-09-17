@@ -238,7 +238,12 @@ const revisionWithSameImage = async (
     : undefined;
 };
 
+const fileExists = (absolutePath: string) =>
+  unlessMissing(() => stat(absolutePath).then(() => true), false);
+
 const oversizedMarker = (absolutePath: string) => `${absolutePath}.oversized`;
+
+const temporaryFile = (absolutePath: string) => `${absolutePath}.tmp`;
 
 const markOversized = (absolutePath: string) =>
   writeFile(oversizedMarker(absolutePath), "").catch((e: unknown) => {
@@ -278,12 +283,7 @@ const reuseThumbnail = async (
   if (!earlierStats) return false;
 
   const oversized = earlierStats.size > MAX_POST_THUMBNAIL_BYTES[size];
-  const reusable =
-    !oversized ||
-    (await unlessMissing(
-      () => stat(oversizedMarker(earlier)).then(() => true),
-      false,
-    ));
+  const reusable = !oversized || (await fileExists(oversizedMarker(earlier)));
   if (!reusable) return false;
 
   const reused = await unlessMissing(
@@ -296,10 +296,10 @@ const reuseThumbnail = async (
 };
 
 const writeCompleteFile = async (absolutePath: string, data: Buffer) => {
-  const temporaryPath = `${absolutePath}.${randomUUID()}.tmp`;
+  const temporaryPath = temporaryFile(absolutePath);
 
   try {
-    await writeFile(temporaryPath, data, { flag: "wx" });
+    await writeFile(temporaryPath, data);
     await link(temporaryPath, absolutePath);
   } finally {
     await rm(temporaryPath, { force: true });
@@ -351,7 +351,10 @@ export const writePostThumbnails = async (
       if (!prepared) return failures;
 
       const { file, absolutePath } = prepared;
+      await rm(temporaryFile(absolutePath), { force: true });
+
       const stored =
+        (await fileExists(absolutePath)) ||
         (await reuseThumbnail(
           post,
           reusableRevision,

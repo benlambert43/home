@@ -5,6 +5,7 @@ import apiRouter from "./api/api";
 import { STORAGE_ROOT } from "./api/v1/fileOperations/storagePath";
 import { handleRequestError } from "./api/v1/http/handleRequestError";
 import { sendSuccess } from "./api/v1/http/respond";
+import { resumePostThumbnails } from "./api/v1/post/postThumbnails";
 
 const POSTS_PATH = "/api/v1/posts";
 
@@ -30,6 +31,7 @@ mongoose
   .connect(process.env.MONGO_URI || "", {})
   .then(() => {
     console.log("MongoDB connected.");
+    void resumePostThumbnails();
   })
   .catch((err: unknown) => console.error("MongoDB connection failed:", err));
 

@@ -1,6 +1,12 @@
+import { Types } from "mongoose";
 import { ApiFailure } from "@home/shared";
 import { writePostThumbnails } from "../fileOperations/postStorage";
-import { revisionImages, StoredPostRevision } from "../types/db";
+import { CURRENT_AND_PREVIOUS_REVISIONS, PostModel } from "../model/postModel";
+import {
+  latestRevision,
+  revisionImages,
+  StoredPostRevision,
+} from "../types/db";
 
 export interface PostThumbnailsJob {
   post: string;
@@ -47,4 +53,28 @@ export const queuePostThumbnails = (job: PostThumbnailsJob) => {
     });
 
   return thumbnailQueue;
+};
+
+const resumeThumbnailsOf = async (id: Types.ObjectId) => {
+  const post = await PostModel.findById(id, CURRENT_AND_PREVIOUS_REVISIONS);
+  const revision = post && latestRevision(post.revisions);
+  if (!post || !revision) return;
+
+  await queuePostThumbnails({
+    post: post.fingerprint,
+    revision,
+    previous: latestRevision(post.revisions.slice(0, -1)),
+  });
+};
+
+export const resumePostThumbnails = async () => {
+  try {
+    const posts = await PostModel.find({}, { _id: 1 })
+      .sort({ createdDate: -1 })
+      .lean();
+
+    for (const { _id } of posts) await resumeThumbnailsOf(_id);
+  } catch (e) {
+    console.error("Failed to resume post thumbnails:", e);
+  }
 };
