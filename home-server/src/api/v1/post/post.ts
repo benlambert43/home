@@ -25,6 +25,7 @@ import { ApiMessage } from "../http/messages";
 import { parseRequest } from "../http/parseRequest";
 import { requireAdmin } from "../http/requireAdmin";
 import {
+  sendFailure,
   sendForbidden,
   sendNotFound,
   sendResult,
@@ -63,6 +64,11 @@ const adminBodyGuard: RequestHandler = (req, res, next) => {
 
 const parsePostBody = express.json({ limit: MAX_POST_REQUEST_BODY_BYTES });
 
+interface SendFileError extends Error {
+  status?: number;
+  headers?: Record<string, string>;
+}
+
 const imageHeaders = (contentType: string, etag: string) => ({
   "Content-Type": contentType,
   "Content-Disposition": "inline",
@@ -71,16 +77,41 @@ const imageHeaders = (contentType: string, etag: string) => ({
   "Cache-Control": `public, max-age=${IMAGE_CACHE_SECONDS}, must-revalidate`,
 });
 
+const imageRequestFailure = (status: number | undefined) => {
+  if (status === 412) return { status, message: ApiMessage.POST_IMAGE_CHANGED };
+
+  if (status === 416) {
+    return { status, message: ApiMessage.POST_IMAGE_RANGE_NOT_SATISFIABLE };
+  }
+
+  return undefined;
+};
+
 const sendImage = (res: Response, image: PostImageFile) =>
   new Promise<void>((resolve, reject) => {
+    const earlierHeaders = new Set(res.getHeaderNames());
+
     res.sendFile(
       image.file,
       {
         root: STORAGE_ROOT,
         headers: imageHeaders(image.contentType, image.etag),
       },
-      (error) => {
+      (error?: SendFileError) => {
         if (!error || res.headersSent) return resolve();
+
+        res
+          .getHeaderNames()
+          .filter((name) => !earlierHeaders.has(name))
+          .forEach((name) => res.removeHeader(name));
+
+        const failure = imageRequestFailure(error.status);
+
+        if (failure) {
+          res.set(error.headers ?? {});
+          sendFailure(res, failure.message, failure.status);
+          return resolve();
+        }
 
         reject(
           new ApiError(

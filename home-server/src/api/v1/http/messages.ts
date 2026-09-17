@@ -43,6 +43,10 @@ export const ApiMessage = {
   POST_NOT_FOUND: "That post could not be found.",
   POST_FILES_UNAVAILABLE:
     "This post's files could not be read from storage. Please try again.",
+  POST_IMAGE_CHANGED:
+    "That image has changed since you last loaded it. Please reload it and try again.",
+  POST_IMAGE_RANGE_NOT_SATISFIABLE:
+    "That part of the image is not available. Please reload it and try again.",
   POST_HAS_NO_REVISION:
     "This post has no saved content. Please try again, or edit the post to republish it.",
   POST_UPLOAD_STARTED: "Upload started.",
