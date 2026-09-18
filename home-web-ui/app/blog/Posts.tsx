@@ -1,20 +1,54 @@
-import { blogHref, postHref, requestedPage } from "@/app/blog/links";
+import {
+  blogHref,
+  postHref,
+  postThumbnailHref,
+  requestedPage,
+} from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
 import { getPosts } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
 import Button from "@/app/ui/Button";
 import { PostPagination, PostSummary } from "@home/shared";
+import Image from "next/image";
 import Link from "next/link";
 
-const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
-  <li className="flex flex-col gap-1 py-4 first:pt-0 last:pb-0">
-    <Link
-      href={postHref(post._id, page)}
-      className="text-xl font-semibold hover:underline"
-    >
-      {post.title}
+const PostRowThumbnail = ({
+  post,
+  page,
+}: {
+  post: PostSummary;
+  page: number;
+}) => {
+  const image = post.headerImage;
+
+  if (!image) return null;
+
+  return (
+    <Link href={postHref(post._id, page)} className="shrink-0">
+      <Image
+        src={postThumbnailHref(post._id, image.name, "small")}
+        alt=""
+        width={image.width}
+        height={image.height}
+        unoptimized
+        className="size-20 rounded-md object-cover"
+      />
     </Link>
-    <PostByline post={post} />
+  );
+};
+
+const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
+  <li className="flex flex-row items-start gap-4 py-4 first:pt-0 last:pb-0">
+    <PostRowThumbnail post={post} page={page} />
+    <div className="flex min-w-0 flex-col gap-1">
+      <Link
+        href={postHref(post._id, page)}
+        className="text-xl font-semibold hover:underline"
+      >
+        {post.title}
+      </Link>
+      <PostByline post={post} />
+    </div>
   </li>
 );
 

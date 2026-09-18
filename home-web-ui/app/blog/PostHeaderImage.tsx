@@ -1,4 +1,4 @@
-import { postThumbnailHref } from "@/app/blog/links";
+import { postImageHref, postThumbnailHref } from "@/app/blog/links";
 import { PostSummary } from "@home/shared";
 import Image from "next/image";
 
@@ -8,16 +8,18 @@ const PostHeaderImage = ({ post }: { post: PostSummary }) => {
   if (!image) return null;
 
   return (
-    <Image
-      src={postThumbnailHref(post._id, image.name, "large")}
-      alt=""
-      width={image.width}
-      height={image.height}
-      unoptimized
-      preload
-      fetchPriority="high"
-      className="h-auto w-full rounded-md"
-    />
+    <a href={postImageHref(post._id, image.name)}>
+      <Image
+        src={postThumbnailHref(post._id, image.name, "large")}
+        alt=""
+        width={image.width}
+        height={image.height}
+        unoptimized
+        preload
+        fetchPriority="high"
+        className="h-auto w-full rounded-md"
+      />
+    </a>
   );
 };
 
