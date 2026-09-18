@@ -2,7 +2,7 @@ import "server-only";
 import { ApiFailure, ApiResponse, SuccessOf } from "@home/shared";
 
 type ApiRequest<Body> = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "DELETE";
   authorization?: string;
   body?: Body;
   cache?: RequestCache;
@@ -10,6 +10,11 @@ type ApiRequest<Body> = {
 
 export const SERVICE_UNAVAILABLE_MESSAGE =
   "There was an error on our end, please try again in a few moments.";
+
+export const INVALID_REQUEST_MESSAGE =
+  "Invalid request. Please check your details and try again.";
+
+export const FORBIDDEN_MESSAGE = "You do not have permission to do that.";
 
 export const NOT_FOUND_STATUS = 404;
 
