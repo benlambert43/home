@@ -4,6 +4,8 @@ import { POST_IMAGE_FIELD, UploadPostImageResponse } from "@home/shared";
 
 const CONCURRENT_UPLOADS = 3;
 
+const UPLOAD_NOT_FOUND_STATUS = 404;
+
 const UNREACHABLE_MESSAGE =
   "That image could not be sent. Please check your connection and try again.";
 
@@ -12,7 +14,17 @@ const UNREADABLE_RESPONSE_MESSAGE =
 
 export type UploadProgress = (name: string, progress: number) => void;
 
-export type PostImageUploadResponses = Record<string, UploadPostImageResponse>;
+export type PostImageUpload = {
+  status: number;
+  response: UploadPostImageResponse;
+};
+
+export type PostImageUploads = Record<string, PostImageUpload>;
+
+export const uploadSessionLost = (uploads: PostImageUploads) =>
+  Object.values(uploads).some(
+    ({ status }) => status === UPLOAD_NOT_FOUND_STATUS,
+  );
 
 const failure = (message: string): UploadPostImageResponse => ({
   error: true,
@@ -42,10 +54,17 @@ export const uploadPostImage = (
   uploadId: string,
   image: PendingPostImage,
   onProgress: (progress: number) => void,
-): Promise<UploadPostImageResponse> =>
+): Promise<PostImageUpload> =>
   new Promise((resolve) => {
     const request = new XMLHttpRequest();
     const body = new FormData();
+
+    const unreachable = () => {
+      resolve({
+        status: request.status,
+        response: failure(UNREACHABLE_MESSAGE),
+      });
+    };
 
     body.append(POST_IMAGE_FIELD, image.file, image.name);
 
@@ -54,16 +73,15 @@ export const uploadPostImage = (
     });
 
     request.addEventListener("load", () => {
-      resolve(uploadResponse(request.responseText));
+      resolve({
+        status: request.status,
+        response: uploadResponse(request.responseText),
+      });
     });
 
-    request.addEventListener("error", () => {
-      resolve(failure(UNREACHABLE_MESSAGE));
-    });
+    request.addEventListener("error", unreachable);
 
-    request.addEventListener("abort", () => {
-      resolve(failure(UNREACHABLE_MESSAGE));
-    });
+    request.addEventListener("abort", unreachable);
 
     request.open("PUT", postUploadImageHref(uploadId, image.name));
     request.send(body);
@@ -73,21 +91,17 @@ export const uploadPostImages = async (
   uploadId: string,
   images: PendingPostImage[],
   onProgress: UploadProgress,
-): Promise<PostImageUploadResponses> => {
-  const responses: PostImageUploadResponses = {};
+): Promise<PostImageUploads> => {
+  const uploads: PostImageUploads = {};
   const queue = [...images];
 
   const uploadNext = async (): Promise<void> => {
     const image = queue.shift();
     if (image === undefined) return;
 
-    responses[image.name] = await uploadPostImage(
-      uploadId,
-      image,
-      (progress) => {
-        onProgress(image.name, progress);
-      },
-    );
+    uploads[image.name] = await uploadPostImage(uploadId, image, (progress) => {
+      onProgress(image.name, progress);
+    });
 
     return uploadNext();
   };
@@ -98,5 +112,5 @@ export const uploadPostImages = async (
     ),
   );
 
-  return responses;
+  return uploads;
 };

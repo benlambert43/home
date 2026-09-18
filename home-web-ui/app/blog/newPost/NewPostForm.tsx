@@ -1,7 +1,7 @@
 "use client";
 
 import { createPost } from "@/app/actions/posts";
-import { startPostUpload } from "@/app/actions/postUploads";
+import { discardPostUpload, startPostUpload } from "@/app/actions/postUploads";
 import MarkdownEditor, {
   MarkdownEditorHandle,
   postImageMarkdown,
@@ -13,8 +13,9 @@ import {
   unmatchedImageReferences,
 } from "@/app/blog/newPost/pendingPostImages";
 import {
-  PostImageUploadResponses,
+  PostImageUploads,
   uploadPostImages,
+  uploadSessionLost,
 } from "@/app/blog/newPost/uploadPostImages";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import {
@@ -31,6 +32,7 @@ import {
   startTransition,
   SubmitEvent,
   useActionState,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -48,12 +50,33 @@ const UPLOAD_FAILED_MESSAGE =
 const missingImagesMessage = (references: string[]) =>
   `The post links ${references.length === 1 ? "an image" : "images"} it does not have: ${references.join(", ")}`;
 
-const failedUploads = (responses: PostImageUploadResponses) =>
+type PostUploadSession = {
+  uploadId: string;
+  names: string[];
+  uploaded: string[];
+};
+
+const failedUploads = (uploads: PostImageUploads) =>
   Object.fromEntries(
-    Object.entries(responses).flatMap(([name, response]) =>
+    Object.entries(uploads).flatMap(([name, { response }]) =>
       response.error ? [[name, response.message]] : [],
     ),
   );
+
+const uploadedNames = (uploads: PostImageUploads) =>
+  Object.entries(uploads).flatMap(([name, { response }]) =>
+    response.error ? [] : [name],
+  );
+
+const sameImages = (names: string[], other: string[]) =>
+  names.length === other.length && names.every((name) => other.includes(name));
+
+const discardSession = (session: PostUploadSession | undefined) => {
+  if (session) void discardPostUpload(session.uploadId);
+};
+
+const uploadedProgress = (names: string[]) =>
+  Object.fromEntries(names.map((name) => [name, 1]));
 
 const NewPostForm = () => {
   const [state, action, pending] = useActionState(createPost, undefined);
@@ -67,6 +90,15 @@ const NewPostForm = () => {
   const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const editorRef = useRef<MarkdownEditorHandle>(null);
+  const sessionRef = useRef<PostUploadSession>(undefined);
+
+  useEffect(
+    () => () => {
+      discardSession(sessionRef.current);
+      sessionRef.current = undefined;
+    },
+    [],
+  );
 
   const headerImage = images.find((image) => image.name === headerName);
   const inlineImages = images.filter((image) => image.name !== headerName);
@@ -134,29 +166,50 @@ const NewPostForm = () => {
       return;
     }
 
-    setUploadProgress({});
     setUploading(true);
 
-    const upload = await startPostUpload({
-      headerImage: headerName,
-      inlineImages: inlineImages.map((image) => image.name),
-    });
+    const names = images.map((image) => image.name);
+    const resumed = sessionRef.current;
+    let session =
+      resumed && sameImages(resumed.names, names) ? resumed : undefined;
 
-    if (upload.error) {
-      setUploading(false);
-      setSubmitted({ values, errors: [upload.message] });
-      return;
+    if (!session) {
+      discardSession(resumed);
+      sessionRef.current = undefined;
+
+      const started = await startPostUpload({
+        headerImage: headerName,
+        inlineImages: inlineImages.map((image) => image.name),
+      });
+
+      if (started.error) {
+        setUploading(false);
+        setSubmitted({ values, errors: [started.message] });
+        return;
+      }
+
+      session = { uploadId: started.uploadId, names, uploaded: [] };
+      sessionRef.current = session;
     }
 
-    const responses = await uploadPostImages(
-      upload.uploadId,
-      images,
+    setUploadProgress(uploadedProgress(session.uploaded));
+
+    const uploads = await uploadPostImages(
+      session.uploadId,
+      images.filter((image) => !session.uploaded.includes(image.name)),
       (name, progress) => {
         setUploadProgress((current) => ({ ...current, [name]: progress }));
       },
     );
 
-    const failed = failedUploads(responses);
+    const failed = failedUploads(uploads);
+
+    sessionRef.current = uploadSessionLost(uploads)
+      ? undefined
+      : {
+          ...session,
+          uploaded: [...session.uploaded, ...uploadedNames(uploads)],
+        };
 
     setUploading(false);
 
@@ -166,7 +219,7 @@ const NewPostForm = () => {
       return;
     }
 
-    formData.append(UPLOAD_ID_FIELD, upload.uploadId);
+    formData.append(UPLOAD_ID_FIELD, session.uploadId);
 
     startTransition(() => {
       action(formData);
