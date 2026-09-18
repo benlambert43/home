@@ -1,7 +1,12 @@
 import "server-only";
 import { NOT_FOUND_STATUS, SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/api";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
-import { postFullSizeImagePath, postImageParamsSchema } from "@home/shared";
+import {
+  postFullSizeImagePath,
+  postImageParamsSchema,
+  postThumbnailParamsSchema,
+  postThumbnailPath,
+} from "@home/shared";
 
 const BAD_GATEWAY_STATUS = 502;
 
@@ -80,5 +85,17 @@ export const proxyFullSizeImage = async (request: Request, params: unknown) => {
   return proxyImage(
     request,
     `${BASE_API_URL}/${postFullSizeImagePath(id, name)}`,
+  );
+};
+
+export const proxyThumbnail = async (request: Request, params: unknown) => {
+  const parsed = postThumbnailParamsSchema.safeParse(params);
+  if (!parsed.success) return notFoundResponse();
+
+  const { id, name, size } = parsed.data;
+
+  return proxyImage(
+    request,
+    `${BASE_API_URL}/${postThumbnailPath(id, name, size)}`,
   );
 };

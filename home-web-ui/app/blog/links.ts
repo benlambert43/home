@@ -1,3 +1,5 @@
+import { PostThumbnailSize } from "@home/shared";
+
 export const requestedPage = (value: string | string[] | undefined) => {
   const page = Number(value);
   return Number.isInteger(page) && page > 0 ? page : 1;
@@ -18,3 +20,9 @@ export const postImageHref = (id: string, name: string) =>
 
 export const postUploadImageHref = (uploadId: string, name: string) =>
   `/blog/uploads/${uploadId}/images/${encodeURIComponent(name)}`;
+
+export const postThumbnailHref = (
+  id: string,
+  name: string,
+  size: PostThumbnailSize,
+) => `${postImageHref(id, name)}/${size}`;
