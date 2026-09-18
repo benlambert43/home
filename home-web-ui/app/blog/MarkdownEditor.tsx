@@ -193,11 +193,13 @@ const MarkdownEditor = ({
   name,
   label,
   rows,
+  disabled = false,
   defaultValue = "",
 }: {
   name: string;
   label: string;
   rows: number;
+  disabled?: boolean;
   defaultValue?: string;
 }) => {
   const [content, setContent] = useState(defaultValue);
@@ -261,6 +263,7 @@ const MarkdownEditor = ({
             type="button"
             size="small"
             emphasis="secondary"
+            disabled={disabled}
             title={
               item.shortcut
                 ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
@@ -304,6 +307,7 @@ const MarkdownEditor = ({
         ref={textareaRef}
         rows={rows}
         hidden={previewing}
+        disabled={disabled}
         value={content}
         placeholder={label}
         onChange={(event) => {
