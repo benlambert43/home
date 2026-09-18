@@ -31,14 +31,46 @@ export const DEFAULT_POST_PAGE_SIZE = 10;
 
 export const MAX_POST_PAGE_SIZE = 50;
 
+export const POST_IMAGE_EXTENSION_CONTENT_TYPES = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  gif: "image/gif",
+  avif: "image/avif",
+} as const;
+
+type PostImageExtension = keyof typeof POST_IMAGE_EXTENSION_CONTENT_TYPES;
+
 export type PostImageContentType =
-  "image/png" | "image/jpeg" | "image/webp" | "image/gif" | "image/avif";
+  (typeof POST_IMAGE_EXTENSION_CONTENT_TYPES)[PostImageExtension];
+
+export const POST_IMAGE_CONTENT_TYPES: PostImageContentType[] = [
+  ...new Set(Object.values(POST_IMAGE_EXTENSION_CONTENT_TYPES)),
+];
+
+const isPostImageExtension = (
+  extension: string,
+): extension is PostImageExtension =>
+  extension in POST_IMAGE_EXTENSION_CONTENT_TYPES;
+
+export const postImageContentType = (
+  name: string,
+): PostImageContentType | undefined => {
+  const extension = name.slice(name.lastIndexOf(".") + 1).toLowerCase();
+
+  return isPostImageExtension(extension)
+    ? POST_IMAGE_EXTENSION_CONTENT_TYPES[extension]
+    : undefined;
+};
 
 export const POST_CONTENT_NAME = "content-markdown";
 
 export const POST_IMAGES_DIRECTORY = "images";
 
 export const POST_IMAGE_FIELD = "image";
+
+export const POST_FULL_SIZE_SEGMENT = "fullSize";
 
 export interface UploadedPostImage {
   name: string;
@@ -80,8 +112,32 @@ export interface PostPagination {
 export const postImagePath = (postId: string, name: string) =>
   `posts/${postId}/images/${name}`;
 
+export const postFullSizeImagePath = (postId: string, name: string) =>
+  `${postImagePath(postId, name)}/${POST_FULL_SIZE_SEGMENT}`;
+
+export const postThumbnailPath = (
+  postId: string,
+  name: string,
+  size: PostThumbnailSize,
+) => `${postImagePath(postId, name)}/${size}`;
+
+export const postUploadsPath = "posts/uploads";
+
+export const postUploadPath = (uploadId: string) =>
+  `${postUploadsPath}/${uploadId}`;
+
+export const postUploadImagePath = (uploadId: string, name: string) =>
+  `${postUploadPath(uploadId)}/images/${name}`;
+
+export const POST_IMAGE_REFERENCE_PREFIX = `./${POST_IMAGES_DIRECTORY}/`;
+
 export const postImageReference = (name: string) =>
-  `./${POST_IMAGES_DIRECTORY}/${name}`;
+  `${POST_IMAGE_REFERENCE_PREFIX}${name}`;
+
+export const postImageNameFromReference = (url: string) =>
+  url.startsWith(POST_IMAGE_REFERENCE_PREFIX)
+    ? url.slice(POST_IMAGE_REFERENCE_PREFIX.length)
+    : undefined;
 
 export const postUploadImageNames = ({
   headerImage,

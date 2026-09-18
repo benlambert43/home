@@ -1,7 +1,7 @@
 import "server-only";
 import { NOT_FOUND_STATUS, SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/api";
-import { POSTS_URL } from "@/app/lib/posts";
-import { postImageParamsSchema } from "@home/shared";
+import { BASE_API_URL } from "@/app/lib/serverEnv";
+import { postFullSizeImagePath, postImageParamsSchema } from "@home/shared";
 
 const BAD_GATEWAY_STATUS = 502;
 
@@ -77,5 +77,8 @@ export const proxyFullSizeImage = async (request: Request, params: unknown) => {
 
   const { id, name } = parsed.data;
 
-  return proxyImage(request, `${POSTS_URL}/${id}/images/${name}/fullSize`);
+  return proxyImage(
+    request,
+    `${BASE_API_URL}/${postFullSizeImagePath(id, name)}`,
+  );
 };

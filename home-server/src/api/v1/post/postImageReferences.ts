@@ -1,8 +1,6 @@
 import { Marked, MarkedToken } from "marked";
-import { postImageReference } from "@home/shared";
+import { POST_IMAGE_REFERENCE_PREFIX, postImageReference } from "@home/shared";
 import { StoredPostFile } from "../types/db";
-
-const IMAGE_REFERENCE_PREFIX = postImageReference("");
 
 const markdown = new Marked();
 
@@ -27,6 +25,7 @@ export const unmatchedImageReference = (
   );
 
   return linkedUrls(content).find(
-    (url) => url.startsWith(IMAGE_REFERENCE_PREFIX) && !references.has(url),
+    (url) =>
+      url.startsWith(POST_IMAGE_REFERENCE_PREFIX) && !references.has(url),
   );
 };
