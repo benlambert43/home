@@ -1,4 +1,6 @@
+import { postImageHref, postThumbnailHref } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
+import PostHeaderImage from "@/app/blog/PostHeaderImage";
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
@@ -15,6 +17,14 @@ const Post = async ({ params }: { params: PostParams }) => {
 
   const { post } = result;
 
+  const images = post.inlineImages.map((image) => ({
+    reference: image.reference,
+    src: postThumbnailHref(post._id, image.name, "large"),
+    href: postImageHref(post._id, image.name),
+    width: image.width,
+    height: image.height,
+  }));
+
   return (
     <div className="flex max-w-160 flex-col gap-4 p-5">
       <h1
@@ -25,7 +35,8 @@ const Post = async ({ params }: { params: PostParams }) => {
         {post.title}
       </h1>
       <PostByline post={post} />
-      <PostMarkdown content={post.content} />
+      <PostHeaderImage post={post} />
+      <PostMarkdown content={post.content} images={images} />
       <div>
         <ReturnToBlogPosts />
       </div>
