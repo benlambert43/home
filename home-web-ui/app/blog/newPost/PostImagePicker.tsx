@@ -38,12 +38,14 @@ const PostImageRow = ({
   progress,
   error,
   disabled,
+  onInsert,
   onRemove,
 }: {
   image: PendingPostImage;
   progress?: number;
   error?: string;
   disabled: boolean;
+  onInsert?: (image: PendingPostImage) => void;
   onRemove: (image: PendingPostImage) => void;
 }) => (
   <li className="flex flex-row items-center gap-3">
@@ -65,7 +67,21 @@ const PostImageRow = ({
       {error !== undefined && <span className="text-sm">{error}</span>}
     </div>
 
-    <div className="ml-auto">
+    <div className="ml-auto flex flex-row gap-2">
+      {onInsert && (
+        <Button
+          type="button"
+          size="small"
+          emphasis="secondary"
+          disabled={disabled}
+          onClick={() => {
+            onInsert(image);
+          }}
+        >
+          Insert
+        </Button>
+      )}
+
       <Button
         type="button"
         size="small"
@@ -91,6 +107,7 @@ const PostImagePicker = ({
   disabled,
   onPickHeaderImage,
   onAddInlineImages,
+  onInsertImage,
   onRemoveImage,
 }: {
   headerImage?: PendingPostImage;
@@ -101,6 +118,7 @@ const PostImagePicker = ({
   disabled: boolean;
   onPickHeaderImage: (files: File[]) => Promise<void>;
   onAddInlineImages: (files: File[]) => Promise<string[]>;
+  onInsertImage: (image: PendingPostImage) => void;
   onRemoveImage: (name: string) => void;
 }) => {
   const shown = headerImage ? [headerImage, ...inlineImages] : inlineImages;
@@ -124,13 +142,14 @@ const PostImagePicker = ({
     onRemoveImage(image.name);
   };
 
-  const row = (image: PendingPostImage) => (
+  const row = (image: PendingPostImage, onInsert?: typeof onInsertImage) => (
     <PostImageRow
       key={image.name}
       image={image}
       progress={progress[image.name]}
       error={errors[image.name]}
       disabled={disabled}
+      onInsert={onInsert}
       onRemove={removeImage}
     />
   );
@@ -168,7 +187,9 @@ const PostImagePicker = ({
           }}
         />
         {inlineImages.length > 0 && (
-          <ul className="flex flex-col gap-2">{inlineImages.map(row)}</ul>
+          <ul className="flex flex-col gap-2">
+            {inlineImages.map((image) => row(image, onInsertImage))}
+          </ul>
         )}
       </div>
 

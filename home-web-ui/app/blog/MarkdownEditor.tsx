@@ -1,15 +1,27 @@
 "use client";
 
+import { PendingPostImage } from "@/app/blog/newPost/pendingPostImages";
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
+import { POST_IMAGE_CONTENT_TYPES, postImageReference } from "@home/shared";
 import {
+  ChangeEvent,
   KeyboardEvent,
+  Ref,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
   useSyncExternalStore,
 } from "react";
+
+export type MarkdownEditorHandle = { insert: (markdown: string) => void };
+
+export const postImageMarkdown = (name: string) =>
+  `![](${postImageReference(name)})`;
+
+const ACCEPTED_IMAGE_TYPES = POST_IMAGE_CONTENT_TYPES.join(",");
 
 type MarkdownSelection = {
   value: string;
@@ -131,6 +143,18 @@ const insertLineBreak: MarkdownEdit = ({
   };
 };
 
+const insertMarkdown =
+  (markdown: string): MarkdownEdit =>
+  ({ value, selectionStart, selectionEnd }) => {
+    const cursor = selectionStart + markdown.length;
+
+    return {
+      value: `${value.slice(0, selectionStart)}${markdown}${value.slice(selectionEnd)}`,
+      selectionStart: cursor,
+      selectionEnd: cursor,
+    };
+  };
+
 const TOOLBAR: {
   label: string;
   title: string;
@@ -195,16 +219,23 @@ const MarkdownEditor = ({
   rows,
   disabled = false,
   defaultValue = "",
+  images = [],
+  onAddImages,
+  ref,
 }: {
   name: string;
   label: string;
   rows: number;
   disabled?: boolean;
   defaultValue?: string;
+  images?: PendingPostImage[];
+  onAddImages?: (files: File[]) => Promise<string[]>;
+  ref?: Ref<MarkdownEditorHandle>;
 }) => {
   const [content, setContent] = useState(defaultValue);
   const [previewing, setPreviewing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const pendingSelection = useRef<MarkdownSelection>(undefined);
   const mac = useSyncExternalStore(
     subscribe,
@@ -237,6 +268,31 @@ const MarkdownEditor = ({
     pendingSelection.current = next;
     setContent(next.value);
   };
+
+  useImperativeHandle(ref, () => ({
+    insert: (markdown: string) => {
+      apply(insertMarkdown(markdown));
+    },
+  }));
+
+  const addImages = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = [...(event.target.files ?? [])];
+
+    event.target.value = "";
+
+    const names = files.length > 0 ? await onAddImages?.(files) : undefined;
+
+    if (names?.length) {
+      apply(insertMarkdown(names.map(postImageMarkdown).join("\n")));
+    }
+  };
+
+  const previewImages = images.map((image) => ({
+    reference: postImageReference(image.name),
+    src: image.previewUrl,
+    width: image.width,
+    height: image.height,
+  }));
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const item = TOOLBAR.find(
@@ -276,6 +332,21 @@ const MarkdownEditor = ({
             {item.label}
           </Button>
         ))}
+
+        {onAddImages && (
+          <Button
+            type="button"
+            size="small"
+            emphasis="secondary"
+            disabled={disabled}
+            title="Image"
+            onClick={() => {
+              imageInputRef.current?.click();
+            }}
+          >
+            Image
+          </Button>
+        )}
 
         <div className="ml-auto flex flex-row gap-2">
           <Button
@@ -317,12 +388,23 @@ const MarkdownEditor = ({
         className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES} font-mono`}
       />
 
+      <input
+        ref={imageInputRef}
+        type="file"
+        multiple
+        hidden
+        accept={ACCEPTED_IMAGE_TYPES}
+        onChange={(event) => {
+          void addImages(event);
+        }}
+      />
+
       {previewing && (
         <div
           className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES} min-h-64
           overflow-x-auto`}
         >
-          <PostMarkdown content={content} />
+          <PostMarkdown content={content} images={previewImages} />
         </div>
       )}
     </div>

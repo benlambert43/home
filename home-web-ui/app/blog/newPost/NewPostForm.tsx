@@ -2,7 +2,10 @@
 
 import { createPost } from "@/app/actions/posts";
 import { startPostUpload } from "@/app/actions/postUploads";
-import MarkdownEditor from "@/app/blog/MarkdownEditor";
+import MarkdownEditor, {
+  MarkdownEditorHandle,
+  postImageMarkdown,
+} from "@/app/blog/MarkdownEditor";
 import PostImagePicker from "@/app/blog/newPost/PostImagePicker";
 import {
   addPendingImages,
@@ -24,7 +27,13 @@ import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import TextField from "@/app/ui/TextField";
 import { createPostFormSchema } from "@home/shared";
-import { startTransition, SubmitEvent, useActionState, useState } from "react";
+import {
+  startTransition,
+  SubmitEvent,
+  useActionState,
+  useRef,
+  useState,
+} from "react";
 
 const CREATE_POST_FIELDS = {
   title: "title",
@@ -57,6 +66,7 @@ const NewPostForm = () => {
   );
   const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
+  const editorRef = useRef<MarkdownEditorHandle>(null);
 
   const headerImage = images.find((image) => image.name === headerName);
   const inlineImages = images.filter((image) => image.name !== headerName);
@@ -84,6 +94,10 @@ const NewPostForm = () => {
     setImages(added);
 
     return added.slice(images.length).map((image) => image.name);
+  };
+
+  const insertImage = (image: PendingPostImage) => {
+    editorRef.current?.insert(postImageMarkdown(image.name));
   };
 
   const removeImage = (name: string) => {
@@ -178,11 +192,14 @@ const NewPostForm = () => {
       <FieldError errors={errors?.properties?.title?.errors} />
 
       <MarkdownEditor
+        ref={editorRef}
         name={CREATE_POST_FIELDS.content}
         label="Content"
         rows={12}
         disabled={busy}
         defaultValue={state?.values?.content}
+        images={inlineImages}
+        onAddImages={addInlineImages}
       />
 
       <FieldError errors={errors?.properties?.content?.errors} />
@@ -196,6 +213,7 @@ const NewPostForm = () => {
         disabled={busy}
         onPickHeaderImage={pickHeaderImage}
         onAddInlineImages={addInlineImages}
+        onInsertImage={insertImage}
         onRemoveImage={removeImage}
       />
 
