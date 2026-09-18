@@ -15,3 +15,6 @@ export const postHref = (id: string, page: number) =>
 
 export const postImageHref = (id: string, name: string) =>
   `${postCanonicalHref(id)}/images/${encodeURIComponent(name)}`;
+
+export const postUploadImageHref = (uploadId: string, name: string) =>
+  `/blog/uploads/${uploadId}/images/${encodeURIComponent(name)}`;
