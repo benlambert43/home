@@ -5,15 +5,6 @@ interface PostImageType {
   contentType: PostImageContentType;
 }
 
-const EXTENSION_CONTENT_TYPES: Record<string, string> = {
-  png: "image/png",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  webp: "image/webp",
-  gif: "image/gif",
-  avif: "image/avif",
-};
-
 const SIGNATURE_BYTES = 16;
 
 const PNG_SIGNATURE = "\x89PNG\r\n\x1a\n";
@@ -160,6 +151,3 @@ export const isAnimatedPngOrAvifSequence = async (file: string) => {
     await handle.close();
   }
 };
-
-export const contentTypeForName = (name: string): string | undefined =>
-  EXTENSION_CONTENT_TYPES[name.slice(name.lastIndexOf(".") + 1).toLowerCase()];

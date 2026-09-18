@@ -8,6 +8,7 @@ import {
   GetPostResponse,
   GetPostsResponse,
   MAX_POST_REQUEST_BODY_BYTES,
+  POST_FULL_SIZE_SEGMENT,
   postIdParamsSchema,
   postImageParamsSchema,
   postListQuerySchema,
@@ -229,7 +230,7 @@ postRouter.get(
 );
 
 postRouter.get(
-  "/:id/images/:name/fullSize",
+  `/:id/images/:name/${POST_FULL_SIZE_SEGMENT}`,
   route(async (req, res) => {
     const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;

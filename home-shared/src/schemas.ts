@@ -7,6 +7,7 @@ import {
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
   MAX_POST_TITLE_CHARACTERS,
+  POST_IMAGE_EXTENSION_CONTENT_TYPES,
   POST_THUMBNAIL_SIZES,
   postUploadImageNames,
 } from "./post";
@@ -146,12 +147,16 @@ const postContentField = z
     message: "Post content may not contain HTML. Please use Markdown instead.",
   });
 
-const postImageNameField = z
+const POST_IMAGE_NAME_PATTERN = new RegExp(
+  `^[a-zA-Z0-9][a-zA-Z0-9_-]*\\.(${Object.keys(POST_IMAGE_EXTENSION_CONTENT_TYPES).join("|")})$`,
+);
+
+export const postImageNameSchema = z
   .string()
   .max(MAX_POST_IMAGE_NAME_CHARACTERS, {
     message: `An image name must be ${MAX_POST_IMAGE_NAME_CHARACTERS} characters or fewer.`,
   })
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*\.(png|jpe?g|webp|gif|avif)$/, {
+  .regex(POST_IMAGE_NAME_PATTERN, {
     message:
       "An image name must be letters, numbers, dashes, or underscores, ending in .png, .jpg, .jpeg, .webp, .gif, or .avif.",
   });
@@ -171,9 +176,9 @@ const postUploadIdField = z
 
 export const createPostUploadBodySchema = z
   .object({
-    headerImage: postImageNameField.optional(),
+    headerImage: postImageNameSchema.optional(),
     inlineImages: z
-      .array(postImageNameField)
+      .array(postImageNameSchema)
       .max(MAX_POST_INLINE_IMAGES, { message: MAX_INLINE_IMAGES_MESSAGE }),
   })
   .refine((upload) => hasUniqueImageNames(postUploadImageNames(upload)), {
@@ -185,7 +190,7 @@ export const postUploadParamsSchema = z.object({
 });
 
 export const postUploadImageParamsSchema = postUploadParamsSchema.extend({
-  name: postImageNameField,
+  name: postImageNameSchema,
 });
 
 export const createPostBodySchema = z.object({
@@ -205,7 +210,7 @@ export const updatePostBodySchema = z
     content: postContentField.optional(),
     headerImage: z.null().optional(),
     uploadId: postUploadIdField.optional(),
-    removeInlineImages: z.array(postImageNameField).optional(),
+    removeInlineImages: z.array(postImageNameSchema).optional(),
   })
   .refine(
     (body) =>
@@ -225,7 +230,7 @@ export const postIdParamsSchema = z.object({
 });
 
 export const postImageParamsSchema = postIdParamsSchema.extend({
-  name: postImageNameField,
+  name: postImageNameSchema,
 });
 
 export const postThumbnailParamsSchema = postImageParamsSchema.extend({

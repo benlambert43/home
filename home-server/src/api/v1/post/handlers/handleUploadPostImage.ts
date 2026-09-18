@@ -1,9 +1,6 @@
-import { UploadPostImageResponse } from "@home/shared";
+import { postImageContentType, UploadPostImageResponse } from "@home/shared";
 import { readImageDimensions } from "../../fileOperations/imageDimensions";
-import {
-  contentTypeForName,
-  detectFileImageType,
-} from "../../fileOperations/imageType";
+import { detectFileImageType } from "../../fileOperations/imageType";
 import { stagePostImage } from "../../fileOperations/uploadStorage";
 import {
   ApiMessage,
@@ -28,7 +25,7 @@ export const handleUploadPostImage = async (
   const imageType = await detectFileImageType(image.path);
   if (!imageType) return failure(imageNotAnImage(name));
 
-  if (contentTypeForName(name) !== imageType.contentType) {
+  if (postImageContentType(name) !== imageType.contentType) {
     return failure(imageTypeMismatch(name));
   }
 
