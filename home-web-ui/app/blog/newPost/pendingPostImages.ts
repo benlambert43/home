@@ -10,7 +10,9 @@ import { Marked, MarkedToken } from "marked";
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
 
-const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
+const MAX_UPLOAD_IMAGES = MAX_POST_INLINE_IMAGES + 1;
+
+const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_UPLOAD_IMAGES} images at a time.`;
 
 const markdown = new Marked();
 
@@ -65,7 +67,7 @@ export const addPendingImages = async (
       continue;
     }
 
-    if (images.length >= MAX_POST_INLINE_IMAGES) {
+    if (images.length >= MAX_UPLOAD_IMAGES) {
       problems.push(TOO_MANY_IMAGES_PROBLEM);
       break;
     }
