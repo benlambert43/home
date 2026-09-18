@@ -1,3 +1,4 @@
+import PostImageLightbox from "@/app/blog/PostImageLightbox";
 import { postImageNameFromReference } from "@home/shared";
 import { Marked, Tokenizer } from "marked";
 import Markdown, { ReactRenderer } from "marked-react";
@@ -84,7 +85,20 @@ const MarkdownImage = ({
     />
   );
 
-  return image.href ? <a href={image.href}>{rendered}</a> : rendered;
+  if (image.href === undefined) return rendered;
+
+  return image.width !== undefined && image.height !== undefined ? (
+    <PostImageLightbox
+      href={image.href}
+      alt={alt}
+      width={image.width}
+      height={image.height}
+    >
+      {rendered}
+    </PostImageLightbox>
+  ) : (
+    <a href={image.href}>{rendered}</a>
+  );
 };
 
 const renderer = (images: PostMarkdownImage[]) => ({

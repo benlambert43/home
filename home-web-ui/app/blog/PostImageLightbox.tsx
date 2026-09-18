@@ -1,0 +1,77 @@
+"use client";
+
+import Dialog from "@/app/components/Dialog";
+import Button from "@/app/ui/Button";
+import Image from "next/image";
+import { MouseEvent, ReactNode, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+
+const opensElsewhere = (event: MouseEvent<HTMLAnchorElement>) =>
+  event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+
+const subscribeToNothing = () => () => undefined;
+
+const onClient = () => true;
+
+const onServer = () => false;
+
+const PostImageLightbox = ({
+  href,
+  alt,
+  width,
+  height,
+  children,
+}: {
+  href: string;
+  alt: string;
+  width: number;
+  height: number;
+  children: ReactNode;
+}) => {
+  const [open, setOpen] = useState(false);
+  const mounted = useSyncExternalStore(subscribeToNothing, onClient, onServer);
+
+  const close = () => {
+    setOpen(false);
+  };
+
+  const lightbox = (
+    <Dialog open={open} onClose={close} label={alt === "" ? "Image" : alt}>
+      <div className="flex flex-col items-center gap-3">
+        {open && (
+          <Image
+            src={href}
+            alt={alt}
+            width={width}
+            height={height}
+            unoptimized
+            className="h-auto max-h-[80vh] w-auto max-w-full rounded-md"
+          />
+        )}
+        <Button type="button" size="small" emphasis="secondary" onClick={close}>
+          Close
+        </Button>
+      </div>
+    </Dialog>
+  );
+
+  return (
+    <>
+      <a
+        href={href}
+        onClick={(event) => {
+          if (opensElsewhere(event)) return;
+
+          event.preventDefault();
+          setOpen(true);
+        }}
+      >
+        {children}
+      </a>
+
+      {mounted && createPortal(lightbox, document.body)}
+    </>
+  );
+};
+
+export default PostImageLightbox;
