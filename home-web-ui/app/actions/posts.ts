@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/forms";
 import { POSTS_URL } from "@/app/lib/posts";
 import {
+  createPostBodySchema,
   createPostFormSchema,
   CreatePostRequestBody,
   CreatePostResponse,
@@ -21,15 +22,35 @@ const CREATE_POST_FIELDS = {
   content: "content",
 } as const satisfies FieldNames<typeof createPostFormSchema>;
 
+const UPLOAD_ID_FIELD = "uploadId";
+
+const submittedUploadId = (formData: FormData) => {
+  const uploadId = formData.get(UPLOAD_ID_FIELD);
+
+  return typeof uploadId === "string" && uploadId.length > 0
+    ? uploadId
+    : undefined;
+};
+
 export const createPost = async (
   state: CreatePostFormState,
   formData: FormData,
 ): Promise<CreatePostFormState> => {
   const values = readFormValues(formData, CREATE_POST_FIELDS);
-  const validatedFields = createPostFormSchema.safeParse(values);
+  const validatedFields = createPostBodySchema.safeParse({
+    ...values,
+    uploadId: submittedUploadId(formData),
+  });
 
   if (!validatedFields.success) {
-    return { values, ...treeifyFormError(validatedFields.error) };
+    const { errors, properties } = treeifyFormError(validatedFields.error);
+    const { uploadId, ...fields } = properties ?? {};
+
+    return {
+      values,
+      errors: [...errors, ...(uploadId?.errors ?? [])],
+      properties: fields,
+    };
   }
 
   try {
