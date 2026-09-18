@@ -52,7 +52,7 @@ export const POST_IMAGE_CONTENT_TYPES: PostImageContentType[] = [
 const isPostImageExtension = (
   extension: string,
 ): extension is PostImageExtension =>
-  extension in POST_IMAGE_EXTENSION_CONTENT_TYPES;
+  Object.keys(POST_IMAGE_EXTENSION_CONTENT_TYPES).includes(extension);
 
 export const postImageContentType = (
   name: string,
@@ -121,10 +121,10 @@ export const postThumbnailPath = (
   size: PostThumbnailSize,
 ) => `${postImagePath(postId, name)}/${size}`;
 
-export const postUploadsPath = "posts/uploads";
+export const POST_UPLOADS_PATH = "posts/uploads";
 
 export const postUploadPath = (uploadId: string) =>
-  `${postUploadsPath}/${uploadId}`;
+  `${POST_UPLOADS_PATH}/${uploadId}`;
 
 export const postUploadImagePath = (uploadId: string, name: string) =>
   `${postUploadPath(uploadId)}/images/${name}`;

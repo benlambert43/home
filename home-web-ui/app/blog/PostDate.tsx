@@ -1,15 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-
-const subscribe = () => () => {};
+import { useHydrated } from "@/app/lib/useHydrated";
 
 const PostDate = ({ date }: { date: string }) => {
-  const hydrated = useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
+  const hydrated = useHydrated();
 
   return (
     <time dateTime={date} className="inline-block min-w-20">

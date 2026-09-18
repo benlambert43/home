@@ -1,19 +1,14 @@
 "use client";
 
 import Dialog from "@/app/components/Dialog";
+import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import Image from "next/image";
-import { MouseEvent, ReactNode, useState, useSyncExternalStore } from "react";
+import { MouseEvent, ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 
 const opensElsewhere = (event: MouseEvent<HTMLAnchorElement>) =>
   event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-
-const subscribeToNothing = () => () => undefined;
-
-const onClient = () => true;
-
-const onServer = () => false;
 
 const PostImageLightbox = ({
   href,
@@ -29,7 +24,7 @@ const PostImageLightbox = ({
   children: ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
-  const mounted = useSyncExternalStore(subscribeToNothing, onClient, onServer);
+  const mounted = useHydrated();
 
   const close = () => {
     setOpen(false);

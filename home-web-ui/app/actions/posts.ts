@@ -1,28 +1,23 @@
 "use server";
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import {
+  CREATE_POST_FIELDS,
+  UPLOAD_ID_FIELD,
+} from "@/app/blog/newPost/createPostFields";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
   CreatePostFormState,
-  FieldNames,
   readFormValues,
   treeifyFormError,
 } from "@/app/lib/forms";
 import { POSTS_URL } from "@/app/lib/posts";
 import {
   createPostBodySchema,
-  createPostFormSchema,
   CreatePostRequestBody,
   CreatePostResponse,
 } from "@home/shared";
 import { redirect } from "next/navigation";
-
-const CREATE_POST_FIELDS = {
-  title: "title",
-  content: "content",
-} as const satisfies FieldNames<typeof createPostFormSchema>;
-
-const UPLOAD_ID_FIELD = "uploadId";
 
 const submittedUploadId = (formData: FormData) => {
   const uploadId = formData.get(UPLOAD_ID_FIELD);

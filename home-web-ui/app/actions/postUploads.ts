@@ -2,12 +2,8 @@
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import {
-  apiRequest,
-  errorMessage,
-  FORBIDDEN_MESSAGE,
-  INVALID_REQUEST_MESSAGE,
-} from "@/app/lib/api";
+import { apiRequest, errorMessage } from "@/app/lib/api";
+import { FORBIDDEN_MESSAGE, INVALID_REQUEST_MESSAGE } from "@/app/lib/messages";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
   ApiFailure,
@@ -15,9 +11,9 @@ import {
   CreatePostUploadRequestBody,
   CreatePostUploadResponse,
   DeletePostUploadResponse,
+  POST_UPLOADS_PATH,
   postUploadParamsSchema,
   postUploadPath,
-  postUploadsPath,
 } from "@home/shared";
 
 const failure = (message: string): ApiFailure => ({ error: true, message });
@@ -36,7 +32,7 @@ export const startPostUpload = async (
     return await apiRequest<
       CreatePostUploadResponse,
       CreatePostUploadRequestBody
-    >(`${BASE_API_URL}/${postUploadsPath}`, {
+    >(`${BASE_API_URL}/${POST_UPLOADS_PATH}`, {
       method: "POST",
       authorization: await getApiSessionToken(),
       body: validatedManifest.data,

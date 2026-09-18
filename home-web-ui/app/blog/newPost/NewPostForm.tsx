@@ -1,26 +1,26 @@
 "use client";
 
 import { createPost } from "@/app/actions/posts";
-import { discardPostUpload, startPostUpload } from "@/app/actions/postUploads";
 import MarkdownEditor, {
   MarkdownEditorHandle,
   postImageMarkdown,
 } from "@/app/blog/MarkdownEditor";
+import {
+  CREATE_POST_FIELDS,
+  UPLOAD_ID_FIELD,
+} from "@/app/blog/newPost/createPostFields";
 import PostImagePicker from "@/app/blog/newPost/PostImagePicker";
 import {
-  addPendingImages,
+  allPendingImages,
   PendingPostImage,
+  pendingMarkdownImages,
   unmatchedImageReferences,
 } from "@/app/blog/newPost/pendingPostImages";
-import {
-  PostImageUploads,
-  uploadPostImages,
-  uploadSessionLost,
-} from "@/app/blog/newPost/uploadPostImages";
+import { usePendingPostImages } from "@/app/blog/newPost/usePendingPostImages";
+import { usePostImageUpload } from "@/app/blog/newPost/usePostImageUpload";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import {
   CreatePostFormState,
-  FieldNames,
   readFormValues,
   treeifyFormError,
 } from "@/app/lib/forms";
@@ -32,114 +32,35 @@ import {
   startTransition,
   SubmitEvent,
   useActionState,
-  useEffect,
   useRef,
   useState,
 } from "react";
 
-const CREATE_POST_FIELDS = {
-  title: "title",
-  content: "content",
-} as const satisfies FieldNames<typeof createPostFormSchema>;
-
-const UPLOAD_ID_FIELD = "uploadId";
-
-const UPLOAD_FAILED_MESSAGE =
-  "Some images could not be uploaded. Please try again.";
-
 const missingImagesMessage = (references: string[]) =>
   `The post links ${references.length === 1 ? "an image" : "images"} it does not have: ${references.join(", ")}`;
-
-type PostUploadSession = {
-  uploadId: string;
-  names: string[];
-  uploaded: string[];
-};
-
-const failedUploads = (uploads: PostImageUploads) =>
-  Object.fromEntries(
-    Object.entries(uploads).flatMap(([name, { response }]) =>
-      response.error ? [[name, response.message]] : [],
-    ),
-  );
-
-const uploadedNames = (uploads: PostImageUploads) =>
-  Object.entries(uploads).flatMap(([name, { response }]) =>
-    response.error ? [] : [name],
-  );
-
-const sameImages = (names: string[], other: string[]) =>
-  names.length === other.length && names.every((name) => other.includes(name));
-
-const discardSession = (session: PostUploadSession | undefined) => {
-  if (session) void discardPostUpload(session.uploadId);
-};
-
-const uploadedProgress = (names: string[]) =>
-  Object.fromEntries(names.map((name) => [name, 1]));
 
 const NewPostForm = () => {
   const [state, action, pending] = useActionState(createPost, undefined);
   const [submitted, setSubmitted] = useState<CreatePostFormState>(undefined);
-  const [images, setImages] = useState<PendingPostImage[]>([]);
-  const [headerName, setHeaderName] = useState<string>();
-  const [imageProblems, setImageProblems] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
-    {},
-  );
-  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
-  const [uploading, setUploading] = useState(false);
+  const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
+    usePendingPostImages();
+  const {
+    upload,
+    progress,
+    errors: uploadErrors,
+    uploading,
+  } = usePostImageUpload();
   const editorRef = useRef<MarkdownEditorHandle>(null);
-  const sessionRef = useRef<PostUploadSession>(undefined);
 
-  useEffect(
-    () => () => {
-      discardSession(sessionRef.current);
-      sessionRef.current = undefined;
-    },
-    [],
-  );
-
-  const headerImage = images.find((image) => image.name === headerName);
-  const inlineImages = images.filter((image) => image.name !== headerName);
   const errors = submitted ?? state;
   const busy = pending || uploading;
-
-  const pickHeaderImage = async (files: File[]) => {
-    const others = images.filter((image) => image.name !== headerName);
-    const { images: added, problems } = await addPendingImages(others, files);
-
-    setImageProblems(problems);
-
-    if (added.length === others.length) return;
-
-    if (headerImage) URL.revokeObjectURL(headerImage.previewUrl);
-
-    setImages(added);
-    setHeaderName(added[added.length - 1].name);
-  };
-
-  const addInlineImages = async (files: File[]) => {
-    const { images: added, problems } = await addPendingImages(images, files);
-
-    setImageProblems(problems);
-    setImages(added);
-
-    return added.slice(images.length).map((image) => image.name);
-  };
 
   const insertImage = (image: PendingPostImage) => {
     editorRef.current?.insert(postImageMarkdown(image.name));
   };
 
-  const removeImage = (name: string) => {
-    setImages((current) => current.filter((image) => image.name !== name));
-    if (name === headerName) setHeaderName(undefined);
-  };
-
   const submitPost = async (formData: FormData) => {
     setSubmitted(undefined);
-    setUploadErrors({});
 
     const values = readFormValues(formData, CREATE_POST_FIELDS);
     const validatedFields = createPostFormSchema.safeParse(values);
@@ -151,7 +72,7 @@ const NewPostForm = () => {
 
     const unmatched = unmatchedImageReferences(
       validatedFields.data.content,
-      images.map((image) => image.name),
+      images,
     );
 
     if (unmatched.length > 0) {
@@ -159,67 +80,16 @@ const NewPostForm = () => {
       return;
     }
 
-    if (images.length === 0) {
-      startTransition(() => {
-        action(formData);
-      });
-      return;
-    }
+    if (allPendingImages(images).length > 0) {
+      const uploaded = await upload(images);
 
-    setUploading(true);
-
-    const names = images.map((image) => image.name);
-    const resumed = sessionRef.current;
-    let session =
-      resumed && sameImages(resumed.names, names) ? resumed : undefined;
-
-    if (!session) {
-      discardSession(resumed);
-      sessionRef.current = undefined;
-
-      const started = await startPostUpload({
-        headerImage: headerName,
-        inlineImages: inlineImages.map((image) => image.name),
-      });
-
-      if (started.error) {
-        setUploading(false);
-        setSubmitted({ values, errors: [started.message] });
+      if (!uploaded.ok) {
+        setSubmitted({ values, errors: [uploaded.message] });
         return;
       }
 
-      session = { uploadId: started.uploadId, names, uploaded: [] };
-      sessionRef.current = session;
+      formData.append(UPLOAD_ID_FIELD, uploaded.uploadId);
     }
-
-    setUploadProgress(uploadedProgress(session.uploaded));
-
-    const uploads = await uploadPostImages(
-      session.uploadId,
-      images.filter((image) => !session.uploaded.includes(image.name)),
-      (name, progress) => {
-        setUploadProgress((current) => ({ ...current, [name]: progress }));
-      },
-    );
-
-    const failed = failedUploads(uploads);
-
-    sessionRef.current = uploadSessionLost(uploads)
-      ? undefined
-      : {
-          ...session,
-          uploaded: [...session.uploaded, ...uploadedNames(uploads)],
-        };
-
-    setUploading(false);
-
-    if (Object.keys(failed).length > 0) {
-      setUploadErrors(failed);
-      setSubmitted({ values, errors: [UPLOAD_FAILED_MESSAGE] });
-      return;
-    }
-
-    formData.append(UPLOAD_ID_FIELD, session.uploadId);
 
     startTransition(() => {
       action(formData);
@@ -251,17 +121,16 @@ const NewPostForm = () => {
         rows={12}
         disabled={busy}
         defaultValue={state?.values?.content}
-        images={inlineImages}
+        images={pendingMarkdownImages(images)}
         onAddImages={addInlineImages}
       />
 
       <FieldError errors={errors?.properties?.content?.errors} />
 
       <PostImagePicker
-        headerImage={headerImage}
-        inlineImages={inlineImages}
-        problems={imageProblems}
-        progress={uploadProgress}
+        images={images}
+        problems={problems}
+        progress={progress}
         errors={uploadErrors}
         disabled={busy}
         onPickHeaderImage={pickHeaderImage}

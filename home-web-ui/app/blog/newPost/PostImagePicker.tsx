@@ -1,14 +1,17 @@
 "use client";
 
-import { PendingPostImage } from "@/app/blog/newPost/pendingPostImages";
+import {
+  PendingPostImage,
+  PendingPostImages,
+} from "@/app/blog/newPost/pendingPostImages";
+import {
+  ACCEPTED_POST_IMAGE_TYPES,
+  pickedFiles,
+} from "@/app/blog/postImageFiles";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import { POST_IMAGE_CONTENT_TYPES } from "@home/shared";
 import Image from "next/image";
-import { ChangeEvent, useEffect, useRef } from "react";
-
-const ACCEPTED_TYPES = POST_IMAGE_CONTENT_TYPES.join(",");
 
 const THUMBNAIL_PIXELS = 64;
 
@@ -24,14 +27,6 @@ const fileSize = (bytes: number) =>
   bytes >= MEGABYTE
     ? `${(bytes / MEGABYTE).toFixed(1)} MB`
     : `${Math.max(1, Math.round(bytes / KILOBYTE))} KB`;
-
-const pickedFiles = (event: ChangeEvent<HTMLInputElement>) => {
-  const files = [...(event.target.files ?? [])];
-
-  event.target.value = "";
-
-  return files;
-};
 
 const PostImageRow = ({
   image,
@@ -62,7 +57,9 @@ const PostImageRow = ({
       <span className="truncate font-mono">{image.name}</span>
       <span className="text-sm text-slate-400">
         {fileSize(image.file.size)}
-        {progress === undefined ? "" : ` · ${Math.round(progress * 100)}%`}
+        {progress === undefined || error !== undefined
+          ? ""
+          : ` · ${Math.round(progress * 100)}%`}
       </span>
       {error !== undefined && <span className="text-sm">{error}</span>}
     </div>
@@ -99,8 +96,7 @@ const PostImageRow = ({
 );
 
 const PostImagePicker = ({
-  headerImage,
-  inlineImages,
+  images: { headerImage, inlineImages },
   problems,
   progress,
   errors,
@@ -110,8 +106,7 @@ const PostImagePicker = ({
   onInsertImage,
   onRemoveImage,
 }: {
-  headerImage?: PendingPostImage;
-  inlineImages: PendingPostImage[];
+  images: PendingPostImages;
   problems: string[];
   progress: Record<string, number>;
   errors: Record<string, string>;
@@ -119,29 +114,8 @@ const PostImagePicker = ({
   onPickHeaderImage: (files: File[]) => Promise<void>;
   onAddInlineImages: (files: File[]) => Promise<string[]>;
   onInsertImage: (image: PendingPostImage) => void;
-  onRemoveImage: (name: string) => void;
+  onRemoveImage: (image: PendingPostImage) => void;
 }) => {
-  const shown = headerImage ? [headerImage, ...inlineImages] : inlineImages;
-  const shownRef = useRef(shown);
-
-  useEffect(() => {
-    shownRef.current = shown;
-  });
-
-  useEffect(
-    () => () => {
-      shownRef.current.forEach((image) => {
-        URL.revokeObjectURL(image.previewUrl);
-      });
-    },
-    [],
-  );
-
-  const removeImage = (image: PendingPostImage) => {
-    URL.revokeObjectURL(image.previewUrl);
-    onRemoveImage(image.name);
-  };
-
   const row = (image: PendingPostImage, onInsert?: typeof onInsertImage) => (
     <PostImageRow
       key={image.name}
@@ -150,7 +124,7 @@ const PostImagePicker = ({
       error={errors[image.name]}
       disabled={disabled}
       onInsert={onInsert}
-      onRemove={removeImage}
+      onRemove={onRemoveImage}
     />
   );
 
@@ -161,7 +135,7 @@ const PostImagePicker = ({
         <input
           id={HEADER_IMAGE_INPUT}
           type="file"
-          accept={ACCEPTED_TYPES}
+          accept={ACCEPTED_POST_IMAGE_TYPES}
           disabled={disabled}
           className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES}
             hover:cursor-pointer`}
@@ -178,7 +152,7 @@ const PostImagePicker = ({
           id={INLINE_IMAGES_INPUT}
           type="file"
           multiple
-          accept={ACCEPTED_TYPES}
+          accept={ACCEPTED_POST_IMAGE_TYPES}
           disabled={disabled}
           className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES}
             hover:cursor-pointer`}

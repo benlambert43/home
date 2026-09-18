@@ -1,11 +1,12 @@
 import "server-only";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
+import { BAD_GATEWAY_STATUS } from "@/app/lib/api";
 import {
   FORBIDDEN_MESSAGE,
   INVALID_REQUEST_MESSAGE,
   SERVICE_UNAVAILABLE_MESSAGE,
-} from "@/app/lib/api";
+} from "@/app/lib/messages";
 import { BASE_API_URL, BASE_SITE_URL } from "@/app/lib/serverEnv";
 import {
   ApiFailure,
@@ -21,8 +22,6 @@ const FORBIDDEN_STATUS = 403;
 const CONTENT_TOO_LARGE_STATUS = 413;
 
 const UNSUPPORTED_MEDIA_TYPE_STATUS = 415;
-
-const BAD_GATEWAY_STATUS = 502;
 
 const TOO_LARGE_MESSAGE =
   "That image is too large. Please use a smaller image and try again.";

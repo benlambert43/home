@@ -1,3 +1,4 @@
+import { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import {
   MAX_POST_IMAGE_BYTES,
   MAX_POST_INLINE_IMAGES,
@@ -10,9 +11,7 @@ import { Marked, MarkedToken } from "marked";
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
 
-const MAX_UPLOAD_IMAGES = MAX_POST_INLINE_IMAGES + 1;
-
-const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_UPLOAD_IMAGES} images at a time.`;
+const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
 
 const markdown = new Marked();
 
@@ -24,10 +23,14 @@ export type PendingPostImage = {
   height: number;
 };
 
-export type AddedPendingImages = {
-  images: PendingPostImage[];
-  problems: string[];
+export type PendingPostImages = {
+  headerImage?: PendingPostImage;
+  inlineImages: PendingPostImage[];
 };
+
+export type ReadImageFile = Omit<PendingPostImage, "previewUrl">;
+
+export const NO_PENDING_IMAGES: PendingPostImages = { inlineImages: [] };
 
 const unsupportedProblem = (file: File) =>
   `${file.name} is not a PNG, JPEG, WebP, GIF, or AVIF image.`;
@@ -47,11 +50,8 @@ const imageSize = async (file: File) => {
   return { width, height };
 };
 
-export const addPendingImages = async (
-  current: PendingPostImage[],
-  files: File[],
-): Promise<AddedPendingImages> => {
-  const images = [...current];
+export const readImageFiles = async (files: File[]) => {
+  const read: ReadImageFile[] = [];
   const problems: string[] = [];
 
   for (const file of files) {
@@ -67,33 +67,82 @@ export const addPendingImages = async (
       continue;
     }
 
-    if (images.length >= MAX_UPLOAD_IMAGES) {
-      problems.push(TOO_MANY_IMAGES_PROBLEM);
-      break;
-    }
-
-    let size: { width: number; height: number };
-
     try {
-      size = await imageSize(file);
+      read.push({ name, file, ...(await imageSize(file)) });
     } catch {
       problems.push(unreadableProblem(file));
-      continue;
     }
-
-    images.push({
-      name: uniquePostImageName(
-        name,
-        images.map((image) => image.name),
-      ),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      ...size,
-    });
   }
 
-  return { images, problems };
+  return { read, problems };
 };
+
+export const allPendingImages = ({
+  headerImage,
+  inlineImages,
+}: PendingPostImages) =>
+  headerImage ? [headerImage, ...inlineImages] : inlineImages;
+
+const pendingImage = (
+  read: ReadImageFile,
+  taken: PendingPostImage[],
+): PendingPostImage => ({
+  ...read,
+  name: uniquePostImageName(
+    read.name,
+    taken.map((image) => image.name),
+  ),
+  previewUrl: URL.createObjectURL(read.file),
+});
+
+export const releasePendingImage = (image: PendingPostImage) => {
+  URL.revokeObjectURL(image.previewUrl);
+};
+
+export const withHeaderImage = (
+  pending: PendingPostImages,
+  read: ReadImageFile,
+): PendingPostImages => ({
+  ...pending,
+  headerImage: pendingImage(read, pending.inlineImages),
+});
+
+export const withInlineImages = (
+  pending: PendingPostImages,
+  read: ReadImageFile[],
+) => {
+  const room = MAX_POST_INLINE_IMAGES - pending.inlineImages.length;
+  const added: PendingPostImage[] = [];
+
+  for (const file of read.slice(0, room)) {
+    added.push(pendingImage(file, [...allPendingImages(pending), ...added]));
+  }
+
+  return {
+    pending: { ...pending, inlineImages: [...pending.inlineImages, ...added] },
+    added,
+    problems: read.length > room ? [TOO_MANY_IMAGES_PROBLEM] : [],
+  };
+};
+
+export const withoutPendingImage = (
+  pending: PendingPostImages,
+  removed: PendingPostImage,
+): PendingPostImages => ({
+  headerImage:
+    pending.headerImage === removed ? undefined : pending.headerImage,
+  inlineImages: pending.inlineImages.filter((image) => image !== removed),
+});
+
+export const pendingMarkdownImages = (
+  pending: PendingPostImages,
+): PostMarkdownImage[] =>
+  allPendingImages(pending).map((image) => ({
+    reference: postImageReference(image.name),
+    src: image.previewUrl,
+    width: image.width,
+    height: image.height,
+  }));
 
 const linkedUrls = (content: string) => {
   const urls: string[] = [];
@@ -107,8 +156,13 @@ const linkedUrls = (content: string) => {
   return urls;
 };
 
-export const unmatchedImageReferences = (content: string, names: string[]) => {
-  const references = new Set(names.map((name) => postImageReference(name)));
+export const unmatchedImageReferences = (
+  content: string,
+  pending: PendingPostImages,
+) => {
+  const references = new Set(
+    allPendingImages(pending).map((image) => postImageReference(image.name)),
+  );
 
   const unmatched = linkedUrls(content).filter(
     (url) =>

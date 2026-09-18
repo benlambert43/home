@@ -17,7 +17,11 @@ const Post = async ({ params }: { params: PostParams }) => {
 
   const { post } = result;
 
-  const images = post.inlineImages.map((image) => ({
+  const postImages = post.headerImage
+    ? [post.headerImage, ...post.inlineImages]
+    : post.inlineImages;
+
+  const images = postImages.map((image) => ({
     reference: image.reference,
     src: postThumbnailHref(post._id, image.name, "large"),
     href: postImageHref(post._id, image.name),

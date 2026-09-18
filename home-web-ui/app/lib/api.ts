@@ -1,4 +1,5 @@
 import "server-only";
+import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { ApiFailure, ApiResponse, SuccessOf } from "@home/shared";
 
 type ApiRequest<Body> = {
@@ -8,15 +9,9 @@ type ApiRequest<Body> = {
   cache?: RequestCache;
 };
 
-export const SERVICE_UNAVAILABLE_MESSAGE =
-  "There was an error on our end, please try again in a few moments.";
-
-export const INVALID_REQUEST_MESSAGE =
-  "Invalid request. Please check your details and try again.";
-
-export const FORBIDDEN_MESSAGE = "You do not have permission to do that.";
-
 export const NOT_FOUND_STATUS = 404;
+
+export const BAD_GATEWAY_STATUS = 502;
 
 export class ApiError extends Error {
   readonly status: number;

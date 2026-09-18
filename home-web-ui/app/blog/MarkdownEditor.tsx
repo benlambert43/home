@@ -1,10 +1,14 @@
 "use client";
 
-import { PendingPostImage } from "@/app/blog/newPost/pendingPostImages";
-import PostMarkdown from "@/app/blog/PostMarkdown";
+import {
+  ACCEPTED_POST_IMAGE_TYPES,
+  pickedFiles,
+} from "@/app/blog/postImageFiles";
+import PostMarkdown, { PostMarkdownImage } from "@/app/blog/PostMarkdown";
+import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import { POST_IMAGE_CONTENT_TYPES, postImageReference } from "@home/shared";
+import { postImageReference } from "@home/shared";
 import {
   ChangeEvent,
   KeyboardEvent,
@@ -13,15 +17,12 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 
 export type MarkdownEditorHandle = { insert: (markdown: string) => void };
 
 export const postImageMarkdown = (name: string) =>
   `![](${postImageReference(name)})`;
-
-const ACCEPTED_IMAGE_TYPES = POST_IMAGE_CONTENT_TYPES.join(",");
 
 type MarkdownSelection = {
   value: string;
@@ -40,8 +41,6 @@ const PHYSICAL_KEYS: Partial<Record<string, string>> = {
   Digit8: "8",
   Period: ".",
 };
-
-const subscribe = () => () => {};
 
 const pressedKey = (event: KeyboardEvent) =>
   PHYSICAL_KEYS[event.code] ?? event.key.toLowerCase();
@@ -228,7 +227,7 @@ const MarkdownEditor = ({
   rows: number;
   disabled?: boolean;
   defaultValue?: string;
-  images?: PendingPostImage[];
+  images?: PostMarkdownImage[];
   onAddImages?: (files: File[]) => Promise<string[]>;
   ref?: Ref<MarkdownEditorHandle>;
 }) => {
@@ -237,11 +236,7 @@ const MarkdownEditor = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const pendingSelection = useRef<MarkdownSelection>(undefined);
-  const mac = useSyncExternalStore(
-    subscribe,
-    () => /Mac|iPhone|iPad/.test(navigator.userAgent),
-    () => false,
-  );
+  const mac = useHydrated() && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
   useEffect(() => {
     const selection = pendingSelection.current;
@@ -276,23 +271,13 @@ const MarkdownEditor = ({
   }));
 
   const addImages = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = [...(event.target.files ?? [])];
-
-    event.target.value = "";
-
+    const files = pickedFiles(event);
     const names = files.length > 0 ? await onAddImages?.(files) : undefined;
 
     if (names?.length) {
       apply(insertMarkdown(names.map(postImageMarkdown).join("\n")));
     }
   };
-
-  const previewImages = images.map((image) => ({
-    reference: postImageReference(image.name),
-    src: image.previewUrl,
-    width: image.width,
-    height: image.height,
-  }));
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const item = TOOLBAR.find(
@@ -393,7 +378,7 @@ const MarkdownEditor = ({
         type="file"
         multiple
         hidden
-        accept={ACCEPTED_IMAGE_TYPES}
+        accept={ACCEPTED_POST_IMAGE_TYPES}
         onChange={(event) => {
           void addImages(event);
         }}
@@ -404,7 +389,7 @@ const MarkdownEditor = ({
           className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES} min-h-64
           overflow-x-auto`}
         >
-          <PostMarkdown content={content} images={previewImages} />
+          <PostMarkdown content={content} images={images} />
         </div>
       )}
     </div>

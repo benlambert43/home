@@ -1,5 +1,6 @@
 import { postUploadImageHref } from "@/app/blog/links";
 import { PendingPostImage } from "@/app/blog/newPost/pendingPostImages";
+import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { POST_IMAGE_FIELD, UploadPostImageResponse } from "@home/shared";
 
 const CONCURRENT_UPLOADS = 3;
@@ -8,9 +9,6 @@ const UPLOAD_NOT_FOUND_STATUS = 404;
 
 const UNREACHABLE_MESSAGE =
   "That image could not be sent. Please check your connection and try again.";
-
-const UNREADABLE_RESPONSE_MESSAGE =
-  "There was an error on our end, please try again in a few moments.";
 
 export type UploadProgress = (name: string, progress: number) => void;
 
@@ -42,12 +40,12 @@ const uploadResponse = (body: string): UploadPostImageResponse => {
   try {
     payload = JSON.parse(body);
   } catch {
-    return failure(UNREADABLE_RESPONSE_MESSAGE);
+    return failure(SERVICE_UNAVAILABLE_MESSAGE);
   }
 
   return isUploadResponse(payload)
     ? payload
-    : failure(UNREADABLE_RESPONSE_MESSAGE);
+    : failure(SERVICE_UNAVAILABLE_MESSAGE);
 };
 
 export const uploadPostImage = (

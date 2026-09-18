@@ -1,5 +1,6 @@
 import "server-only";
-import { NOT_FOUND_STATUS, SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/api";
+import { BAD_GATEWAY_STATUS, NOT_FOUND_STATUS } from "@/app/lib/api";
+import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
   postFullSizeImagePath,
@@ -7,8 +8,6 @@ import {
   postThumbnailParamsSchema,
   postThumbnailPath,
 } from "@home/shared";
-
-const BAD_GATEWAY_STATUS = 502;
 
 const REVALIDATE_CACHE_CONTROL = "max-age=0";
 
