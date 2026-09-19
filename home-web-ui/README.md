@@ -12,5 +12,9 @@ npm run dev
 
 Serves on [localhost:3000](http://localhost:3000).
 
+Post images always come from the API's `large` thumbnail, which the site treats
+as the full size original, and `next/image` resizes from there. See "Post
+images" in the root README before asking the API for any other size.
+
 Builds with `output: "standalone"`.
 Next preserves the repo structure on deployment: the entrypoint is .next/standalone/home-web-ui/server.js, not .next/standalone/server.js.

@@ -49,7 +49,6 @@ const PostImageRow = ({
       alt=""
       width={THUMBNAIL_PIXELS}
       height={THUMBNAIL_PIXELS}
-      unoptimized
       className="size-16 rounded-md object-cover"
     />
 

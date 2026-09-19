@@ -1,4 +1,4 @@
-import PostImageLightbox from "@/app/blog/PostImageLightbox";
+import { POST_IMAGE_SIZES } from "@/app/blog/postImageSizes";
 import { isExternalPostLink, postImageNameFromReference } from "@home/shared";
 import Markdown, { ReactRenderer } from "marked-react";
 import Image from "next/image";
@@ -17,44 +17,8 @@ const CELL_ALIGNMENTS: Record<CellAlignment, string> = {
 export type PostMarkdownImage = {
   reference: string;
   src: string;
-  href?: string;
   width: number;
   height: number;
-};
-
-const MarkdownImage = ({
-  image,
-  alt,
-  title,
-}: {
-  image: PostMarkdownImage;
-  alt: string;
-  title?: string | null;
-}) => {
-  const rendered = (
-    <Image
-      src={image.src}
-      alt={alt}
-      title={title ?? undefined}
-      width={image.width}
-      height={image.height}
-      unoptimized
-      loading="lazy"
-    />
-  );
-
-  if (image.href === undefined) return rendered;
-
-  return (
-    <PostImageLightbox
-      href={image.href}
-      alt={alt}
-      width={image.width}
-      height={image.height}
-    >
-      {rendered}
-    </PostImageLightbox>
-  );
 };
 
 const renderer = (images: PostMarkdownImage[]) => ({
@@ -85,11 +49,15 @@ const renderer = (images: PostMarkdownImage[]) => ({
     }
 
     return (
-      <MarkdownImage
+      <Image
         key={this.elementId}
-        image={image}
+        src={image.src}
         alt={alt}
-        title={title}
+        title={title ?? undefined}
+        width={image.width}
+        height={image.height}
+        sizes={POST_IMAGE_SIZES}
+        loading="lazy"
       />
     );
   },

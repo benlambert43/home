@@ -4,4 +4,4 @@ Here is the header a second time, as an ordinary picture in the text:
 
 ![The header image, used again](./images/valley.jpg)
 
-Both copies open the same full size file.
+Both copies load the same file.

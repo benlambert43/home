@@ -1,5 +1,5 @@
-import { postImageHref, postThumbnailHref } from "@/app/blog/links";
-import PostImageLightbox from "@/app/blog/PostImageLightbox";
+import { postImageHref } from "@/app/blog/links";
+import { POST_IMAGE_SIZES } from "@/app/blog/postImageSizes";
 import { PostSummary } from "@home/shared";
 import Image from "next/image";
 
@@ -9,23 +9,16 @@ const PostHeaderImage = ({ post }: { post: PostSummary }) => {
   if (!image) return null;
 
   return (
-    <PostImageLightbox
-      href={postImageHref(post._id, image.name)}
+    <Image
+      src={postImageHref(post._id, image.name)}
       alt=""
       width={image.width}
       height={image.height}
-    >
-      <Image
-        src={postThumbnailHref(post._id, image.name, "large")}
-        alt=""
-        width={image.width}
-        height={image.height}
-        unoptimized
-        preload
-        fetchPriority="high"
-        className="h-auto w-full rounded-md"
-      />
-    </PostImageLightbox>
+      sizes={POST_IMAGE_SIZES}
+      preload
+      fetchPriority="high"
+      className="h-auto w-full rounded-md"
+    />
   );
 };
 

@@ -9,4 +9,4 @@ A post image can be a PNG, a JPEG, a WebP, a GIF, or an AVIF. This post has one 
 | GIF    | `.gif`    | ![GIF](./images/format.gif)   |
 | AVIF   | `.avif`   | ![AVIF](./images/format.avif) |
 
-An image small enough to fit a thumbnail's size budget is shown as it was uploaded. A bigger one is shown as a smaller WebP copy. Either way, clicking a picture loads the original file.
+The API keeps an image small enough to fit a thumbnail's size budget as it was uploaded, and makes a smaller WebP copy of a bigger one.

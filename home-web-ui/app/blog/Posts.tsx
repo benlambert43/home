@@ -1,7 +1,7 @@
 import {
   blogHref,
   postHref,
-  postThumbnailHref,
+  postImageHref,
   requestedPage,
 } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
@@ -12,6 +12,8 @@ import { PostPagination, PostSummary } from "@home/shared";
 import Image from "next/image";
 import Link from "next/link";
 
+const THUMBNAIL_PIXELS = 80;
+
 const PostRowThumbnail = ({ post }: { post: PostSummary }) => {
   const image = post.headerImage;
 
@@ -20,11 +22,10 @@ const PostRowThumbnail = ({ post }: { post: PostSummary }) => {
   return (
     <Link href={postHref(post._id)} className="shrink-0">
       <Image
-        src={postThumbnailHref(post._id, image.name, "small")}
+        src={postImageHref(post._id, image.name)}
         alt=""
-        width={image.width}
-        height={image.height}
-        unoptimized
+        width={THUMBNAIL_PIXELS}
+        height={THUMBNAIL_PIXELS}
         className="size-20 rounded-md object-cover"
       />
     </Link>

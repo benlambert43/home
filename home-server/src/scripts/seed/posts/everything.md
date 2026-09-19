@@ -11,7 +11,7 @@ with a trailing backslash, and characters such as \* and \_ can be escaped.
 
 ![A diagram of boxes and arrows](./images/layout-diagram.png "Images can carry a title")
 
-Images sit in the flow of the text and open at full size when clicked. They can be photographs:
+Images sit in the flow of the text. They can be photographs:
 
 ![A harbour at first light](./images/harbour.webp)
 
