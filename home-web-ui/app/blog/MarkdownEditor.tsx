@@ -295,83 +295,95 @@ const MarkdownEditor = ({
       <label htmlFor={name}>{label}</label>
 
       <div
-        className={`${FIELD_WIDTHS.wide.field} flex flex-row flex-wrap
-          items-center gap-2`}
+        className={`${FIELD_WIDTHS.wide.field} grid grid-cols-1 gap-2
+          xl:max-w-324 xl:grid-cols-2 xl:gap-x-4`}
       >
-        {TOOLBAR.map((item) => (
-          <Button
-            key={item.title}
-            type="button"
-            size="small"
-            emphasis="secondary"
-            disabled={disabled}
-            title={
-              item.shortcut
-                ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
-                : item.title
-            }
-            onClick={() => {
-              apply(item.edit);
-            }}
-          >
-            {item.label}
-          </Button>
-        ))}
+        <div className="flex flex-row flex-wrap items-center gap-2">
+          {TOOLBAR.map((item) => (
+            <Button
+              key={item.title}
+              type="button"
+              size="small"
+              emphasis="secondary"
+              disabled={disabled}
+              title={
+                item.shortcut
+                  ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
+                  : item.title
+              }
+              onClick={() => {
+                apply(item.edit);
+              }}
+            >
+              {item.label}
+            </Button>
+          ))}
 
-        {onAddImages && (
-          <Button
-            type="button"
-            size="small"
-            emphasis="secondary"
-            disabled={disabled}
-            title="Image"
-            onClick={() => {
-              imageInputRef.current?.click();
-            }}
-          >
-            Image
-          </Button>
-        )}
+          {onAddImages && (
+            <Button
+              type="button"
+              size="small"
+              emphasis="secondary"
+              disabled={disabled}
+              title="Image"
+              onClick={() => {
+                imageInputRef.current?.click();
+              }}
+            >
+              Image
+            </Button>
+          )}
 
-        <div className="ml-auto flex flex-row gap-2">
-          <Button
-            type="button"
-            size="small"
-            emphasis={previewing ? "secondary" : "primary"}
-            onClick={() => {
-              setPreviewing(false);
-            }}
-          >
-            Write
-          </Button>
-          <Button
-            type="button"
-            size="small"
-            emphasis={previewing ? "primary" : "secondary"}
-            onClick={() => {
-              setPreviewing(true);
-            }}
-          >
-            Preview
-          </Button>
+          <div className="ml-auto flex flex-row gap-2 xl:hidden">
+            <Button
+              type="button"
+              size="small"
+              emphasis={previewing ? "secondary" : "primary"}
+              onClick={() => {
+                setPreviewing(false);
+              }}
+            >
+              Write
+            </Button>
+            <Button
+              type="button"
+              size="small"
+              emphasis={previewing ? "primary" : "secondary"}
+              onClick={() => {
+                setPreviewing(true);
+              }}
+            >
+              Preview
+            </Button>
+          </div>
+        </div>
+
+        <textarea
+          id={name}
+          name={name}
+          ref={textareaRef}
+          rows={rows}
+          disabled={disabled}
+          value={content}
+          placeholder={label}
+          onChange={(event) => {
+            setContent(event.target.value);
+          }}
+          onKeyDown={onKeyDown}
+          className={`${previewing ? "hidden xl:block" : ""} w-full
+            ${FIELD_CLASSES} font-mono xl:col-start-1`}
+        />
+
+        <div
+          className={`${previewing ? "" : "hidden xl:block"} min-h-64
+            overflow-x-auto ${FIELD_CLASSES} xl:col-start-2 xl:row-start-2`}
+        >
+          <PostMarkdown
+            content={normalizePostContent(content)}
+            images={images}
+          />
         </div>
       </div>
-
-      <textarea
-        id={name}
-        name={name}
-        ref={textareaRef}
-        rows={rows}
-        hidden={previewing}
-        disabled={disabled}
-        value={content}
-        placeholder={label}
-        onChange={(event) => {
-          setContent(event.target.value);
-        }}
-        onKeyDown={onKeyDown}
-        className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES} font-mono`}
-      />
 
       <input
         ref={imageInputRef}
@@ -383,18 +395,6 @@ const MarkdownEditor = ({
           void addImages(event);
         }}
       />
-
-      {previewing && (
-        <div
-          className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES} min-h-64
-          overflow-x-auto`}
-        >
-          <PostMarkdown
-            content={normalizePostContent(content)}
-            images={images}
-          />
-        </div>
-      )}
     </div>
   );
 };
