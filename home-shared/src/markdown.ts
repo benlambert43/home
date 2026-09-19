@@ -1,15 +1,31 @@
-const TAB_SIZE = 4;
+import { Marked, MarkedToken, Token } from "marked";
+import { POST_IMAGE_REFERENCE_PREFIX } from "./post";
 
-const HARD_BREAK = "  ";
+const TAB_SIZE = 4;
 
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})[ \t]*$/;
 
-const INLINE_CODE = /(`+)[\s\S]*?\1/g;
+const ALLOWED_LINK = /^(?:https?:\/\/|mailto:|\/(?![/\\]))/i;
 
-const RAW_HTML =
-  /<\/?[A-Za-z][A-Za-z0-9-]*(?:[ \t\n][^<>]*)?\/?>|<!--|<!\[CDATA\[|<![A-Za-z]|<\?/;
+const EXTERNAL_LINK = /^https?:\/\//i;
+
+const HTML_MESSAGE =
+  "Post content may not contain HTML. Please use Markdown instead.";
+
+const TASK_LIST_MESSAGE =
+  "Post content may not contain task lists. Please use a plain list instead.";
+
+const LINKED_IMAGE_MESSAGE = "Post content may not put an image inside a link.";
+
+const EXTERNAL_IMAGE_MESSAGE =
+  "Post content may only show images that are added to the post.";
+
+const LINK_MESSAGE =
+  "Links in post content must start with https://, http://, mailto:, or /.";
+
+const markdown = new Marked();
 
 const expandTabs = (line: string) => {
   let expanded = "";
@@ -24,14 +40,7 @@ const expandTabs = (line: string) => {
   return expanded;
 };
 
-const tidyLine = (line: string) => {
-  const expanded = expandTabs(line);
-  const trimmed = expanded.replace(/ +$/, "");
-
-  return trimmed.length > 0 && expanded.length - trimmed.length >= 2
-    ? `${trimmed}${HARD_BREAK}`
-    : trimmed;
-};
+const tidyLine = (line: string) => expandTabs(line).replace(/ +$/, "");
 
 const openingFence = (line: string) => {
   const match = FENCE_OPEN.exec(line);
@@ -80,27 +89,54 @@ export const normalizePostContent = (content: string) => {
 
   while (normalized[normalized.length - 1] === "") normalized.pop();
 
-  if (fence === undefined) {
-    const last = normalized.pop();
-    if (last !== undefined) normalized.push(last.replace(/ +$/, ""));
-  }
-
   return normalized.length === 0 ? "" : `${normalized.join("\n")}\n`;
 };
 
-export const containsRawHtml = (content: string) => {
-  const prose: string[] = [];
-  let fence: string | undefined;
+const flattenTokens = (tokens: Token[]) => {
+  const flattened: MarkedToken[] = [];
 
-  for (const line of content.split("\n")) {
-    if (fence !== undefined) {
-      if (closesFence(line, fence)) fence = undefined;
-      continue;
-    }
+  void markdown.walkTokens(tokens, (token) => {
+    flattened.push(token as MarkedToken);
+  });
 
-    fence = openingFence(line);
-    if (fence === undefined) prose.push(line);
+  return flattened;
+};
+
+const tokenProblem = (token: MarkedToken) => {
+  if (token.type === "html") return HTML_MESSAGE;
+
+  if (token.type === "checkbox") return TASK_LIST_MESSAGE;
+
+  if (token.type === "image") {
+    return token.href.startsWith(POST_IMAGE_REFERENCE_PREFIX)
+      ? undefined
+      : EXTERNAL_IMAGE_MESSAGE;
   }
 
-  return RAW_HTML.test(prose.join("\n").replace(INLINE_CODE, ""));
+  if (token.type !== "link") return undefined;
+
+  if (flattenTokens(token.tokens).some(({ type }) => type === "image")) {
+    return LINKED_IMAGE_MESSAGE;
+  }
+
+  return ALLOWED_LINK.test(token.href) ? undefined : LINK_MESSAGE;
 };
+
+export const disallowedPostMarkdown = (content: string) => {
+  for (const token of flattenTokens(markdown.lexer(content))) {
+    const problem = tokenProblem(token);
+    if (problem !== undefined) return problem;
+  }
+
+  return undefined;
+};
+
+export const postImageReferences = (content: string) => [
+  ...new Set(
+    flattenTokens(markdown.lexer(content))
+      .filter((token) => token.type === "image")
+      .map((token) => token.href),
+  ),
+];
+
+export const isExternalPostLink = (href: string) => EXTERNAL_LINK.test(href);

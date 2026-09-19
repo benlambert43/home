@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { containsRawHtml, normalizePostContent } from "./markdown";
+import { disallowedPostMarkdown, normalizePostContent } from "./markdown";
 import {
   DEFAULT_POST_PAGE_SIZE,
   MAX_POST_CONTENT_CHARACTERS,
@@ -143,8 +143,12 @@ const postContentField = z
   .refine((content) => !hasDisallowedContentCharacters(content), {
     message: "Post content contains characters that are not allowed.",
   })
-  .refine((content) => !containsRawHtml(content), {
-    message: "Post content may not contain HTML. Please use Markdown instead.",
+  .superRefine((content, context) => {
+    const problem = disallowedPostMarkdown(content);
+
+    if (problem !== undefined) {
+      context.addIssue({ code: "custom", message: problem });
+    }
   });
 
 const POST_IMAGE_NAME_PATTERN = new RegExp(

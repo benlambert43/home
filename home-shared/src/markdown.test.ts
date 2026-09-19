@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { containsRawHtml, normalizePostContent } from "./markdown";
+import { disallowedPostMarkdown, normalizePostContent } from "./markdown";
 
 describe("normalizePostContent", () => {
   it("collapses a run of blank lines to one", () => {
@@ -10,14 +10,18 @@ describe("normalizePostContent", () => {
   });
 });
 
-describe("containsRawHtml", () => {
+describe("disallowedPostMarkdown", () => {
   it("passes over plain markdown", () => {
     expect(
-      containsRawHtml("# Title\n\n- one\n- two\n\n[link](https://example.com)"),
-    ).toBe(false);
+      disallowedPostMarkdown(
+        "# Title\n\n- one\n- two\n\n[link](https://example.com)",
+      ),
+    ).toBeUndefined();
   });
 
   it("finds an opening tag", () => {
-    expect(containsRawHtml("<div>hi</div>")).toBe(true);
+    expect(disallowedPostMarkdown("<div>hi</div>")).toBe(
+      "Post content may not contain HTML. Please use Markdown instead.",
+    );
   });
 });
