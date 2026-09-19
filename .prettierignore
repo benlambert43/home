@@ -10,3 +10,5 @@ coverage/
 
 next-env.d.ts
 package.json
+
+home-server/src/scripts/seed/posts/
