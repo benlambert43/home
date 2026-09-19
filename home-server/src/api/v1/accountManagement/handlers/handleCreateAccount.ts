@@ -1,3 +1,4 @@
+import { MAX_USERNAME_CHARACTERS } from "@home/shared";
 import { generateUsername } from "unique-username-generator";
 import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
@@ -29,6 +30,7 @@ const shouldCreateAdminAccount = (email: string, password: string) => {
 export const createNewUniqueRandomUsername = async () => {
   for (let attempt = 0; attempt < MAX_USERNAME_ATTEMPTS; attempt++) {
     const newUsername = generateUsername("-", 4);
+    if (newUsername.length > MAX_USERNAME_CHARACTERS) continue;
     if (usernameHasProfanity(newUsername)) continue;
     if (await checkUniqueUsername(newUsername)) {
       return newUsername;

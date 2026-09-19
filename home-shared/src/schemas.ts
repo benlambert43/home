@@ -11,6 +11,7 @@ import {
   POST_THUMBNAIL_SIZES,
   postUploadImageNames,
 } from "./post";
+import { MAX_USERNAME_CHARACTERS } from "./user";
 
 const nameField = (label: string) =>
   z
@@ -35,6 +36,9 @@ const captchaField = z.string().min(1, {
 const usernameField = z
   .string()
   .min(2, { message: "Username must be at least 2 characters long." })
+  .max(MAX_USERNAME_CHARACTERS, {
+    message: `Username must be ${MAX_USERNAME_CHARACTERS} characters or fewer.`,
+  })
   .regex(/^[a-zA-Z0-9_-]+$/, {
     message: "Only letters, numbers, dashes, and underscores are allowed.",
   });

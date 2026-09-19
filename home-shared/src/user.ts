@@ -1,3 +1,5 @@
+export const MAX_USERNAME_CHARACTERS = 30;
+
 export type UserRole = "user" | "admin";
 
 export interface UserFields<Id = string, Timestamp = string> {
