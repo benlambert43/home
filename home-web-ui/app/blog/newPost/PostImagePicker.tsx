@@ -10,8 +10,10 @@ import {
 } from "@/app/blog/postImageFiles";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
-import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
+import { FIELD_WIDTHS } from "@/app/ui/fieldStyles";
+import { PhotoIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
+import { ReactNode, useRef } from "react";
 
 const THUMBNAIL_PIXELS = 64;
 
@@ -27,6 +29,63 @@ const fileSize = (bytes: number) =>
   bytes >= MEGABYTE
     ? `${(bytes / MEGABYTE).toFixed(1)} MB`
     : `${Math.max(1, Math.round(bytes / KILOBYTE))} KB`;
+
+const PostImageField = ({
+  input,
+  label,
+  action,
+  multiple = false,
+  disabled,
+  onPick,
+  children,
+}: {
+  input: string;
+  label: string;
+  action: string;
+  multiple?: boolean;
+  disabled: boolean;
+  onPick: (files: File[]) => void;
+  children?: ReactNode;
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className={FIELD_WIDTHS.wide.wrapper}>
+      <label htmlFor={input}>{label}</label>
+
+      <Button
+        type="button"
+        size="small"
+        emphasis="secondary"
+        disabled={disabled}
+        title={label}
+        onClick={() => {
+          inputRef.current?.click();
+        }}
+      >
+        <span className="flex flex-row items-center gap-1">
+          <PhotoIcon className="size-4" />
+          {action}
+        </span>
+      </Button>
+
+      <input
+        id={input}
+        ref={inputRef}
+        type="file"
+        hidden
+        multiple={multiple}
+        accept={ACCEPTED_POST_IMAGE_TYPES}
+        disabled={disabled}
+        onChange={(event) => {
+          onPick(pickedFiles(event));
+        }}
+      />
+
+      {children}
+    </div>
+  );
+};
 
 const PostImageRow = ({
   image,
@@ -129,42 +188,34 @@ const PostImagePicker = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={FIELD_WIDTHS.wide.wrapper}>
-        <label htmlFor={HEADER_IMAGE_INPUT}>Header image</label>
-        <input
-          id={HEADER_IMAGE_INPUT}
-          type="file"
-          accept={ACCEPTED_POST_IMAGE_TYPES}
-          disabled={disabled}
-          className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES}
-            hover:cursor-pointer`}
-          onChange={(event) => {
-            void onPickHeaderImage(pickedFiles(event));
-          }}
-        />
+      <PostImageField
+        input={HEADER_IMAGE_INPUT}
+        label="Header image"
+        action={headerImage ? "Replace image" : "Choose image"}
+        disabled={disabled}
+        onPick={(files) => {
+          void onPickHeaderImage(files);
+        }}
+      >
         {headerImage && <ul className="flex flex-col">{row(headerImage)}</ul>}
-      </div>
+      </PostImageField>
 
-      <div className={FIELD_WIDTHS.wide.wrapper}>
-        <label htmlFor={INLINE_IMAGES_INPUT}>Images</label>
-        <input
-          id={INLINE_IMAGES_INPUT}
-          type="file"
-          multiple
-          accept={ACCEPTED_POST_IMAGE_TYPES}
-          disabled={disabled}
-          className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES}
-            hover:cursor-pointer`}
-          onChange={(event) => {
-            void onAddInlineImages(pickedFiles(event));
-          }}
-        />
+      <PostImageField
+        input={INLINE_IMAGES_INPUT}
+        label="Images"
+        action="Add images"
+        multiple
+        disabled={disabled}
+        onPick={(files) => {
+          void onAddInlineImages(files);
+        }}
+      >
         {inlineImages.length > 0 && (
           <ul className="flex flex-col gap-2">
             {inlineImages.map((image) => row(image, onInsertImage))}
           </ul>
         )}
-      </div>
+      </PostImageField>
 
       <FieldError errors={problems} />
     </div>
