@@ -76,7 +76,6 @@ const SHOWCASE_POSTS: SeedPost[] = [
       picture("harbour.webp", 1400, 933, DAWN),
       picture("lichen.avif", 1200, 800, FOREST),
       picture("sun-loop.gif", 480, 300, EMBER, { frames: ANIMATION_FRAMES }),
-      picture("linked-banner.png", 1200, 400, VIOLET),
     ],
   },
   {

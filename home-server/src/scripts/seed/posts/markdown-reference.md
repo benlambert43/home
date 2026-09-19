@@ -24,13 +24,11 @@ Text can be **bold**, _italic_, **_bold and italic_**, or ~~struck through~~. It
 - A [mailto link](mailto:hello@example.com) starts an email.
 - A bare address, https://example.com/bare, is linked on its own.
 - So is one in angle brackets: <https://example.com/angle>.
-- A [link with an unsafe scheme](javascript:alert) is shown as plain text.
 
 ## Line breaks
 
 A backslash at the end of a line\
-breaks it, and so do two trailing spaces  
-at the end of this one.
+breaks it.
 
 ## Lists
 
@@ -50,10 +48,6 @@ An ordered list does not have to start at one:
 
 7. This list starts at seven
 8. And carries on from there
-
-- [x] A finished task
-- [ ] An unfinished task
-- [x] Another finished task
 
 ## Quotes
 

@@ -23,14 +23,6 @@ And they can move:
 
 ![The sun crossing the sky in a short loop](./images/sun-loop.gif)
 
-An image can also be a link. Clicking this one follows the link to example.com instead of opening the picture at full size:
-
-[![A banner that links to example.com](./images/linked-banner.png)](https://example.com)
-
-Emphasis around a linked image changes nothing, so this one follows its link too:
-
-[**![A second banner, wrapped in bold](./images/linked-banner.png)**](/blog)
-
 ## Lists
 
 - An unordered item
@@ -41,9 +33,6 @@ Emphasis around a linked image changes nothing, so this one follows its link too
 1. An ordered item
 2. A second ordered item
    - With an unordered item inside
-
-- [x] A finished task
-- [ ] An unfinished task
 
 ## Quotes
 
@@ -59,11 +48,11 @@ const greet = (name: string) => `Hello, ${name}.`;
 
 ## Tables
 
-| Element    | Supported |                  Notes |
-| ---------- | :-------: | ---------------------: |
-| Tables     |    yes    |    right aligned notes |
-| Task lists |    yes    | rendered as checkboxes |
-| Images     |    yes    |   five formats, moving |
+| Element | Supported |                Notes |
+| ------- | :-------: | -------------------: |
+| Tables  |    yes    |  right aligned notes |
+| Lists   |    yes    |   nested and ordered |
+| Images  |    yes    | five formats, moving |
 
 ---
 
