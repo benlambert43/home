@@ -6,7 +6,11 @@ import {
 } from "@/app/lib/api";
 import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
-import { postImageParamsSchema, postImagePath } from "@home/shared";
+import {
+  postFullSizeImagePath,
+  postImageParamsSchema,
+  postImagePath,
+} from "@home/shared";
 
 const RETURNED_HEADERS = [
   "cache-control",
@@ -16,12 +20,14 @@ const RETURNED_HEADERS = [
   "x-content-type-options",
 ];
 
-export const proxyPostImage = async (params: unknown) => {
+type ImagePath = (postId: string, name: string) => string;
+
+const proxyImage = (imagePath: ImagePath) => async (params: unknown) => {
   const parsed = postImageParamsSchema.safeParse(params);
   if (!parsed.success) return new Response(null, { status: NOT_FOUND_STATUS });
 
   const { id, name } = parsed.data;
-  const url = `${BASE_API_URL}/${postImagePath(id, name)}`;
+  const url = `${BASE_API_URL}/${imagePath(id, name)}`;
 
   let response: Response;
 
@@ -36,3 +42,7 @@ export const proxyPostImage = async (params: unknown) => {
 
   return streamApiResponse(response, RETURNED_HEADERS);
 };
+
+export const proxyPostImage = proxyImage(postImagePath);
+
+export const proxyFullSizePostImage = proxyImage(postFullSizeImagePath);

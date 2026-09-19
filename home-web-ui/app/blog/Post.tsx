@@ -1,4 +1,4 @@
-import { postImageHref } from "@/app/blog/links";
+import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
 import PostHeaderImage from "@/app/blog/PostHeaderImage";
 import PostMarkdown from "@/app/blog/PostMarkdown";
@@ -24,6 +24,7 @@ const Post = async ({ params }: { params: PostParams }) => {
   const images = postImages.map((image) => ({
     reference: image.reference,
     src: postImageHref(post._id, image.name),
+    fullSizeHref: postFullSizeImageHref(post._id, image.name),
     width: image.width,
     height: image.height,
   }));

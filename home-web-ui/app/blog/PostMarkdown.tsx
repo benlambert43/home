@@ -1,3 +1,4 @@
+import PostFullSizeImageLink from "@/app/blog/PostFullSizeImageLink";
 import { POST_IMAGE_SIZES } from "@/app/blog/postImageSizes";
 import { isExternalPostLink, postImageNameFromReference } from "@home/shared";
 import Markdown, { ReactRenderer } from "marked-react";
@@ -17,6 +18,7 @@ const CELL_ALIGNMENTS: Record<CellAlignment, string> = {
 export type PostMarkdownImage = {
   reference: string;
   src: string;
+  fullSizeHref?: string;
   width: number;
   height: number;
 };
@@ -48,7 +50,7 @@ const renderer = (images: PostMarkdownImage[]) => ({
       );
     }
 
-    return (
+    const rendered = (
       <Image
         key={this.elementId}
         src={image.src}
@@ -58,6 +60,18 @@ const renderer = (images: PostMarkdownImage[]) => ({
         height={image.height}
         sizes={POST_IMAGE_SIZES}
       />
+    );
+
+    if (image.fullSizeHref === undefined) return rendered;
+
+    return (
+      <PostFullSizeImageLink
+        key={this.elementId}
+        href={image.fullSizeHref}
+        alt={alt}
+      >
+        {rendered}
+      </PostFullSizeImageLink>
     );
   },
 

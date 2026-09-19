@@ -31,7 +31,9 @@ home-server stores post files in `storage/` inside the directory it starts from,
 
 home-server keeps every post image as it was uploaded and makes `large`, `medium`, and `small` thumbnails of it. `posts/:id/images/:name` serves the `large` thumbnail, `posts/:id/images/:name/:size` a named size, and `posts/:id/images/:name/fullSize` the upload itself. The sized thumbnails and the upload are there for frontend clients other than Next.js.
 
-home-web-ui treats the `large` thumbnail as the full size original image. `/blog/[id]/images/[name]` proxies the API's default image route and is the only post image URL the site uses. `next/image`, with its default optimizer, makes every size the site shows from it, the blog list thumbnails included. Do not fetch `fullSize`, `medium`, or `small` from the web UI, and do not mark a post image `unoptimized`.
+home-web-ui treats the `large` thumbnail as the full size original image. `/blog/[id]/images/[name]` proxies the API's default image route and is the only post image URL the site shows. `next/image`, with its default optimizer, makes every size the site shows from it, the blog list thumbnails included. Do not give `next/image` the `fullSize`, `medium`, or `small` image, and do not mark a post image `unoptimized`.
+
+A post page links each of its images to `/blog/[id]/images/[name]/fullSize`, which proxies the API's `fullSize` route and opens the upload itself in a new tab. It is only ever a link target, never an image source, so the browser fetches it on a click and the optimizer never sees it. The API does not have to be reachable from the browser for this.
 
 A post never reuses an image name. The `next/image` optimizer caches by URL and cannot be told that an image changed, so the API refuses an uploaded image whose name any revision of the post has used, and a changed image always gets a new URL. Clients keep the original file name and, when it is taken, add a random suffix with `uniquePostImageName`.
 
