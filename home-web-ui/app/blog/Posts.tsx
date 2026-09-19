@@ -12,7 +12,7 @@ import { PostPagination, PostSummary } from "@home/shared";
 import Image from "next/image";
 import Link from "next/link";
 
-const THUMBNAIL_PIXELS = 80;
+const THUMBNAIL_PIXELS = 120;
 
 const PostRowThumbnail = ({ post }: { post: PostSummary }) => {
   const image = post.headerImage;
@@ -26,19 +26,23 @@ const PostRowThumbnail = ({ post }: { post: PostSummary }) => {
         alt=""
         width={THUMBNAIL_PIXELS}
         height={THUMBNAIL_PIXELS}
-        className="size-20 rounded-md object-cover"
+        className="size-20 rounded-md object-cover sm:size-30"
       />
     </Link>
   );
 };
 
 const PostRow = ({ post }: { post: PostSummary }) => (
-  <li className="flex flex-row items-start gap-4 py-4 first:pt-0 last:pb-0">
+  <li
+    className="box-content flex h-30 flex-row items-center gap-4 py-4 first:pt-0
+      last:pb-0 sm:gap-6"
+  >
     <PostRowThumbnail post={post} />
     <div className="flex min-w-0 flex-col gap-1">
       <Link
         href={postHref(post._id)}
-        className="text-xl font-semibold hover:underline"
+        className="line-clamp-4 text-lg leading-6 font-semibold hover:underline
+          lg:line-clamp-3 lg:text-xl lg:leading-7"
       >
         {post.title}
       </Link>
@@ -74,7 +78,7 @@ const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
   if (pagination.totalPosts === 0) return <p>No posts yet.</p>;
 
   return (
-    <div className="flex max-w-160 flex-col gap-6">
+    <div className="flex max-w-240 flex-col gap-6 2xl:max-w-280">
       <ul className="flex flex-col divide-y divide-slate-700">
         {posts.map((post) => (
           <PostRow key={post._id} post={post} />
