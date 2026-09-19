@@ -23,7 +23,7 @@ const imageReceiver = (uploadId: string) =>
 
 const toApiError = (error: MulterError) =>
   error.code === "LIMIT_FILE_SIZE"
-    ? new ApiError(ApiMessage.REQUEST_TOO_LARGE, 413, error.message)
+    ? new ApiError(ApiMessage.POST_IMAGE_TOO_LARGE, 413, error.message)
     : new ApiError(ApiMessage.INVALID_REQUEST, 400, error.message);
 
 const unreadableUpload = (error: Error) =>

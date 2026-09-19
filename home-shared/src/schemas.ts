@@ -208,23 +208,13 @@ export const createPostFormSchema = createPostBodySchema.pick({
   content: true,
 });
 
-export const updatePostBodySchema = z
-  .object({
-    title: postTitleField.optional(),
-    content: postContentField.optional(),
-    headerImage: z.null().optional(),
-    uploadId: postUploadIdField.optional(),
-    removeInlineImages: z.array(postImageNameSchema).optional(),
-  })
-  .refine(
-    (body) =>
-      body.title !== undefined ||
-      body.content !== undefined ||
-      body.headerImage !== undefined ||
-      body.uploadId !== undefined ||
-      (body.removeInlineImages?.length ?? 0) > 0,
-    { message: "Please change the title, the content, or the images." },
-  );
+export const updatePostBodySchema = z.object({
+  title: postTitleField,
+  content: postContentField,
+  headerImage: z.null().optional(),
+  uploadId: postUploadIdField.optional(),
+  removeInlineImages: z.array(postImageNameSchema).optional(),
+});
 
 export const postIdParamsSchema = z.object({
   id: z

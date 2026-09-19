@@ -15,9 +15,9 @@ import Image from "next/image";
 
 const THUMBNAIL_PIXELS = 64;
 
-const KILOBYTE = 1024;
+const KILOBYTE = 1000;
 
-const MEGABYTE = 1024 * KILOBYTE;
+const MEGABYTE = 1000 * KILOBYTE;
 
 const HEADER_IMAGE_INPUT = "headerImage";
 

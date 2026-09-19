@@ -11,6 +11,7 @@ import { BASE_API_URL, BASE_SITE_URL } from "@/app/lib/serverEnv";
 import {
   ApiFailure,
   MAX_POST_IMAGE_BYTES,
+  MAX_POST_IMAGE_MEGABYTES,
   postUploadImageParamsSchema,
   postUploadImagePath,
 } from "@home/shared";
@@ -23,8 +24,7 @@ const CONTENT_TOO_LARGE_STATUS = 413;
 
 const UNSUPPORTED_MEDIA_TYPE_STATUS = 415;
 
-const TOO_LARGE_MESSAGE =
-  "That image is too large. Please use a smaller image and try again.";
+const TOO_LARGE_MESSAGE = `That image is larger than ${MAX_POST_IMAGE_MEGABYTES} MB. Please use a smaller image and try again.`;
 
 const MULTIPART_CONTENT_TYPE = "multipart/form-data";
 

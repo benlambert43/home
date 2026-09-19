@@ -37,7 +37,9 @@ const publishFrom = (uploadId: string) =>
   apiCall("post", "", { body: { title: TITLE, content: "A post.", uploadId } });
 
 const editFrom = (post: (typeof savedPosts)[number], uploadId: string) =>
-  apiCall("patch", postPath(post), { body: { uploadId } });
+  apiCall("patch", postPath(post), {
+    body: { title: TITLE, content: "A post.", uploadId },
+  });
 
 const inlineNames = (response: Awaited<ReturnType<typeof apiCall>>) =>
   responsePost(response).inlineImages.map((image) => image.name);

@@ -147,21 +147,23 @@ const publishPost = async (author: UserNoPassword, post: SeedPost) => {
   return finishWrite(await handleCreatePost(author, body), uploadId);
 };
 
-const editPost = async (postId: string, edit: SeedPostEdit) => {
+const editPost = async (current: Post, edit: SeedPostEdit) => {
   const uploadId = await uploadImages(
     edit.headerImage ?? undefined,
     edit.inlineImages ?? [],
   );
   const body = updatePostBodySchema.parse({
-    title: edit.title,
-    content: edit.content,
+    title: edit.title ?? current.title,
+    content: edit.content ?? current.content,
     headerImage: edit.headerImage === null ? null : undefined,
     removeInlineImages: edit.removeInlineImages,
     uploadId,
   });
 
-  const written = await handleUpdatePost(postId, body);
-  if (!written) throw new Error(`Post ${postId} disappeared while seeding.`);
+  const written = await handleUpdatePost(current._id, body);
+  if (!written) {
+    throw new Error(`Post ${current._id} disappeared while seeding.`);
+  }
 
   return finishWrite(written, uploadId);
 };
@@ -203,11 +205,11 @@ const seedPost = async (
   now: number,
 ) => {
   const edits = post.edits ?? [];
-  const { _id } = await publishPost(author, post);
+  let current = await publishPost(author, post);
 
-  for (const edit of edits) await editPost(_id, edit);
+  for (const edit of edits) current = await editPost(current, edit);
 
-  await backdatePost(_id, position, edits.length + 1, now);
+  await backdatePost(current._id, position, edits.length + 1, now);
 };
 
 const seedPosts = async () => {

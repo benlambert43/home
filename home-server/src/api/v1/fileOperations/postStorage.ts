@@ -31,16 +31,14 @@ const THUMBNAILS_DIRECTORY = "thumbnails";
 
 const STORAGE_REMOVAL_RETRIES = 5;
 
-export interface PostFileContent {
+interface PostFileContent {
   name: string;
   contentType: string;
   data: Buffer;
 }
 
-export type PostFileSource = PostFileContent | StoredPostFile;
-
 interface PostRevisionContent {
-  content: string | StoredPostFile;
+  content: string;
   headerImage?: StoredPostImage;
   inlineImages: StoredPostImage[];
 }
@@ -124,12 +122,6 @@ const linkStoredFile = async (
   return { name, file, contentType, byteSize };
 };
 
-const storeFile = (directory: string, source: PostFileSource) => {
-  if ("data" in source) return writeStoredFile(directory, source);
-
-  return linkStoredFile(directory, source);
-};
-
 const storeImage = async (
   directory: string,
   image: StoredPostImage,
@@ -164,10 +156,7 @@ export const writePostRevision = async (
     const stored: StoredPostRevision = {
       fingerprint: revision,
       createdDate,
-      content: await storeFile(
-        directory,
-        typeof content === "string" ? markdownFile(content) : content,
-      ),
+      content: await writeStoredFile(directory, markdownFile(content)),
       headerImage: headerImage
         ? await storeImage(fullSizeImages, headerImage)
         : undefined,
@@ -234,35 +223,14 @@ export const deletePostStorage = (post: string) =>
     maxRetries: STORAGE_REMOVAL_RETRIES,
   });
 
-const isSameFile = async (first: string, second: string) => {
-  const [firstStats, secondStats] = await Promise.all(
-    [first, second].map((file) =>
-      unlessMissing(() => stat(resolveStoragePath(file)), undefined),
-    ),
-  );
-
-  return (
-    firstStats !== undefined &&
-    secondStats !== undefined &&
-    firstStats.dev === secondStats.dev &&
-    firstStats.ino === secondStats.ino
-  );
-};
-
-const revisionWithSameImage = async (
+const revisionWithSameImage = (
   image: StoredPostFile,
   previous: StoredPostRevision | undefined,
-) => {
-  if (!previous) return undefined;
-
-  const earlier = revisionImages(previous).find(
-    (candidate) => candidate.name === image.name,
-  );
-
-  return earlier && (await isSameFile(earlier.file, image.file))
+) =>
+  previous &&
+  revisionImages(previous).some((earlier) => earlier.name === image.name)
     ? previous.fingerprint
     : undefined;
-};
 
 const fileExists = (absolutePath: string) =>
   unlessMissing(() => stat(absolutePath).then(() => true), false);
@@ -327,7 +295,7 @@ export const reusePostThumbnails = async (
   previous: StoredPostRevision | undefined,
 ) => {
   for (const image of revisionImages(revision)) {
-    const reusableRevision = await revisionWithSameImage(image, previous);
+    const reusableRevision = revisionWithSameImage(image, previous);
     if (!reusableRevision) continue;
 
     for (const size of POST_THUMBNAIL_SIZES) {
@@ -384,9 +352,7 @@ export const writePostThumbnails = async (
   image: StoredPostFile,
   previous?: StoredPostRevision,
 ): Promise<ThumbnailFailure[]> => {
-  const reusableRevision = await revisionWithSameImage(image, previous).catch(
-    () => undefined,
-  );
+  const reusableRevision = revisionWithSameImage(image, previous);
   const failures: ThumbnailFailure[] = [];
   let source: ThumbnailSource = image;
 

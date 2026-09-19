@@ -1,3 +1,5 @@
+import { MAX_POST_IMAGE_MEGABYTES } from "@home/shared";
+
 export const ApiMessage = {
   INVALID_REQUEST: "Invalid request. Please check your details and try again.",
   UNEXPECTED: "Something went wrong. Please try again.",
@@ -51,14 +53,13 @@ export const ApiMessage = {
     "That image has changed since you last loaded it. Please reload it and try again.",
   POST_IMAGE_RANGE_NOT_SATISFIABLE:
     "That part of the image is not available. Please reload it and try again.",
-  POST_CONTENT_REQUIRED:
-    "This post has no saved content. Please include the post content to republish it.",
   POST_HAS_NO_REVISION:
     "This post has no saved content. Please try again, or edit the post to republish it.",
   POST_UPLOAD_STARTED: "Upload started.",
   POST_UPLOAD_DISCARDED: "Upload discarded.",
   POST_UPLOAD_NOT_FOUND: "That upload could not be found. Please start again.",
   POST_IMAGE_UPLOADED: "Image uploaded.",
+  POST_IMAGE_TOO_LARGE: `That image is larger than ${MAX_POST_IMAGE_MEGABYTES} MB. Please use a smaller image and try again.`,
   POST_IMAGE_UNREADABLE:
     "That image upload was incomplete or malformed. Please try uploading it again.",
   POST_UPLOAD_INCOMPLETE: "Not every image in this upload has been uploaded.",
@@ -82,7 +83,7 @@ export const imageNotInUpload = (name: string) =>
   `${name} is not an image in this upload.`;
 
 export const imageNameTaken = (name: string) =>
-  `Another image on this post is already named ${name}.`;
+  `This post has already used the image name ${name}. Please rename the new image and try again.`;
 
 export const imageReferenceNotOnPost = (reference: string) =>
   `The post content refers to ${reference}, which is not an image on this post.`;

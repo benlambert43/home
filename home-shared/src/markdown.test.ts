@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { disallowedPostMarkdown, normalizePostContent } from "./markdown";
 
 describe("normalizePostContent", () => {
-  it("collapses a run of blank lines to one", () => {
-    expect(normalizePostContent("# Title\n\n\n\n\npara")).toBe(
+  it("uses unix line endings and ends with a single newline", () => {
+    expect(normalizePostContent("# Title\r\n\r\npara\r\n\r\n")).toBe(
       "# Title\n\npara\n",
     );
   });

@@ -33,6 +33,10 @@ home-server keeps every post image as it was uploaded and makes `large`, `medium
 
 home-web-ui treats the `large` thumbnail as the full size original image. `/blog/[id]/images/[name]` proxies the API's default image route and is the only post image URL the site uses. `next/image`, with its default optimizer, makes every size the site shows from it, the blog list thumbnails included. Do not fetch `fullSize`, `medium`, or `small` from the web UI, and do not mark a post image `unoptimized`.
 
+A post never reuses an image name. The `next/image` optimizer caches by URL and cannot be told that an image changed, so the API refuses an uploaded image whose name any revision of the post has used, and a changed image always gets a new URL. Clients keep the original file name and, when it is taken, add a random suffix with `uniquePostImageName`.
+
+An uploaded image may be at most 49 MB, counted as 49,000,000 bytes (`MAX_POST_IMAGE_BYTES` in home-shared). The optimizer refuses a source image over 50,000,000 bytes by default, and until a `large` thumbnail is ready the API serves the upload in its place, so the cap keeps every upload under that limit without changing the Next.js configuration.
+
 ## Linting
 
 Lint rules shared by every workspace live in eslint.config.base.mjs

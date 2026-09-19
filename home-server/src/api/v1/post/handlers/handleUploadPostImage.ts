@@ -1,4 +1,8 @@
-import { postImageContentType, UploadPostImageResponse } from "@home/shared";
+import {
+  MAX_POST_IMAGE_BYTES,
+  postImageContentType,
+  UploadPostImageResponse,
+} from "@home/shared";
 import { readImageDimensions } from "../../fileOperations/imageDimensions";
 import { detectFileImageType } from "../../fileOperations/imageType";
 import { stagePostImage } from "../../fileOperations/uploadStorage";
@@ -21,6 +25,10 @@ export const handleUploadPostImage = async (
   image: ReceivedPostImage | undefined,
 ): Promise<UploadPostImageResponse> => {
   if (!image) return failure(ApiMessage.INVALID_REQUEST);
+
+  if (image.byteSize > MAX_POST_IMAGE_BYTES) {
+    return failure(ApiMessage.POST_IMAGE_TOO_LARGE);
+  }
 
   const imageType = await detectFileImageType(image.path);
   if (!imageType) return failure(imageNotAnImage(name));

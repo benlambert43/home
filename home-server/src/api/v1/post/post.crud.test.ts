@@ -190,7 +190,7 @@ describe("the blog post api", () => {
 
       expectFailure(
         await apiCall("patch", `/${MISSING_POST_ID}`, {
-          body: { title: "Take two" },
+          body: { title: "Take two", content: NEW_CONTENT },
         }),
         404,
         ApiMessage.POST_NOT_FOUND,
@@ -201,7 +201,7 @@ describe("the blog post api", () => {
   describe("DELETE /api/v1/posts/:id", () => {
     it("deletes the post and the files of every revision", async () => {
       const post = await publishPost();
-      await editPost(post, { title: "Take two" });
+      await editPost(post, { title: "Take two", content: NEW_CONTENT });
       const files = post.revisions.flatMap((revision) => [
         revision.content.file,
         headerImageFile(revision),

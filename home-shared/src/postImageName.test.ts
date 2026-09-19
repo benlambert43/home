@@ -47,20 +47,17 @@ describe("uniquePostImageName", () => {
     expect(uniquePostImageName("cover.png", ["diagram.png"])).toBe("cover.png");
   });
 
-  it("numbers a name that clashes whatever its letter case", () => {
-    expect(uniquePostImageName("cover.png", ["COVER.PNG"])).toBe("cover-2.png");
-  });
-
-  it("counts up until it finds a free name", () => {
-    expect(uniquePostImageName("cover.png", ["cover.png", "cover-2.png"])).toBe(
-      "cover-3.png",
+  it("adds a random suffix to a name that clashes whatever its letter case", () => {
+    expect(uniquePostImageName("cover.png", ["COVER.PNG"])).toMatch(
+      /^cover-[a-z0-9]{6}\.png$/,
     );
   });
 
-  it("stays within the name limit when numbering a long name", () => {
+  it("stays within the name limit when adding a suffix to a long name", () => {
     const longName = `${"a".repeat(MAX_POST_IMAGE_NAME_CHARACTERS - 4)}.png`;
-    const numbered = uniquePostImageName(longName, [longName]);
+    const suffixed = uniquePostImageName(longName, [longName]);
 
-    expect(postImageNameSchema.safeParse(numbered).success).toBe(true);
+    expect(suffixed).not.toBe(longName);
+    expect(postImageNameSchema.safeParse(suffixed).success).toBe(true);
   });
 });

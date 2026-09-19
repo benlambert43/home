@@ -10,7 +10,6 @@ import {
 import { PostModel } from "../../model/postModel";
 import {
   deletePostRevision,
-  readPostContent,
   reusePostThumbnails,
   writePostRevision,
 } from "../../fileOperations/postStorage";
@@ -33,30 +32,17 @@ import { toPostResponse } from "../postResponse";
 import { PostWrite, refusedPostWrite } from "../postThumbnails";
 import { deleteUnsavedStorage } from "../unsavedStorage";
 
-interface EditedContent {
-  markdown: string;
-  stored: string | StoredPostFile;
-}
+const usedImageName = (
+  revisions: StoredPostRevision[],
+  uploaded: StoredPostFile[],
+) => {
+  const used = new Set(
+    revisions
+      .flatMap((revision) => revisionImages(revision))
+      .map((image) => image.name.toLowerCase()),
+  );
 
-const resolveContent = async (
-  edited: string | undefined,
-  previous: StoredPostRevision | undefined,
-): Promise<Decoded<EditedContent>> => {
-  if (edited !== undefined) {
-    return { ok: true, value: { markdown: edited, stored: edited } };
-  }
-
-  if (!previous) {
-    return { ok: false, message: ApiMessage.POST_CONTENT_REQUIRED };
-  }
-
-  return {
-    ok: true,
-    value: {
-      markdown: await readPostContent(previous),
-      stored: previous.content,
-    },
-  };
+  return uploaded.find((image) => used.has(image.name.toLowerCase()))?.name;
 };
 
 const resolveHeaderImage = (
@@ -86,19 +72,10 @@ const resolveInlineImages = (
 
   if (missing) return { ok: false, message: inlineImageNotOnPost(missing) };
 
-  const dropped = new Set([...uploaded.map((image) => image.name), ...removed]);
-  const kept = stored.filter((image) => !dropped.has(image.name));
+  const kept = stored.filter((image) => !removed.includes(image.name));
 
   return { ok: true, value: [...kept, ...uploaded] };
 };
-
-const sameName = (first: StoredPostFile, second: StoredPostFile) =>
-  first.name.toLowerCase() === second.name.toLowerCase();
-
-const takenImageName = (images: StoredPostFile[], uploaded: StoredPostFile[]) =>
-  images.find((image) =>
-    uploaded.some((added) => added !== image && sameName(added, image)),
-  )?.name;
 
 const saveEdit = async (
   post: HydratedDocument<PostDocument>,
@@ -135,8 +112,8 @@ const updatePost = async (
 
   const previous = latestRevision(post.revisions);
 
-  const content = await resolveContent(body.content, previous);
-  if (!content.ok) return refusedPostWrite(content.message);
+  const used = usedImageName(post.revisions, revisionImages(uploaded));
+  if (used) return refusedPostWrite(imageNameTaken(used));
 
   const headerImage = resolveHeaderImage(
     body.headerImage,
@@ -157,14 +134,11 @@ const updatePost = async (
     inlineImages: inlineImages.value,
   });
 
-  const taken = takenImageName(images, revisionImages(uploaded));
-  if (taken) return refusedPostWrite(imageNameTaken(taken));
-
-  const unmatched = unmatchedImageReference(content.value.markdown, images);
+  const unmatched = unmatchedImageReference(body.content, images);
   if (unmatched) return refusedPostWrite(imageReferenceNotOnPost(unmatched));
 
   const revision = await writePostRevision(post.fingerprint, {
-    content: content.value.stored,
+    content: body.content,
     headerImage: headerImage.value,
     inlineImages: inlineImages.value,
   });
@@ -174,9 +148,7 @@ const updatePost = async (
   );
 
   post.revisions.push(revision);
-
-  if (body.title !== undefined) post.title = body.title;
-
+  post.title = body.title;
   post.modifiedDate = new Date();
 
   const edited = await saveEdit(post, revision);

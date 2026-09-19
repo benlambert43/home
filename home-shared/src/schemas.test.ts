@@ -75,14 +75,19 @@ describe("createPostFormSchema", () => {
 });
 
 describe("updatePostBodySchema", () => {
-  it("accepts an edit that has a new title", () => {
-    expect(updatePostBodySchema.safeParse({ title: "Take two" }).success).toBe(
-      true,
-    );
+  it("accepts an edit that has a title and content", () => {
+    expect(
+      updatePostBodySchema.safeParse({
+        title: "Take two",
+        content: "The post, rewritten.",
+      }).success,
+    ).toBe(true);
   });
 
-  it("refuses an edit that has nothing to change", () => {
-    expect(updatePostBodySchema.safeParse({}).success).toBe(false);
+  it("refuses an edit that leaves out the content", () => {
+    expect(updatePostBodySchema.safeParse({ title: "Take two" }).success).toBe(
+      false,
+    );
   });
 });
 

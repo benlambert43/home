@@ -1,14 +1,13 @@
 import { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import {
   MAX_POST_IMAGE_BYTES,
+  MAX_POST_IMAGE_MEGABYTES,
   MAX_POST_INLINE_IMAGES,
   postImageReference,
   postImageReferences,
   toPostImageName,
   uniquePostImageName,
 } from "@home/shared";
-
-const BYTES_PER_MEGABYTE = 1024 * 1024;
 
 const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
 
@@ -33,7 +32,7 @@ const unsupportedProblem = (file: File) =>
   `${file.name} is not a PNG, JPEG, WebP, GIF, or AVIF image.`;
 
 const tooLargeProblem = (file: File) =>
-  `${file.name} is larger than ${MAX_POST_IMAGE_BYTES / BYTES_PER_MEGABYTE} MB.`;
+  `${file.name} is larger than ${MAX_POST_IMAGE_MEGABYTES} MB.`;
 
 const unreadableProblem = (file: File) =>
   `${file.name} could not be read as an image.`;

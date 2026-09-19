@@ -248,7 +248,11 @@ export const createPost = (request: PostRequest, token?: string | null) =>
   sendWithImages("post", "", request, token);
 
 export const updatePost = (post: PostDocument, request: PostRequest) =>
-  sendWithImages("patch", `/${post._id.toString()}`, request);
+  sendWithImages("patch", `/${post._id.toString()}`, {
+    title: TITLE,
+    content: CONTENT,
+    ...request,
+  });
 
 export const postPath = (post: PostDocument) => `/${post._id.toString()}`;
 

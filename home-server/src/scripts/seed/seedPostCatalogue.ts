@@ -223,7 +223,11 @@ const SHOWCASE_POSTS: SeedPost[] = [
         title: "Edited: renamed, then given a new chart",
         content: markdown("renamed.edited"),
       },
-      { inlineImages: [picture("chart.png", 1400, 800, EMBER)] },
+      {
+        content: markdown("renamed.final"),
+        inlineImages: [picture("chart-revised.png", 1400, 800, EMBER)],
+        removeInlineImages: ["chart.png"],
+      },
     ],
   },
 ];
