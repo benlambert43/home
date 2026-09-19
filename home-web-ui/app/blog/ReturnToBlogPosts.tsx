@@ -1,10 +1,10 @@
 import { blogHref } from "@/app/blog/links";
 import Button from "@/app/ui/Button";
 
-const ReturnToBlogPosts = () => (
+const ReturnToBlogPosts = ({ page = 1 }: { page?: number }) => (
   <Button
     type="link"
-    linkProps={{ href: blogHref(1) }}
+    linkProps={{ href: blogHref(page) }}
     size="large"
     emphasis="secondary"
   >

@@ -14,13 +14,19 @@ import Link from "next/link";
 
 const THUMBNAIL_PIXELS = 120;
 
-const PostRowThumbnail = ({ post }: { post: PostSummary }) => {
+const PostRowThumbnail = ({
+  post,
+  page,
+}: {
+  post: PostSummary;
+  page: number;
+}) => {
   const image = post.headerImage;
 
   if (!image) return null;
 
   return (
-    <Link href={postHref(post._id)} className="shrink-0">
+    <Link href={postHref(post._id, page)} className="shrink-0">
       <Image
         src={postImageHref(post._id, image.name)}
         alt=""
@@ -32,15 +38,15 @@ const PostRowThumbnail = ({ post }: { post: PostSummary }) => {
   );
 };
 
-const PostRow = ({ post }: { post: PostSummary }) => (
+const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
   <li
     className="box-content flex h-30 flex-row items-center gap-4 py-4 first:pt-0
       last:pb-0 sm:gap-6"
   >
-    <PostRowThumbnail post={post} />
+    <PostRowThumbnail post={post} page={page} />
     <div className="flex min-w-0 flex-col gap-1">
       <Link
-        href={postHref(post._id)}
+        href={postHref(post._id, page)}
         className="line-clamp-4 text-lg leading-6 font-semibold hover:underline
           lg:line-clamp-3 lg:text-xl lg:leading-7"
       >
@@ -81,7 +87,7 @@ const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
     <div className="flex max-w-240 flex-col gap-6 2xl:max-w-280">
       <ul className="flex flex-col divide-y divide-slate-700">
         {posts.map((post) => (
-          <PostRow key={post._id} post={post} />
+          <PostRow key={post._id} post={post} page={page} />
         ))}
       </ul>
       <Pagination {...pagination} />

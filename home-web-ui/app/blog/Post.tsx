@@ -1,18 +1,36 @@
-import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
+import {
+  postFullSizeImageHref,
+  postImageHref,
+  requestedPage,
+} from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
 import PostHeaderImage from "@/app/blog/PostHeaderImage";
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import { getPost } from "@/app/lib/posts";
+import { SearchParams } from "@/app/lib/searchParams";
 
 export type PostParams = Promise<{ id: string }>;
 
-const Post = async ({ params }: { params: PostParams }) => {
+const Post = async ({
+  params,
+  searchParams,
+}: {
+  params: PostParams;
+  searchParams: SearchParams;
+}) => {
+  const page = requestedPage((await searchParams).page);
   const result = await getPost((await params).id);
 
   if (result.error) {
-    return <PostProblem headline="Post Unavailable" detail={result.message} />;
+    return (
+      <PostProblem
+        headline="Post Unavailable"
+        detail={result.message}
+        page={page}
+      />
+    );
   }
 
   const { post } = result;
@@ -42,7 +60,7 @@ const Post = async ({ params }: { params: PostParams }) => {
       <PostHeaderImage post={post} />
       <PostMarkdown content={post.content} images={images} />
       <div>
-        <ReturnToBlogPosts />
+        <ReturnToBlogPosts page={page} />
       </div>
     </div>
   );

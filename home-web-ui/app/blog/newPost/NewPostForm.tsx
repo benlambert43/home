@@ -39,7 +39,7 @@ import {
 const missingImagesMessage = (references: string[]) =>
   `The post links ${references.length === 1 ? "an image" : "images"} it does not have: ${references.join(", ")}`;
 
-const NewPostForm = () => {
+const NewPostForm = ({ page }: { page: number }) => {
   const [state, action, pending] = useActionState(createPost, undefined);
   const [submitted, setSubmitted] = useState<CreatePostFormState>(undefined);
   const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
@@ -140,7 +140,7 @@ const NewPostForm = () => {
       />
 
       <div className="mt-4 flex flex-row items-start justify-start gap-2">
-        <ReturnToBlogPosts />
+        <ReturnToBlogPosts page={page} />
         <Button size="large" disabled={busy} type="submit">
           Create Post
         </Button>

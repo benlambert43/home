@@ -8,12 +8,16 @@ export const requestedPage = (value: string | string[] | undefined) => {
 export const blogHref = (page: number) =>
   page > 1 ? `/blog?page=${page}` : "/blog";
 
-export const newPostHref = "/blog/newPost";
+export const newPostHref = (page = 1) =>
+  page > 1 ? `/blog/newPost?page=${page}` : "/blog/newPost";
 
-export const postHref = (id: string) => `/blog/${id}`;
+const postPath = (id: string) => `/blog/${id}`;
+
+export const postHref = (id: string, page = 1) =>
+  page > 1 ? `${postPath(id)}?page=${page}` : postPath(id);
 
 export const postImageHref = (id: string, name: string) =>
-  `${postHref(id)}/images/${encodeURIComponent(name)}`;
+  `${postPath(id)}/images/${encodeURIComponent(name)}`;
 
 export const postFullSizeImageHref = (id: string, name: string) =>
   `${postImageHref(id, name)}/${POST_FULL_SIZE_SEGMENT}`;

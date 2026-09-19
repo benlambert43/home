@@ -2,8 +2,9 @@ import Post, { PostParams } from "@/app/blog/Post";
 import { postHref } from "@/app/blog/links";
 import { pageMetadata } from "@/app/lib/metadata";
 import { getPost } from "@/app/lib/posts";
+import { SearchParams } from "@/app/lib/searchParams";
 
-type PostProps = { params: PostParams };
+type PostProps = { params: PostParams; searchParams: SearchParams };
 
 export const generateMetadata = async ({ params }: PostProps) => {
   const { id } = await params;
@@ -12,6 +13,8 @@ export const generateMetadata = async ({ params }: PostProps) => {
   return pageMetadata(result.error ? "blog" : result.post.title, postHref(id));
 };
 
-const BlogPost = ({ params }: PostProps) => <Post params={params} />;
+const BlogPost = ({ params, searchParams }: PostProps) => (
+  <Post params={params} searchParams={searchParams} />
+);
 
 export default BlogPost;

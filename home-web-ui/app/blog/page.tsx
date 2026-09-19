@@ -11,7 +11,7 @@ const Blog = ({ searchParams }: { searchParams: SearchParams }) => (
     <div className="flex flex-row flex-wrap items-center gap-4">
       <h1 className="text-4xl font-bold">Blog</h1>
       <Suspense fallback={null}>
-        <NewPostButton />
+        <NewPostButton searchParams={searchParams} />
       </Suspense>
     </div>
     <Suspense fallback={null}>
