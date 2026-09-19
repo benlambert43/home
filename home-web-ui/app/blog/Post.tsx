@@ -49,6 +49,9 @@ const Post = async ({
 
   return (
     <div className="flex max-w-160 flex-col gap-4 p-5">
+      <div>
+        <ReturnToBlogPosts page={page} postId={post._id} appearance="arrow" />
+      </div>
       <h1
         className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
           bg-linear-to-r bg-clip-text text-5xl leading-tight font-medium
@@ -60,7 +63,7 @@ const Post = async ({
       <PostHeaderImage post={post} />
       <PostMarkdown content={post.content} images={images} />
       <div>
-        <ReturnToBlogPosts page={page} />
+        <ReturnToBlogPosts page={page} postId={post._id} />
       </div>
     </div>
   );

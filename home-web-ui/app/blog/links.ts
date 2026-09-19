@@ -5,8 +5,12 @@ export const requestedPage = (value: string | string[] | undefined) => {
   return Number.isInteger(page) && page > 0 ? page : 1;
 };
 
-export const blogHref = (page: number) =>
-  page > 1 ? `/blog?page=${page}` : "/blog";
+export const postAnchor = (id: string) => `post-${id}`;
+
+export const blogHref = (page: number, postId?: string) => {
+  const href = page > 1 ? `/blog?page=${page}` : "/blog";
+  return postId ? `${href}#${postAnchor(postId)}` : href;
+};
 
 export const newPostHref = (page = 1) =>
   page > 1 ? `/blog/newPost?page=${page}` : "/blog/newPost";

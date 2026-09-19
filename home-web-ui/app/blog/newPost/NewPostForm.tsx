@@ -140,7 +140,7 @@ const NewPostForm = ({ page }: { page: number }) => {
       />
 
       <div className="mt-4 flex flex-row items-start justify-start gap-2">
-        <ReturnToBlogPosts page={page} />
+        <ReturnToBlogPosts page={page} appearance="outlined" />
         <Button size="large" disabled={busy} type="submit">
           Create Post
         </Button>

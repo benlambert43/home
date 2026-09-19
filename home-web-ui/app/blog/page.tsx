@@ -14,9 +14,7 @@ const Blog = ({ searchParams }: { searchParams: SearchParams }) => (
         <NewPostButton searchParams={searchParams} />
       </Suspense>
     </div>
-    <Suspense fallback={null}>
-      <Posts searchParams={searchParams} />
-    </Suspense>
+    <Posts searchParams={searchParams} />
   </div>
 );
 
