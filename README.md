@@ -33,12 +33,6 @@ home-server keeps every post image as it was uploaded and makes `large`, `medium
 
 home-web-ui treats the `large` thumbnail as the full size original image. `/blog/[id]/images/[name]` proxies the API's default image route and is the only post image URL the site uses. `next/image`, with its default optimizer, makes every size the site shows from it, the blog list thumbnails included. Do not fetch `fullSize`, `medium`, or `small` from the web UI, and do not mark a post image `unoptimized`.
 
-## Seed posts
-
-`npm run seed` fills the blog with 30 example posts, and `npm run seed -- 50` with as many as asked for. It needs the database running and the admin account from `ADMIN_EMAIL` to exist. Posts that are already there are skipped by title, so it is safe to run again.
-
-The first posts are a showcase, one for each kind of content a post can hold: every image format, animated and sideways images, large photographs, Markdown, code, long and short titles, and posts that have been edited. The rest are short filler so the list runs to several pages. Post text lives in `home-server/src/scripts/seed/posts/`, the images are drawn when the seed runs, and every post goes through the same upload, create, and edit code as the API.
-
 ## Linting
 
 Lint rules shared by every workspace live in eslint.config.base.mjs
