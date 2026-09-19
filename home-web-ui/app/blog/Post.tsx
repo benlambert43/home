@@ -33,8 +33,8 @@ const Post = async ({ params }: { params: PostParams }) => {
     <div className="flex max-w-160 flex-col gap-4 p-5">
       <h1
         className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
-          bg-linear-to-r bg-clip-text text-5xl font-medium text-transparent
-          sm:text-6xl"
+          bg-linear-to-r bg-clip-text text-5xl leading-tight font-medium
+          text-transparent sm:text-6xl"
       >
         {post.title}
       </h1>
