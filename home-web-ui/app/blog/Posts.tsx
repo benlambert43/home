@@ -64,12 +64,16 @@ const PageLink = ({ page, children }: { page: number; children: string }) => (
 );
 
 const Pagination = ({ page, totalPages, hasMore }: PostPagination) => (
-  <div className="flex items-center gap-4">
-    {page > 1 && <PageLink page={page - 1}>Newer</PageLink>}
+  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+    <div className="grid w-24 justify-self-end text-center">
+      {page > 1 && <PageLink page={page - 1}>Previous</PageLink>}
+    </div>
     <div className="text-sm text-slate-300">
       Page {page} of {totalPages}
     </div>
-    {hasMore && <PageLink page={page + 1}>Older</PageLink>}
+    <div className="grid w-24 justify-self-start text-center">
+      {hasMore && <PageLink page={page + 1}>Next</PageLink>}
+    </div>
   </div>
 );
 
