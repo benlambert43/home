@@ -10,13 +10,10 @@ export const blogHref = (page: number) =>
 
 export const newPostHref = "/blog/newPost";
 
-export const postCanonicalHref = (id: string) => `/blog/${id}`;
-
-export const postHref = (id: string, page: number) =>
-  page > 1 ? `${postCanonicalHref(id)}?page=${page}` : postCanonicalHref(id);
+export const postHref = (id: string) => `/blog/${id}`;
 
 export const postImageHref = (id: string, name: string) =>
-  `${postCanonicalHref(id)}/images/${encodeURIComponent(name)}`;
+  `${postHref(id)}/images/${encodeURIComponent(name)}`;
 
 export const postUploadImageHref = (uploadId: string, name: string) =>
   `/blog/uploads/${uploadId}/images/${encodeURIComponent(name)}`;

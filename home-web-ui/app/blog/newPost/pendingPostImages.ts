@@ -2,18 +2,15 @@ import { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import {
   MAX_POST_IMAGE_BYTES,
   MAX_POST_INLINE_IMAGES,
-  POST_IMAGE_REFERENCE_PREFIX,
   postImageReference,
+  postImageReferences,
   toPostImageName,
   uniquePostImageName,
 } from "@home/shared";
-import { Marked, MarkedToken } from "marked";
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
 
 const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
-
-const markdown = new Marked();
 
 export type PendingPostImage = {
   name: string;
@@ -144,18 +141,6 @@ export const pendingMarkdownImages = (
     height: image.height,
   }));
 
-const linkedUrls = (content: string) => {
-  const urls: string[] = [];
-
-  void markdown.walkTokens(markdown.lexer(content), (token) => {
-    const known = token as MarkedToken;
-
-    if (known.type === "image" || known.type === "link") urls.push(known.href);
-  });
-
-  return urls;
-};
-
 export const unmatchedImageReferences = (
   content: string,
   pending: PendingPostImages,
@@ -164,10 +149,7 @@ export const unmatchedImageReferences = (
     allPendingImages(pending).map((image) => postImageReference(image.name)),
   );
 
-  const unmatched = linkedUrls(content).filter(
-    (url) =>
-      url.startsWith(POST_IMAGE_REFERENCE_PREFIX) && !references.has(url),
+  return postImageReferences(content).filter(
+    (reference) => !references.has(reference),
   );
-
-  return [...new Set(unmatched)];
 };

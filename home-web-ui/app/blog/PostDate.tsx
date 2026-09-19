@@ -1,15 +1,13 @@
-"use client";
+const SITE_LOCALE = "en-US";
 
-import { useHydrated } from "@/app/lib/useHydrated";
+const SITE_TIME_ZONE = "America/Denver";
 
-const PostDate = ({ date }: { date: string }) => {
-  const hydrated = useHydrated();
-
-  return (
-    <time dateTime={date} className="inline-block min-w-20">
-      {hydrated ? new Date(date).toLocaleDateString() : ""}
-    </time>
-  );
-};
+const PostDate = ({ date }: { date: string }) => (
+  <time dateTime={date}>
+    {new Date(date).toLocaleDateString(SITE_LOCALE, {
+      timeZone: SITE_TIME_ZONE,
+    })}
+  </time>
+);
 
 export default PostDate;

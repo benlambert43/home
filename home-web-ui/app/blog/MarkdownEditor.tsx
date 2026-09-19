@@ -8,7 +8,7 @@ import PostMarkdown, { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import { postImageReference } from "@home/shared";
+import { normalizePostContent, postImageReference } from "@home/shared";
 import {
   ChangeEvent,
   KeyboardEvent,
@@ -389,7 +389,10 @@ const MarkdownEditor = ({
           className={`${FIELD_WIDTHS.wide.field} ${FIELD_CLASSES} min-h-64
           overflow-x-auto`}
         >
-          <PostMarkdown content={content} images={images} />
+          <PostMarkdown
+            content={normalizePostContent(content)}
+            images={images}
+          />
         </div>
       )}
     </div>
