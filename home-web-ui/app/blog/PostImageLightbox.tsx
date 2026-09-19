@@ -1,10 +1,11 @@
 "use client";
 
+import { InsideLinkContext } from "@/app/blog/PostMarkdownLink";
 import Dialog from "@/app/components/Dialog";
 import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import Image from "next/image";
-import { MouseEvent, ReactNode, useState } from "react";
+import { MouseEvent, ReactNode, useContext, useState } from "react";
 import { createPortal } from "react-dom";
 
 const opensElsewhere = (event: MouseEvent<HTMLAnchorElement>) =>
@@ -25,10 +26,13 @@ const PostImageLightbox = ({
 }) => {
   const [open, setOpen] = useState(false);
   const mounted = useHydrated();
+  const insideLink = useContext(InsideLinkContext);
 
   const close = () => {
     setOpen(false);
   };
+
+  if (insideLink) return children;
 
   const lightbox = (
     <Dialog open={open} onClose={close} label={alt === "" ? "Image" : alt}>
