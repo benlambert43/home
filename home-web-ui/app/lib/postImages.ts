@@ -1,60 +1,32 @@
 import "server-only";
-import { BAD_GATEWAY_STATUS, NOT_FOUND_STATUS } from "@/app/lib/api";
+import {
+  BAD_GATEWAY_STATUS,
+  NOT_FOUND_STATUS,
+  streamApiResponse,
+} from "@/app/lib/api";
 import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
 import { postImageParamsSchema, postImagePath } from "@home/shared";
 
-const REVALIDATE_CACHE_CONTROL = "max-age=0";
-
-const FORWARDED_REQUEST_HEADERS = [
-  "cache-control",
-  "if-modified-since",
-  "if-none-match",
-  "if-range",
-  "range",
-];
-
-const RETURNED_RESPONSE_HEADERS = [
-  "accept-ranges",
+const RETURNED_HEADERS = [
   "cache-control",
   "content-disposition",
   "content-length",
-  "content-range",
   "content-type",
-  "etag",
-  "last-modified",
   "x-content-type-options",
 ];
 
-const pickHeaders = (source: Headers, names: string[]) => {
-  const picked = new Headers();
+export const proxyPostImage = async (params: unknown) => {
+  const parsed = postImageParamsSchema.safeParse(params);
+  if (!parsed.success) return new Response(null, { status: NOT_FOUND_STATUS });
 
-  names.forEach((name) => {
-    const value = source.get(name);
-    if (value !== null) picked.set(name, value);
-  });
+  const { id, name } = parsed.data;
+  const url = `${BASE_API_URL}/${postImagePath(id, name)}`;
 
-  return picked;
-};
-
-const forwardedHeaders = (request: Request) => {
-  const headers = pickHeaders(request.headers, FORWARDED_REQUEST_HEADERS);
-
-  if (!headers.has("cache-control")) {
-    headers.set("cache-control", REVALIDATE_CACHE_CONTROL);
-  }
-
-  return headers;
-};
-
-const proxyImage = async (request: Request, url: string) => {
   let response: Response;
 
   try {
-    response = await fetch(url, {
-      cache: "no-store",
-      headers: forwardedHeaders(request),
-    });
+    response = await fetch(url);
   } catch (e) {
     console.error(`GET ${url} could not reach the API:`, e);
     return new Response(SERVICE_UNAVAILABLE_MESSAGE, {
@@ -62,19 +34,5 @@ const proxyImage = async (request: Request, url: string) => {
     });
   }
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: pickHeaders(response.headers, RETURNED_RESPONSE_HEADERS),
-  });
-};
-
-const notFoundResponse = () => new Response(null, { status: NOT_FOUND_STATUS });
-
-export const proxyPostImage = async (request: Request, params: unknown) => {
-  const parsed = postImageParamsSchema.safeParse(params);
-  if (!parsed.success) return notFoundResponse();
-
-  const { id, name } = parsed.data;
-
-  return proxyImage(request, `${BASE_API_URL}/${postImagePath(id, name)}`);
+  return streamApiResponse(response, RETURNED_HEADERS);
 };

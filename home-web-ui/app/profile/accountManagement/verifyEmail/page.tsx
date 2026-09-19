@@ -1,10 +1,13 @@
 import { verifyEmail } from "@/app/actions/auth";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { errorMessage } from "@/app/lib/api";
+import { pageMetadata } from "@/app/lib/metadata";
 import { paramFilled, SearchParams } from "@/app/lib/searchParams";
 import VerificationComplete from "@/app/profile/accountManagement/verifyEmail/VerificationComplete";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
 import { SessionPayload } from "@home/shared";
+
+export const metadata = pageMetadata("profile");
 
 type VerificationResult =
   | { status: "complete"; message?: string; session?: SessionPayload }

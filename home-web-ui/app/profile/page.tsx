@@ -1,8 +1,11 @@
 import { removeSession } from "@/app/actions/session";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import { pageMetadata } from "@/app/lib/metadata";
 import DeleteAccountButton from "@/app/profile/DeleteAccountButton";
 import ProfileBanner from "@/app/profile/ProfileBanner";
 import Button from "@/app/ui/Button";
+
+export const metadata = pageMetadata("profile");
 
 const Profile = async () => {
   const user = await requireBffSessionUser();

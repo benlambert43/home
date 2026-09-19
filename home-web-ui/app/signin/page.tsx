@@ -1,6 +1,9 @@
 import { SignInForm } from "@/app/signin/SignInForm";
 import { redirectSignedInUser } from "@/app/auth/redirectSignedInUser";
+import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
+
+export const metadata = pageMetadata("sign in");
 
 const SignIn = async () => {
   await redirectSignedInUser();

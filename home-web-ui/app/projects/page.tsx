@@ -1,3 +1,7 @@
+import { pageMetadata } from "@/app/lib/metadata";
+
+export const metadata = pageMetadata("projects");
+
 const Projects = () => {
   return (
     <div className="flex flex-col gap-4 p-5">

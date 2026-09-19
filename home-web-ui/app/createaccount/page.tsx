@@ -1,5 +1,8 @@
 import { redirectSignedInUser } from "@/app/auth/redirectSignedInUser";
 import { CreateAccountForm } from "@/app/createaccount/CreateAccountForm";
+import { pageMetadata } from "@/app/lib/metadata";
+
+export const metadata = pageMetadata("create account");
 
 const CreateAccount = async () => {
   await redirectSignedInUser();

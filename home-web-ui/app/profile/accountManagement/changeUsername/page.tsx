@@ -1,5 +1,8 @@
 import ChangeUsernameForm from "@/app/profile/accountManagement/changeUsername/ChangeUsernameForm";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import { pageMetadata } from "@/app/lib/metadata";
+
+export const metadata = pageMetadata("profile");
 
 const ChangeUsername = async () => {
   const user = await requireBffSessionUser();

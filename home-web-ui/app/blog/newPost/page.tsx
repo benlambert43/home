@@ -1,6 +1,9 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import NewPostForm from "@/app/blog/newPost/NewPostForm";
+import { pageMetadata } from "@/app/lib/metadata";
 import { redirect } from "next/navigation";
+
+export const metadata = pageMetadata("new blog post");
 
 const NewPost = async () => {
   const user = await requireBffSessionUser();

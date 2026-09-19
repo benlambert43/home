@@ -1,5 +1,8 @@
+import { pageMetadata } from "@/app/lib/metadata";
 import OpenGmailButton from "@/app/ui/OpenGmailButton";
 import Link from "next/link";
+
+export const metadata = pageMetadata("forgot password");
 
 const ForgotPasswordSuccess = () => (
   <div className="flex flex-col gap-4 p-5">

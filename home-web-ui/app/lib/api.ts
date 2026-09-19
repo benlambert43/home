@@ -76,5 +76,19 @@ export const apiFetch = async <Result extends ApiResponse, Body = undefined>(
   return result;
 };
 
+export const streamApiResponse = (
+  response: Response,
+  returnedHeaders: string[],
+) => {
+  const headers = new Headers();
+
+  returnedHeaders.forEach((name) => {
+    const value = response.headers.get(name);
+    if (value !== null) headers.set(name, value);
+  });
+
+  return new Response(response.body, { status: response.status, headers });
+};
+
 export const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Unknown error.";

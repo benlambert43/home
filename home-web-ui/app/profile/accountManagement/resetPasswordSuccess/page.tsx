@@ -1,4 +1,7 @@
+import { pageMetadata } from "@/app/lib/metadata";
 import Button from "@/app/ui/Button";
+
+export const metadata = pageMetadata("profile");
 
 const ResetPasswordSuccess = () => (
   <div className="flex flex-col gap-4 p-5">

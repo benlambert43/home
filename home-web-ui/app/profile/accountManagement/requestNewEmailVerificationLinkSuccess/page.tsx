@@ -1,5 +1,8 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import { pageMetadata } from "@/app/lib/metadata";
 import OpenGmailButton from "@/app/ui/OpenGmailButton";
+
+export const metadata = pageMetadata("profile");
 
 const RequestNewEmailVerificationLinkSuccess = async () => {
   await requireBffSessionUser();

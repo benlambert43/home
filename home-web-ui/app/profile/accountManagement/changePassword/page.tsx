@@ -1,11 +1,14 @@
 import { checkPasswordResetLink } from "@/app/actions/auth";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import { errorMessage } from "@/app/lib/api";
+import { pageMetadata } from "@/app/lib/metadata";
 import { paramFilled, SearchParams } from "@/app/lib/searchParams";
 import ChangePasswordForm from "@/app/profile/accountManagement/changePassword/ChangePasswordForm";
 import ResetLinkProblem from "@/app/profile/accountManagement/changePassword/ResetLinkProblem";
 import ResetPasswordForm from "@/app/profile/accountManagement/changePassword/ResetPasswordForm";
 import { CheckPasswordResetLinkResponse } from "@home/shared";
+
+export const metadata = pageMetadata("profile");
 
 const ResetPassword = async ({ code }: { code: string }) => {
   let linkStatus: CheckPasswordResetLinkResponse;

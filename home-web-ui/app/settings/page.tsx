@@ -1,5 +1,8 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import { pageMetadata } from "@/app/lib/metadata";
 import Button from "@/app/ui/Button";
+
+export const metadata = pageMetadata("settings");
 
 const Settings = async () => {
   const user = await requireBffSessionUser();

@@ -1,7 +1,7 @@
 import "server-only";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import { BAD_GATEWAY_STATUS } from "@/app/lib/api";
+import { BAD_GATEWAY_STATUS, streamApiResponse } from "@/app/lib/api";
 import {
   FORBIDDEN_MESSAGE,
   INVALID_REQUEST_MESSAGE,
@@ -34,6 +34,8 @@ const MAX_UPLOAD_BODY_BYTES = MAX_POST_IMAGE_BYTES + MULTIPART_ENVELOPE_BYTES;
 
 const SITE_ORIGIN = new URL(BASE_SITE_URL).origin;
 
+const RETURNED_HEADERS = ["content-type"];
+
 type StreamedRequestInit = RequestInit & { duplex: "half" };
 
 const failureResponse = (status: number, message: string) =>
@@ -52,15 +54,6 @@ const streamedUpload = (
     Authorization: authorization,
   },
 });
-
-const returnedHeaders = (response: Response) => {
-  const headers = new Headers();
-  const contentType = response.headers.get("content-type");
-
-  if (contentType !== null) headers.set("content-type", contentType);
-
-  return headers;
-};
 
 export const uploadPostImage = async (request: Request, params: unknown) => {
   const user = await getBffSessionUser();
@@ -104,8 +97,5 @@ export const uploadPostImage = async (request: Request, params: unknown) => {
     return failureResponse(BAD_GATEWAY_STATUS, SERVICE_UNAVAILABLE_MESSAGE);
   }
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: returnedHeaders(response),
-  });
+  return streamApiResponse(response, RETURNED_HEADERS);
 };

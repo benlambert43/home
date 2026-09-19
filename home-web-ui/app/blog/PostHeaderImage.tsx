@@ -15,7 +15,7 @@ const PostHeaderImage = ({ post }: { post: PostSummary }) => {
       width={image.width}
       height={image.height}
       sizes={POST_IMAGE_SIZES}
-      preload
+      loading="eager"
       fetchPriority="high"
       className="h-auto w-full rounded-md"
     />

@@ -1,6 +1,9 @@
 import { ForgotPasswordForm } from "@/app/forgotpassword/ForgotPasswordForm";
 import { redirectSignedInUser } from "@/app/auth/redirectSignedInUser";
+import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
+
+export const metadata = pageMetadata("forgot password");
 
 const ForgotPassword = async () => {
   await redirectSignedInUser();

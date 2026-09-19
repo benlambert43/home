@@ -57,7 +57,6 @@ const renderer = (images: PostMarkdownImage[]) => ({
         width={image.width}
         height={image.height}
         sizes={POST_IMAGE_SIZES}
-        loading="lazy"
       />
     );
   },

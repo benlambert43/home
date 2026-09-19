@@ -1,7 +1,10 @@
 import NewPostButton from "@/app/blog/NewPostButton";
 import Posts from "@/app/blog/Posts";
+import { pageMetadata } from "@/app/lib/metadata";
 import { SearchParams } from "@/app/lib/searchParams";
 import { Suspense } from "react";
+
+export const metadata = pageMetadata("blog");
 
 const Blog = ({ searchParams }: { searchParams: SearchParams }) => (
   <div className="flex flex-col gap-4 p-5">
