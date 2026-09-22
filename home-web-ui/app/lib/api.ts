@@ -3,7 +3,7 @@ import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { ApiFailure, ApiResponse, SuccessOf } from "@home/shared";
 
 type ApiRequest<Body> = {
-  method?: "GET" | "POST" | "DELETE";
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
   authorization?: string;
   body?: Body;
   cache?: RequestCache;
