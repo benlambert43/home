@@ -8,6 +8,7 @@ import {
   requestPasswordResetBodySchema,
   resetPasswordFormSchema,
   signInBodySchema,
+  updatePostFormSchema,
 } from "@home/shared";
 
 type ErrorTree<Values> = {
@@ -46,6 +47,8 @@ export type RequestPasswordResetFormState = FormState<
 export type ResetPasswordFormState = FormState<typeof resetPasswordFormSchema>;
 
 export type CreatePostFormState = FormState<typeof createPostFormSchema>;
+
+export type UpdatePostFormState = FormState<typeof updatePostFormSchema>;
 
 export type DeleteAccountState = { errors: string[] };
 

@@ -220,6 +220,11 @@ export const updatePostBodySchema = z.object({
   removeInlineImages: z.array(postImageNameSchema).optional(),
 });
 
+export const updatePostFormSchema = updatePostBodySchema.pick({
+  title: true,
+  content: true,
+});
+
 export const postIdParamsSchema = z.object({
   id: z
     .string()
