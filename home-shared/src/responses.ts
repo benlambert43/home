@@ -56,6 +56,11 @@ export type GetPostsResponse = ApiResponse<{
 
 export type GetPostResponse = ApiResponse<{ post: Post }>;
 
+export type GetPostForEditResponse = ApiResponse<{
+  post: Post;
+  usedImageNames: string[];
+}>;
+
 export type UpdatePostResponse = ApiResponse<{ post: Post }>;
 
 export type DeletePostResponse = ApiResponse;

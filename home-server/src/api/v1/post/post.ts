@@ -5,6 +5,7 @@ import {
   createPostUploadBodySchema,
   DeletePostResponse,
   DeletePostUploadResponse,
+  GetPostForEditResponse,
   GetPostResponse,
   GetPostsResponse,
   MAX_POST_REQUEST_BODY_BYTES,
@@ -40,6 +41,7 @@ import { handleCreatePostUpload } from "./handlers/handleCreatePostUpload";
 import { handleDeletePost } from "./handlers/handleDeletePost";
 import { handleDeletePostUpload } from "./handlers/handleDeletePostUpload";
 import { handleGetPost } from "./handlers/handleGetPost";
+import { handleGetPostForEdit } from "./handlers/handleGetPostForEdit";
 import {
   findPostImage,
   findPostThumbnail,
@@ -171,6 +173,22 @@ postRouter.get(
     if (!post) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendSuccess<GetPostResponse>(res, { post });
+  }),
+);
+
+postRouter.get(
+  "/:id/edit",
+  route(async (req, res) => {
+    const admin = await requireAdmin(req.headers?.authorization, res);
+    if (!admin) return;
+
+    const params = parseRequest(postIdParamsSchema, req.params, res);
+    if (!params) return;
+
+    const edit = await handleGetPostForEdit(params.id);
+    if (!edit) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+
+    sendSuccess<GetPostForEditResponse>(res, edit);
   }),
 );
 
