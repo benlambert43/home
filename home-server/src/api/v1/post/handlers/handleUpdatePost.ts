@@ -112,6 +112,10 @@ const updatePost = async (
 
   const previous = latestRevision(post.revisions);
 
+  if (previous?.fingerprint !== body.revision) {
+    throw new ApiError(ApiMessage.POST_CHANGED_SINCE_LOADED, 409);
+  }
+
   const used = usedImageName(post.revisions, revisionImages(uploaded));
   if (used) return refusedPostWrite(imageNameTaken(used));
 

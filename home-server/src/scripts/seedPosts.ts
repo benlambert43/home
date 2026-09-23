@@ -155,6 +155,7 @@ const editPost = async (current: Post, edit: SeedPostEdit) => {
   const body = updatePostBodySchema.parse({
     title: edit.title ?? current.title,
     content: edit.content ?? current.content,
+    revision: current.revision,
     headerImage: edit.headerImage === null ? null : undefined,
     removeInlineImages: edit.removeInlineImages,
     uploadId,

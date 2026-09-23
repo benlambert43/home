@@ -182,6 +182,11 @@ const postUploadIdField = z
   .regex(/^[0-9a-fA-F]{32}$/, { message: "Invalid upload id." })
   .transform((id) => id.toLowerCase());
 
+const postRevisionField = z
+  .string()
+  .regex(/^[0-9a-fA-F]{32}$/, { message: "Invalid post revision." })
+  .transform((revision) => revision.toLowerCase());
+
 export const createPostUploadBodySchema = z
   .object({
     headerImage: postImageNameSchema.optional(),
@@ -215,6 +220,7 @@ export const createPostFormSchema = createPostBodySchema.pick({
 export const updatePostBodySchema = z.object({
   title: postTitleField,
   content: postContentField,
+  revision: postRevisionField,
   headerImage: z.null().optional(),
   uploadId: postUploadIdField.optional(),
   removeInlineImages: z.array(postImageNameSchema).optional(),

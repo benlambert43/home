@@ -251,6 +251,7 @@ export const updatePost = (post: PostDocument, request: PostRequest) =>
   sendWithImages("patch", `/${post._id.toString()}`, {
     title: TITLE,
     content: CONTENT,
+    revision: currentRevision(post).fingerprint,
     ...request,
   });
 

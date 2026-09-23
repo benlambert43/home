@@ -12,6 +12,8 @@ import {
 
 const UPLOAD_ID = "0123456789abcdef0123456789abcdef";
 
+const REVISION = "fedcba9876543210fedcba9876543210";
+
 const inlineImageNames = (count: number) =>
   Array.from({ length: count }, (_value, index) => `diagram-${index}.png`);
 
@@ -75,19 +77,30 @@ describe("createPostFormSchema", () => {
 });
 
 describe("updatePostBodySchema", () => {
-  it("accepts an edit that has a title and content", () => {
+  it("accepts an edit that has a title, content, and revision", () => {
     expect(
       updatePostBodySchema.safeParse({
         title: "Take two",
         content: "The post, rewritten.",
+        revision: REVISION,
       }).success,
     ).toBe(true);
   });
 
   it("refuses an edit that leaves out the content", () => {
-    expect(updatePostBodySchema.safeParse({ title: "Take two" }).success).toBe(
-      false,
-    );
+    expect(
+      updatePostBodySchema.safeParse({ title: "Take two", revision: REVISION })
+        .success,
+    ).toBe(false);
+  });
+
+  it("refuses an edit that leaves out the revision", () => {
+    expect(
+      updatePostBodySchema.safeParse({
+        title: "Take two",
+        content: "The post, rewritten.",
+      }).success,
+    ).toBe(false);
   });
 });
 

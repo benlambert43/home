@@ -59,7 +59,9 @@ const expectRejected = (
 };
 
 const editPost = (post: SavedPost, body: object) =>
-  apiCall("patch", postPath(post), { body });
+  apiCall("patch", postPath(post), {
+    body: { revision: currentRevision(post).fingerprint, ...body },
+  });
 
 describe("the blog post api", () => {
   beforeEach(beforeEachPostTest);
@@ -190,7 +192,11 @@ describe("the blog post api", () => {
 
       expectFailure(
         await apiCall("patch", `/${MISSING_POST_ID}`, {
-          body: { title: "Take two", content: NEW_CONTENT },
+          body: {
+            title: "Take two",
+            content: NEW_CONTENT,
+            revision: "0".repeat(32),
+          },
         }),
         404,
         ApiMessage.POST_NOT_FOUND,

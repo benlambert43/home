@@ -4,6 +4,7 @@ import {
   afterEachPostTest,
   apiCall,
   beforeEachPostTest,
+  currentRevision,
   expectFailure,
   HEADER_IMAGE_NAME,
   MISSING_UPLOAD_ID,
@@ -38,7 +39,12 @@ const publishFrom = (uploadId: string) =>
 
 const editFrom = (post: (typeof savedPosts)[number], uploadId: string) =>
   apiCall("patch", postPath(post), {
-    body: { title: TITLE, content: "A post.", uploadId },
+    body: {
+      title: TITLE,
+      content: "A post.",
+      revision: currentRevision(post).fingerprint,
+      uploadId,
+    },
   });
 
 const inlineNames = (response: Awaited<ReturnType<typeof apiCall>>) =>
