@@ -12,6 +12,7 @@ import {
 import PostImagePicker from "@/app/blog/postForm/PostImagePicker";
 import {
   allPostFormImages,
+  missingImagesMessage,
   pendingPostImages,
   PostFormImage,
   postFormMarkdownImages,
@@ -36,9 +37,6 @@ import {
   useRef,
   useState,
 } from "react";
-
-const missingImagesMessage = (references: string[]) =>
-  `The post links ${references.length === 1 ? "an image" : "images"} it does not have: ${references.join(", ")}`;
 
 const NewPostForm = ({ page }: { page: number }) => {
   const [state, action, pending] = useActionState(createPost, undefined);

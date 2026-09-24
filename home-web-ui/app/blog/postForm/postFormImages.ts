@@ -259,3 +259,6 @@ export const unmatchedImageReferences = (
     (reference) => !references.has(reference),
   );
 };
+
+export const missingImagesMessage = (references: string[]) =>
+  `The post links ${references.length === 1 ? "an image" : "images"} it does not have: ${references.join(", ")}`;
