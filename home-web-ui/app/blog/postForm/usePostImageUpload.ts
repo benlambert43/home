@@ -1,8 +1,9 @@
 import { discardPostUpload, startPostUpload } from "@/app/actions/postUploads";
 import {
-  allPendingImages,
-  PendingPostImages,
-} from "@/app/blog/postForm/pendingPostImages";
+  allPostFormImages,
+  pendingPostImages,
+  PostFormImages,
+} from "@/app/blog/postForm/postFormImages";
 import {
   PostImageUploads,
   uploadPostImages,
@@ -16,7 +17,7 @@ const UPLOAD_FAILED_MESSAGE =
 
 type PostUploadSession = {
   uploadId: string;
-  images: PendingPostImages;
+  images: PostFormImages;
   uploaded: string[];
 };
 
@@ -60,7 +61,7 @@ export const usePostImageUpload = () => {
   );
 
   const resumeOrStartSession = async (
-    images: PendingPostImages,
+    images: PostFormImages,
   ): Promise<StartedUpload> => {
     const resumed = sessionRef.current;
 
@@ -69,9 +70,11 @@ export const usePostImageUpload = () => {
     discardSession(resumed);
     sessionRef.current = undefined;
 
+    const { headerImage, inlineImages } = pendingPostImages(images);
+
     const started = await startPostUpload({
-      headerImage: images.headerImage?.name,
-      inlineImages: images.inlineImages.map((image) => image.name),
+      headerImage: headerImage?.name,
+      inlineImages: inlineImages.map((image) => image.name),
     });
 
     if (started.error) return { ok: false, message: started.message };
@@ -94,7 +97,7 @@ export const usePostImageUpload = () => {
 
     const uploads = await uploadPostImages(
       session.uploadId,
-      allPendingImages(session.images).filter(
+      allPostFormImages(pendingPostImages(session.images)).filter(
         (image) => !session.uploaded.includes(image.name),
       ),
       (name, fraction) => {
@@ -121,7 +124,7 @@ export const usePostImageUpload = () => {
   };
 
   const upload = async (
-    images: PendingPostImages,
+    images: PostFormImages,
   ): Promise<PostImageUploadResult> => {
     setErrors({});
     setUploading(true);

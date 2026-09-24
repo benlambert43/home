@@ -1,5 +1,5 @@
 import { postUploadImageHref } from "@/app/blog/links";
-import { PendingPostImage } from "@/app/blog/postForm/pendingPostImages";
+import { PendingPostImage } from "@/app/blog/postForm/postFormImages";
 import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { POST_IMAGE_FIELD, UploadPostImageResponse } from "@home/shared";
 

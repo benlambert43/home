@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  PendingPostImage,
-  PendingPostImages,
-} from "@/app/blog/postForm/pendingPostImages";
+  PostFormImage,
+  PostFormImages,
+} from "@/app/blog/postForm/postFormImages";
 import {
   ACCEPTED_POST_IMAGE_TYPES,
   pickedFiles,
@@ -95,16 +95,16 @@ const PostImageRow = ({
   onInsert,
   onRemove,
 }: {
-  image: PendingPostImage;
+  image: PostFormImage;
   progress?: number;
   error?: string;
   disabled: boolean;
-  onInsert?: (image: PendingPostImage) => void;
-  onRemove: (image: PendingPostImage) => void;
+  onInsert?: (image: PostFormImage) => void;
+  onRemove: (image: PostFormImage) => void;
 }) => (
   <li className="flex flex-row items-center gap-3">
     <Image
-      src={image.previewUrl}
+      src={image.src}
       alt=""
       width={THUMBNAIL_PIXELS}
       height={THUMBNAIL_PIXELS}
@@ -114,7 +114,7 @@ const PostImageRow = ({
     <div className="flex min-w-0 flex-col">
       <span className="truncate font-mono">{image.name}</span>
       <span className="text-sm text-slate-400">
-        {fileSize(image.file.size)}
+        {fileSize(image.byteSize)}
         {progress === undefined || error !== undefined
           ? ""
           : ` · ${Math.round(progress * 100)}%`}
@@ -164,17 +164,17 @@ const PostImagePicker = ({
   onInsertImage,
   onRemoveImage,
 }: {
-  images: PendingPostImages;
+  images: PostFormImages;
   problems: string[];
   progress: Record<string, number>;
   errors: Record<string, string>;
   disabled: boolean;
   onPickHeaderImage: (files: File[]) => Promise<void>;
   onAddInlineImages: (files: File[]) => Promise<string[]>;
-  onInsertImage: (image: PendingPostImage) => void;
-  onRemoveImage: (image: PendingPostImage) => void;
+  onInsertImage: (image: PostFormImage) => void;
+  onRemoveImage: (image: PostFormImage) => void;
 }) => {
-  const row = (image: PendingPostImage, onInsert?: typeof onInsertImage) => (
+  const row = (image: PostFormImage, onInsert?: typeof onInsertImage) => (
     <PostImageRow
       key={image.name}
       image={image}

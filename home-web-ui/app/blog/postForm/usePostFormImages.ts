@@ -1,29 +1,29 @@
 import {
-  allPendingImages,
-  NO_PENDING_IMAGES,
-  PendingPostImage,
-  PendingPostImages,
+  allPostFormImages,
+  NO_POST_FORM_IMAGES,
+  PostFormImage,
+  PostFormImages,
   readImageFiles,
-  releasePendingImage,
+  releasePostFormImage,
   withHeaderImage,
   withInlineImages,
-  withoutPendingImage,
-} from "@/app/blog/postForm/pendingPostImages";
+  withoutImage,
+} from "@/app/blog/postForm/postFormImages";
 import { useEffect, useRef, useState } from "react";
 
-export const usePendingPostImages = () => {
-  const [images, setImages] = useState(NO_PENDING_IMAGES);
+export const usePostFormImages = (initialImages = NO_POST_FORM_IMAGES) => {
+  const [images, setImages] = useState(initialImages);
   const [problems, setProblems] = useState<string[]>([]);
   const latestImages = useRef(images);
 
-  const update = (next: PendingPostImages) => {
+  const update = (next: PostFormImages) => {
     latestImages.current = next;
     setImages(next);
   };
 
   useEffect(
     () => () => {
-      allPendingImages(latestImages.current).forEach(releasePendingImage);
+      allPostFormImages(latestImages.current).forEach(releasePostFormImage);
     },
     [],
   );
@@ -41,26 +41,26 @@ export const usePendingPostImages = () => {
 
     update(withHeaderImage(latestImages.current, read[0]));
 
-    if (replaced) releasePendingImage(replaced);
+    if (replaced) releasePostFormImage(replaced);
   };
 
   const addInlineImages = async (files: File[]) => {
     const { read, problems: unreadable } = await readImageFiles(files);
     const {
-      pending,
+      images: next,
       added,
       problems: refused,
     } = withInlineImages(latestImages.current, read);
 
     setProblems([...unreadable, ...refused]);
-    update(pending);
+    update(next);
 
     return added.map((image) => image.name);
   };
 
-  const removeImage = (image: PendingPostImage) => {
-    update(withoutPendingImage(latestImages.current, image));
-    releasePendingImage(image);
+  const removeImage = (image: PostFormImage) => {
+    update(withoutImage(latestImages.current, image));
+    releasePostFormImage(image);
   };
 
   return { images, problems, pickHeaderImage, addInlineImages, removeImage };

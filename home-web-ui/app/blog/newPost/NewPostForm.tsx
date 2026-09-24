@@ -11,12 +11,13 @@ import {
 } from "@/app/blog/postForm/postFormFields";
 import PostImagePicker from "@/app/blog/postForm/PostImagePicker";
 import {
-  allPendingImages,
-  PendingPostImage,
-  pendingMarkdownImages,
+  allPostFormImages,
+  pendingPostImages,
+  PostFormImage,
+  postFormMarkdownImages,
   unmatchedImageReferences,
-} from "@/app/blog/postForm/pendingPostImages";
-import { usePendingPostImages } from "@/app/blog/postForm/usePendingPostImages";
+} from "@/app/blog/postForm/postFormImages";
+import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import {
@@ -43,7 +44,7 @@ const NewPostForm = ({ page }: { page: number }) => {
   const [state, action, pending] = useActionState(createPost, undefined);
   const [submitted, setSubmitted] = useState<CreatePostFormState>(undefined);
   const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
-    usePendingPostImages();
+    usePostFormImages();
   const {
     upload,
     progress,
@@ -55,7 +56,7 @@ const NewPostForm = ({ page }: { page: number }) => {
   const errors = submitted ?? state;
   const busy = pending || uploading;
 
-  const insertImage = (image: PendingPostImage) => {
+  const insertImage = (image: PostFormImage) => {
     editorRef.current?.insert(postImageMarkdown(image.name));
   };
 
@@ -80,7 +81,7 @@ const NewPostForm = ({ page }: { page: number }) => {
       return;
     }
 
-    if (allPendingImages(images).length > 0) {
+    if (allPostFormImages(pendingPostImages(images)).length > 0) {
       const uploaded = await upload(images);
 
       if (!uploaded.ok) {
@@ -121,7 +122,7 @@ const NewPostForm = ({ page }: { page: number }) => {
         rows={12}
         disabled={busy}
         defaultValue={state?.values?.content}
-        images={pendingMarkdownImages(images)}
+        images={postFormMarkdownImages(images)}
         onAddImages={addInlineImages}
       />
 
