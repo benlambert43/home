@@ -10,6 +10,7 @@ import {
   postImageReferences,
   toPostImageName,
   uniquePostImageName,
+  UpdatePostRequestBody,
 } from "@home/shared";
 
 const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_POST_INLINE_IMAGES} images at a time.`;
@@ -34,11 +35,20 @@ export type PostFormImage = PendingPostImage | StoredPostImage;
 export type PostFormImages = {
   headerImage?: PostFormImage;
   inlineImages: PostFormImage[];
+  removedStoredImages: { headerImage?: string; inlineImages: string[] };
 };
+
+export type PostFormImageRemovals = Pick<
+  UpdatePostRequestBody,
+  "headerImage" | "removeInlineImages"
+>;
 
 export type ReadImageFile = Omit<PendingPostImage, "stored" | "src">;
 
-export const NO_POST_FORM_IMAGES: PostFormImages = { inlineImages: [] };
+export const NO_POST_FORM_IMAGES: PostFormImages = {
+  inlineImages: [],
+  removedStoredImages: { inlineImages: [] },
+};
 
 const unsupportedProblem = (file: File) =>
   `${file.name} is not a PNG, JPEG, WebP, GIF, or AVIF image.`;
@@ -109,6 +119,7 @@ export const storedPostImages = ({
 }: Post): PostFormImages => ({
   headerImage: headerImage ? storedImage(_id, headerImage) : undefined,
   inlineImages: inlineImages.map((image) => storedImage(_id, image)),
+  removedStoredImages: { inlineImages: [] },
 });
 
 export const allPostFormImages = <Image extends PostFormImage>({
@@ -144,11 +155,19 @@ export const releasePostFormImage = (image: PostFormImage) => {
   if (!image.stored) URL.revokeObjectURL(image.src);
 };
 
+const withoutHeaderImage = (images: PostFormImages): PostFormImages => ({
+  ...images,
+  headerImage: undefined,
+  removedStoredImages: images.headerImage?.stored
+    ? { ...images.removedStoredImages, headerImage: images.headerImage.name }
+    : images.removedStoredImages,
+});
+
 export const withHeaderImage = (
   images: PostFormImages,
   read: ReadImageFile,
 ): PostFormImages => ({
-  ...images,
+  ...withoutHeaderImage(images),
   headerImage: pendingImage(read, images.inlineImages),
 });
 
@@ -171,12 +190,40 @@ export const withInlineImages = (
   };
 };
 
-export const withoutImage = (
+const withoutInlineImage = (
   images: PostFormImages,
   removed: PostFormImage,
 ): PostFormImages => ({
-  headerImage: images.headerImage === removed ? undefined : images.headerImage,
+  ...images,
   inlineImages: images.inlineImages.filter((image) => image !== removed),
+  removedStoredImages: removed.stored
+    ? {
+        ...images.removedStoredImages,
+        inlineImages: [
+          ...images.removedStoredImages.inlineImages,
+          removed.name,
+        ],
+      }
+    : images.removedStoredImages,
+});
+
+export const withoutImage = (
+  images: PostFormImages,
+  removed: PostFormImage,
+): PostFormImages =>
+  images.headerImage === removed
+    ? withoutHeaderImage(images)
+    : withoutInlineImage(images, removed);
+
+export const postFormImageRemovals = ({
+  headerImage,
+  removedStoredImages,
+}: PostFormImages): PostFormImageRemovals => ({
+  headerImage:
+    removedStoredImages.headerImage !== undefined && headerImage === undefined
+      ? null
+      : undefined,
+  removeInlineImages: removedStoredImages.inlineImages,
 });
 
 export const postFormMarkdownImages = (
