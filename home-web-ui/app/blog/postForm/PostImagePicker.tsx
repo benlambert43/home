@@ -3,7 +3,7 @@
 import {
   PendingPostImage,
   PendingPostImages,
-} from "@/app/blog/newPost/pendingPostImages";
+} from "@/app/blog/postForm/pendingPostImages";
 import {
   ACCEPTED_POST_IMAGE_TYPES,
   pickedFiles,

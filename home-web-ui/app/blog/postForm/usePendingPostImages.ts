@@ -8,7 +8,7 @@ import {
   withHeaderImage,
   withInlineImages,
   withoutPendingImage,
-} from "@/app/blog/newPost/pendingPostImages";
+} from "@/app/blog/postForm/pendingPostImages";
 import { useEffect, useRef, useState } from "react";
 
 export const usePendingPostImages = () => {

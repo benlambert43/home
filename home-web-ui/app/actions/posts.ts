@@ -4,7 +4,7 @@ import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import {
   CREATE_POST_FIELDS,
   UPLOAD_ID_FIELD,
-} from "@/app/blog/newPost/createPostFields";
+} from "@/app/blog/postForm/createPostFields";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
   CreatePostFormState,

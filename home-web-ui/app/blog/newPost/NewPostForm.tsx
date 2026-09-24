@@ -8,16 +8,16 @@ import MarkdownEditor, {
 import {
   CREATE_POST_FIELDS,
   UPLOAD_ID_FIELD,
-} from "@/app/blog/newPost/createPostFields";
-import PostImagePicker from "@/app/blog/newPost/PostImagePicker";
+} from "@/app/blog/postForm/createPostFields";
+import PostImagePicker from "@/app/blog/postForm/PostImagePicker";
 import {
   allPendingImages,
   PendingPostImage,
   pendingMarkdownImages,
   unmatchedImageReferences,
-} from "@/app/blog/newPost/pendingPostImages";
-import { usePendingPostImages } from "@/app/blog/newPost/usePendingPostImages";
-import { usePostImageUpload } from "@/app/blog/newPost/usePostImageUpload";
+} from "@/app/blog/postForm/pendingPostImages";
+import { usePendingPostImages } from "@/app/blog/postForm/usePendingPostImages";
+import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import {
   CreatePostFormState,

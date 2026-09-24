@@ -2,12 +2,12 @@ import { discardPostUpload, startPostUpload } from "@/app/actions/postUploads";
 import {
   allPendingImages,
   PendingPostImages,
-} from "@/app/blog/newPost/pendingPostImages";
+} from "@/app/blog/postForm/pendingPostImages";
 import {
   PostImageUploads,
   uploadPostImages,
   uploadSessionLost,
-} from "@/app/blog/newPost/uploadPostImages";
+} from "@/app/blog/postForm/uploadPostImages";
 import { SERVICE_UNAVAILABLE_MESSAGE } from "@/app/lib/messages";
 import { useEffect, useRef, useState } from "react";
 
