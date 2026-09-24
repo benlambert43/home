@@ -1,3 +1,4 @@
+import EditPostButton from "@/app/blog/EditPostButton";
 import {
   postFullSizeImageHref,
   postImageHref,
@@ -10,6 +11,7 @@ import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import { getPost } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
+import { Suspense } from "react";
 
 export type PostParams = Promise<{ id: string }>;
 
@@ -49,8 +51,11 @@ const Post = async ({
 
   return (
     <div className="flex max-w-160 flex-col gap-4 p-5">
-      <div>
+      <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts page={page} postId={post._id} appearance="arrow" />
+        <Suspense fallback={null}>
+          <EditPostButton postId={post._id} page={page} />
+        </Suspense>
       </div>
       <h1
         className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
