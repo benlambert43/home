@@ -35,6 +35,7 @@ export type PostFormImage = PendingPostImage | StoredPostImage;
 export type PostFormImages = {
   headerImage?: PostFormImage;
   inlineImages: PostFormImage[];
+  usedImageNames: string[];
   removedStoredImages: { headerImage?: string; inlineImages: string[] };
 };
 
@@ -47,6 +48,7 @@ export type ReadImageFile = Omit<PendingPostImage, "stored" | "src">;
 
 export const NO_POST_FORM_IMAGES: PostFormImages = {
   inlineImages: [],
+  usedImageNames: [],
   removedStoredImages: { inlineImages: [] },
 };
 
@@ -113,12 +115,15 @@ const storedImage = (
 });
 
 export const storedPostImages = ({
-  _id,
-  headerImage,
-  inlineImages,
-}: Post): PostFormImages => ({
+  post: { _id, headerImage, inlineImages },
+  usedImageNames,
+}: {
+  post: Post;
+  usedImageNames: string[];
+}): PostFormImages => ({
   headerImage: headerImage ? storedImage(_id, headerImage) : undefined,
   inlineImages: inlineImages.map((image) => storedImage(_id, image)),
+  usedImageNames,
   removedStoredImages: { inlineImages: [] },
 });
 
@@ -140,14 +145,15 @@ export const pendingPostImages = ({
 
 const pendingImage = (
   read: ReadImageFile,
+  usedImageNames: string[],
   taken: PostFormImage[],
 ): PendingPostImage => ({
   ...read,
   stored: false,
-  name: uniquePostImageName(
-    read.name,
-    taken.map((image) => image.name),
-  ),
+  name: uniquePostImageName(read.name, [
+    ...usedImageNames,
+    ...taken.map((image) => image.name),
+  ]),
   src: URL.createObjectURL(read.file),
 });
 
@@ -168,7 +174,7 @@ export const withHeaderImage = (
   read: ReadImageFile,
 ): PostFormImages => ({
   ...withoutHeaderImage(images),
-  headerImage: pendingImage(read, images.inlineImages),
+  headerImage: pendingImage(read, images.usedImageNames, images.inlineImages),
 });
 
 export const withInlineImages = (
@@ -180,7 +186,12 @@ export const withInlineImages = (
   const added: PendingPostImage[] = [];
 
   for (const file of read.slice(0, room)) {
-    added.push(pendingImage(file, [...allPostFormImages(images), ...added]));
+    added.push(
+      pendingImage(file, images.usedImageNames, [
+        ...allPostFormImages(images),
+        ...added,
+      ]),
+    );
   }
 
   return {
