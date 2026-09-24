@@ -1,4 +1,5 @@
 import "server-only";
+import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import {
   ApiError,
   apiFetch,
@@ -6,7 +7,11 @@ import {
   NOT_FOUND_STATUS,
 } from "@/app/lib/api";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
-import { GetPostResponse, GetPostsResponse } from "@home/shared";
+import {
+  GetPostForEditResponse,
+  GetPostResponse,
+  GetPostsResponse,
+} from "@home/shared";
 import { notFound } from "next/navigation";
 
 export const POSTS_URL = `${BASE_API_URL}/posts`;
@@ -25,6 +30,23 @@ export const getPost = async (id: string): Promise<GetPostResponse> => {
   try {
     return await apiFetch<GetPostResponse>(
       `${POSTS_URL}/${encodeURIComponent(id)}`,
+    );
+  } catch (error) {
+    if (error instanceof ApiError && error.status === NOT_FOUND_STATUS) {
+      notFound();
+    }
+
+    return { error: true, message: errorMessage(error) };
+  }
+};
+
+export const getPostForEdit = async (
+  id: string,
+): Promise<GetPostForEditResponse> => {
+  try {
+    return await apiFetch<GetPostForEditResponse>(
+      `${POSTS_URL}/${encodeURIComponent(id)}/edit`,
+      { authorization: await getApiSessionToken() },
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === NOT_FOUND_STATUS) {

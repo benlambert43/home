@@ -20,6 +20,11 @@ const postPath = (id: string) => `/blog/${id}`;
 export const postHref = (id: string, page = 1) =>
   page > 1 ? `${postPath(id)}?page=${page}` : postPath(id);
 
+const editPostPath = (id: string) => `${postPath(id)}/edit`;
+
+export const editPostHref = (id: string, page = 1) =>
+  page > 1 ? `${editPostPath(id)}?page=${page}` : editPostPath(id);
+
 export const postImageHref = (id: string, name: string) =>
   `${postPath(id)}/images/${encodeURIComponent(name)}`;
 
