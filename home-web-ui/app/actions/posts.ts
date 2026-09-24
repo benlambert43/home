@@ -2,9 +2,9 @@
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import {
-  CREATE_POST_FIELDS,
+  POST_FORM_FIELDS,
   UPLOAD_ID_FIELD,
-} from "@/app/blog/postForm/createPostFields";
+} from "@/app/blog/postForm/postFormFields";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
   CreatePostFormState,
@@ -31,7 +31,7 @@ export const createPost = async (
   state: CreatePostFormState,
   formData: FormData,
 ): Promise<CreatePostFormState> => {
-  const values = readFormValues(formData, CREATE_POST_FIELDS);
+  const values = readFormValues(formData, POST_FORM_FIELDS);
   const validatedFields = createPostBodySchema.safeParse({
     ...values,
     uploadId: submittedUploadId(formData),

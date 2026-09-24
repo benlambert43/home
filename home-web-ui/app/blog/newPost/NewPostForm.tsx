@@ -6,9 +6,9 @@ import MarkdownEditor, {
   postImageMarkdown,
 } from "@/app/blog/MarkdownEditor";
 import {
-  CREATE_POST_FIELDS,
+  POST_FORM_FIELDS,
   UPLOAD_ID_FIELD,
-} from "@/app/blog/postForm/createPostFields";
+} from "@/app/blog/postForm/postFormFields";
 import PostImagePicker from "@/app/blog/postForm/PostImagePicker";
 import {
   allPendingImages,
@@ -62,7 +62,7 @@ const NewPostForm = ({ page }: { page: number }) => {
   const submitPost = async (formData: FormData) => {
     setSubmitted(undefined);
 
-    const values = readFormValues(formData, CREATE_POST_FIELDS);
+    const values = readFormValues(formData, POST_FORM_FIELDS);
     const validatedFields = createPostFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
@@ -104,7 +104,7 @@ const NewPostForm = ({ page }: { page: number }) => {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <TextField
-        name={CREATE_POST_FIELDS.title}
+        name={POST_FORM_FIELDS.title}
         label="Title"
         type="text"
         placeholder="Title"
@@ -116,7 +116,7 @@ const NewPostForm = ({ page }: { page: number }) => {
 
       <MarkdownEditor
         ref={editorRef}
-        name={CREATE_POST_FIELDS.content}
+        name={POST_FORM_FIELDS.content}
         label="Content"
         rows={12}
         disabled={busy}
