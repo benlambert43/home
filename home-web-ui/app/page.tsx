@@ -1,3 +1,4 @@
+import RecentPosts from "@/app/blog/RecentPosts";
 import Content from "@/app/components/Content";
 import Hero from "@/app/components/Hero";
 import { ReactNode } from "react";
@@ -40,9 +41,7 @@ const Home = () => (
   <div>
     <Hero />
     <Content>
-      <div className="flex">
-        <p>Left content</p>
-      </div>
+      <RecentPosts />
       <div className="flex">
         <div className="max-w-80">
           <Highlights />

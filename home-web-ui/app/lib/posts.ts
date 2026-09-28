@@ -24,8 +24,12 @@ const postUrl = (id: string) => {
   return `${POSTS_URL}/${params.data.id}`;
 };
 
-export const getPosts = async (page: number): Promise<GetPostsResponse> => {
+export const getPosts = async (
+  page: number,
+  pageSize?: number,
+): Promise<GetPostsResponse> => {
   const query = new URLSearchParams({ page: String(page) });
+  if (pageSize !== undefined) query.set("pageSize", String(pageSize));
 
   try {
     return await apiFetch<GetPostsResponse>(`${POSTS_URL}?${query}`);
