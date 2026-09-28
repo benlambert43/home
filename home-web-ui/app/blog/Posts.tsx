@@ -2,15 +2,14 @@ import {
   blogHref,
   postAnchor,
   postHref,
-  postImageHref,
   requestedPage,
 } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
+import PostThumbnail from "@/app/blog/PostThumbnail";
 import { getPosts } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
 import Button from "@/app/ui/Button";
 import { PostPagination, PostSummary } from "@home/shared";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -22,23 +21,15 @@ const PostRowThumbnail = ({
 }: {
   post: PostSummary;
   page: number;
-}) => {
-  const image = post.headerImage;
-
-  if (!image) return null;
-
-  return (
-    <Link href={postHref(post._id, page)} className="shrink-0">
-      <Image
-        src={postImageHref(post._id, image.name)}
-        alt=""
-        width={THUMBNAIL_PIXELS}
-        height={THUMBNAIL_PIXELS}
-        className="size-20 rounded-md object-cover sm:size-30"
-      />
-    </Link>
-  );
-};
+}) => (
+  <Link href={postHref(post._id, page)} className="shrink-0">
+    <PostThumbnail
+      post={post}
+      pixels={THUMBNAIL_PIXELS}
+      className="size-20 rounded-md sm:size-30"
+    />
+  </Link>
+);
 
 const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
   <li
