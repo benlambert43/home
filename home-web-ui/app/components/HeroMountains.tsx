@@ -1,43 +1,52 @@
 "use client";
 
-import { ArrowPathIcon, PauseIcon } from "@heroicons/react/16/solid";
+import { ArrowPathIcon, PauseIcon, PlayIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import {
+  MOUNTAINS_EFFECT_COOKIE,
   MOUNTAINS_PAUSED_COOKIE,
   MOUNTAINS_PLAYED_COOKIE,
-  randomMountainEffect,
+  nextMountainEffect,
 } from "@/app/lib/heroMountains";
-import Mountains, { MountainEffect } from "@/app/ui/Mountains";
+import Mountains from "@/app/ui/Mountains";
 
-const PAUSED_MAX_AGE_SECONDS = 60 * 60 * 24 * 400;
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 400;
 
 const BUTTON_CLASSES =
-  "rounded p-1 text-slate-500 hover:cursor-pointer hover:text-slate-300 aria-pressed:text-slate-300";
+  "rounded p-1 text-slate-500 hover:cursor-pointer hover:text-slate-300";
 
 const HeroMountains = ({
-  initialEffect,
+  autoplay,
+  lastEffect,
   initialPaused,
 }: {
-  initialEffect: MountainEffect | null;
+  autoplay: boolean;
+  lastEffect?: string;
   initialPaused: boolean;
 }) => {
   const [paused, setPaused] = useState(initialPaused);
-  const [effect, setEffect] = useState(initialEffect);
-  const [replays, setReplays] = useState(0);
+  const [effect, setEffect] = useState(
+    autoplay ? nextMountainEffect(lastEffect) : null,
+  );
 
   useEffect(() => {
     document.cookie = `${MOUNTAINS_PLAYED_COOKIE}=true; path=/; samesite=lax`;
   }, []);
 
-  const togglePaused = () => {
-    document.cookie = `${MOUNTAINS_PAUSED_COOKIE}=${!paused}; path=/; max-age=${PAUSED_MAX_AGE_SECONDS}; samesite=lax`;
-    setPaused(!paused);
-    setEffect(null);
+  useEffect(() => {
+    if (effect) {
+      document.cookie = `${MOUNTAINS_EFFECT_COOKIE}=${effect}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
+    }
+  }, [effect]);
+
+  const playNextEffect = () => {
+    setEffect(nextMountainEffect(effect ?? lastEffect));
   };
 
-  const replay = () => {
-    setEffect(randomMountainEffect());
-    setReplays((count) => count + 1);
+  const togglePaused = () => {
+    document.cookie = `${MOUNTAINS_PAUSED_COOKIE}=${!paused}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
+    setPaused(!paused);
+    if (paused) playNextEffect();
   };
 
   return (
@@ -45,24 +54,29 @@ const HeroMountains = ({
       <div className="absolute top-1 left-7 flex gap-1">
         <button
           type="button"
-          title="Pause header animations"
-          aria-pressed={paused}
+          title={paused ? "Play header animations" : "Pause header animations"}
           onClick={togglePaused}
           className={BUTTON_CLASSES}
         >
-          <PauseIcon className="size-4" />
+          {paused ? (
+            <PlayIcon className="size-4" />
+          ) : (
+            <PauseIcon className="size-4" />
+          )}
         </button>
-        <button
-          type="button"
-          title="Replay header animation"
-          onClick={replay}
-          className={BUTTON_CLASSES}
-        >
-          <ArrowPathIcon className="size-4" />
-        </button>
+        {!paused && (
+          <button
+            type="button"
+            title="Replay header animation"
+            onClick={playNextEffect}
+            className={BUTTON_CLASSES}
+          >
+            <ArrowPathIcon className="size-4" />
+          </button>
+        )}
       </div>
       <div className="max-w-full overflow-clip">
-        <Mountains key={replays} effect={effect} />
+        <Mountains effect={paused ? null : effect} />
       </div>
     </>
   );

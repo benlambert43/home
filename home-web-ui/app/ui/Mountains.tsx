@@ -1,15 +1,14 @@
 import { CSSProperties } from "react";
 
-export const MOUNTAIN_EFFECTS = ["fade", "rise", "zoomOut", "zoomIn"] as const;
+export const MOUNTAIN_EFFECTS = ["zoomOut", "zoomIn", "fade", "rise"] as const;
 
 export type MountainEffect = (typeof MOUNTAIN_EFFECTS)[number];
 
 const EFFECT_CLASSES: Record<MountainEffect, string> = {
-  fade: "motion-safe:animate-mountain-fade [animation-delay:calc(var(--layer)*110ms)]",
-  rise: "motion-safe:animate-mountain-rise [animation-delay:calc(var(--layer)*80ms)]",
+  fade: "motion-safe:animate-mountain-fade",
+  rise: "motion-safe:animate-mountain-rise",
   zoomOut: "origin-[50vw_bottom] motion-safe:animate-mountain-zoom-out",
-  zoomIn:
-    "origin-bottom-left motion-safe:animate-mountain-zoom-in [animation-delay:calc(var(--layer)*70ms)]",
+  zoomIn: "origin-bottom-left motion-safe:animate-mountain-zoom-in",
 };
 
 const LAYERS = [
@@ -80,7 +79,12 @@ const Mountains = ({ effect }: { effect: MountainEffect | null }) => {
           d={d}
           fill={fill}
           className={effect ? EFFECT_CLASSES[effect] : undefined}
-          style={{ "--layer": index } as CSSProperties}
+          style={
+            {
+              "--layer": index,
+              "--layer-from-front": LAYERS.length - 1 - index,
+            } as CSSProperties
+          }
         ></path>
       ))}
     </svg>
