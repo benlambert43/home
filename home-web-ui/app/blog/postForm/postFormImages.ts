@@ -237,6 +237,11 @@ export const postFormImageRemovals = ({
   removeInlineImages: removedStoredImages.inlineImages,
 });
 
+export const hasUnsavedImages = (images: PostFormImages) =>
+  allPostFormImages(pendingPostImages(images)).length > 0 ||
+  images.removedStoredImages.headerImage !== undefined ||
+  images.removedStoredImages.inlineImages.length > 0;
+
 export const postFormMarkdownImages = (
   images: PostFormImages,
 ): PostMarkdownImage[] =>

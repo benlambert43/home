@@ -70,6 +70,7 @@ export const createPost = async (
     return { values, errors: [errorMessage(error)] };
   }
 
+  revalidatePath("/blog");
   redirect("/blog");
 };
 

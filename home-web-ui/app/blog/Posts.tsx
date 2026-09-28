@@ -12,6 +12,7 @@ import Button from "@/app/ui/Button";
 import { PostPagination, PostSummary } from "@home/shared";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const THUMBNAIL_PIXELS = 120;
 
@@ -86,6 +87,8 @@ const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
   if (result.error) return <p>{result.message}</p>;
 
   const { posts, pagination } = result;
+
+  if (page > pagination.totalPages) redirect(blogHref(pagination.totalPages));
 
   if (pagination.totalPosts === 0) return <p>No posts yet.</p>;
 

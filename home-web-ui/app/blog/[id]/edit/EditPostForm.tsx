@@ -27,6 +27,7 @@ import {
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
+import { useUnsavedPostChanges } from "@/app/blog/postForm/useUnsavedPostChanges";
 import {
   readFormValues,
   treeifyFormError,
@@ -78,6 +79,9 @@ const EditPostForm = ({
     uploading,
   } = usePostImageUpload();
   const editorRef = useRef<MarkdownEditorHandle>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useUnsavedPostChanges(formRef, post, images);
 
   const errors = submitted ?? state;
   const busy = pending || uploading;
@@ -132,7 +136,7 @@ const EditPostForm = ({
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
       <TextField
         name={POST_FORM_FIELDS.title}
         label="Title"

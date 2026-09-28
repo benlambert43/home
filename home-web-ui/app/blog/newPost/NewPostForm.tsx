@@ -20,6 +20,10 @@ import {
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
+import {
+  EMPTY_POST_FIELDS,
+  useUnsavedPostChanges,
+} from "@/app/blog/postForm/useUnsavedPostChanges";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import {
   CreatePostFormState,
@@ -50,6 +54,9 @@ const NewPostForm = ({ page }: { page: number }) => {
     uploading,
   } = usePostImageUpload();
   const editorRef = useRef<MarkdownEditorHandle>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useUnsavedPostChanges(formRef, EMPTY_POST_FIELDS, images);
 
   const errors = submitted ?? state;
   const busy = pending || uploading;
@@ -101,7 +108,7 @@ const NewPostForm = ({ page }: { page: number }) => {
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
       <TextField
         name={POST_FORM_FIELDS.title}
         label="Title"
