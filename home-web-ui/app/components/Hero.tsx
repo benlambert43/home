@@ -1,9 +1,19 @@
+import { cookies } from "next/headers";
 import Image from "next/image";
-import Mountains from "@/app/ui/Mountains";
+import HeroMountains from "@/app/components/HeroMountains";
+import {
+  MOUNTAINS_PAUSED_COOKIE,
+  MOUNTAINS_PLAYED_COOKIE,
+  randomMountainEffect,
+} from "@/app/lib/heroMountains";
 
-const Hero = () => {
+const Hero = async () => {
+  const cookieStore = await cookies();
+  const paused = cookieStore.get(MOUNTAINS_PAUSED_COOKIE)?.value === "true";
+  const played = cookieStore.has(MOUNTAINS_PLAYED_COOKIE);
+
   return (
-    <div className="flex flex-col items-center justify-center pt-8">
+    <div className="relative flex flex-col items-center justify-center pt-8">
       <div className="flex min-w-full items-center justify-end">
         <div
           className="flex min-w-1/2 flex-wrap-reverse items-center
@@ -34,9 +44,10 @@ const Hero = () => {
           </div>
         </div>
       </div>
-      <div className="max-w-full overflow-clip">
-        <Mountains />
-      </div>
+      <HeroMountains
+        initialEffect={paused || played ? null : randomMountainEffect()}
+        initialPaused={paused}
+      />
     </div>
   );
 };

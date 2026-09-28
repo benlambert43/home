@@ -6,4 +6,41 @@
   --color-portrait-sky: #6aaaf0;
   --color-portrait-haze: #d5d8ee;
   --color-portrait-dusk: #f0a585;
+
+  --animate-mountain-fade: mountain-fade 0.7s ease-out both;
+  --animate-mountain-rise: mountain-rise 1.1s cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+  --animate-mountain-zoom-out: mountain-zoom-out 2.2s
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-mountain-zoom-in: mountain-zoom-in 1.8s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes mountain-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes mountain-rise {
+    from {
+      opacity: 0;
+      transform: translateY(calc(50px + var(--layer) * 4px));
+    }
+  }
+
+  @keyframes mountain-zoom-out {
+    from {
+      transform: scale(calc(1 + (var(--layer) + 1) * 0.04));
+    }
+  }
+
+  @keyframes mountain-zoom-in {
+    0% {
+      opacity: 0;
+      transform: scale(calc(1 - (var(--layer) + 1) * 0.02));
+    }
+    40% {
+      opacity: 1;
+    }
+  }
 }
