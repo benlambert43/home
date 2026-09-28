@@ -12,6 +12,8 @@ import Mountains from "@/app/ui/Mountains";
 
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 400;
 
+const PLAYED_MAX_AGE_SECONDS = 60 * 30;
+
 const BUTTON_CLASSES =
   "rounded p-1 text-slate-500 hover:cursor-pointer hover:text-slate-300";
 
@@ -30,7 +32,7 @@ const HeroMountains = ({
   );
 
   useEffect(() => {
-    document.cookie = `${MOUNTAINS_PLAYED_COOKIE}=true; path=/; samesite=lax`;
+    document.cookie = `${MOUNTAINS_PLAYED_COOKIE}=true; path=/; max-age=${PLAYED_MAX_AGE_SECONDS}; samesite=lax`;
   }, []);
 
   useEffect(() => {

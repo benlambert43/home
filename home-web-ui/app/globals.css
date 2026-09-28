@@ -13,8 +13,8 @@
     calc(var(--layer-from-front) * 160ms) both;
   --animate-mountain-rise: mountain-rise 1.8s cubic-bezier(0.1, 1, 0.2, 1)
     calc(var(--layer-from-front) * 120ms) both;
-  --animate-mountain-zoom-out: mountain-zoom-out 4s cubic-bezier(0.1, 1, 0.2, 1)
-    both;
+  --animate-mountain-zoom-out: mountain-zoom-out 4s
+    cubic-bezier(0.45, 0, 0.2, 1) both;
   --animate-mountain-zoom-in: mountain-zoom-in 2.8s cubic-bezier(0.1, 1, 0.2, 1)
     calc(var(--layer-from-front) * 100ms) both;
 
@@ -34,7 +34,7 @@
   @keyframes mountain-zoom-out {
     from {
       transform: scale(
-        calc(1 + (var(--layer) + 1) * (var(--layer) + 1) * 0.01)
+        calc(1 + (var(--layer) + 1) * (var(--layer) + 1) * 0.016)
       );
     }
   }
