@@ -52,6 +52,8 @@ export type UpdatePostFormState = FormState<typeof updatePostFormSchema>;
 
 export type DeleteAccountState = { errors: string[] };
 
+export type DeletePostState = { errors: string[] };
+
 export type FieldNames<Schema extends z.ZodType> = Record<
   keyof z.input<Schema>,
   string

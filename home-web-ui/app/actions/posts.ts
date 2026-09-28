@@ -1,7 +1,7 @@
 "use server";
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
-import { postHref } from "@/app/blog/links";
+import { blogHref, postHref } from "@/app/blog/links";
 import {
   POST_FORM_FIELDS,
   REMOVE_HEADER_IMAGE_FIELD,
@@ -12,6 +12,7 @@ import {
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
   CreatePostFormState,
+  DeletePostState,
   readFormValues,
   treeifyFormError,
   UpdatePostFormState,
@@ -22,6 +23,7 @@ import {
   createPostBodySchema,
   CreatePostRequestBody,
   CreatePostResponse,
+  DeletePostResponse,
   updatePostBodySchema,
   UpdatePostRequestBody,
   UpdatePostResponse,
@@ -114,4 +116,24 @@ export const updatePost = async (
   revalidatePath(postHref(id));
   revalidatePath("/blog");
   redirect(postHref(id, page));
+};
+
+export const deletePost = async (
+  id: string,
+  page: number,
+): Promise<DeletePostState | undefined> => {
+  try {
+    await apiFetch<DeletePostResponse>(
+      `${POSTS_URL}/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        authorization: await getApiSessionToken(),
+      },
+    );
+  } catch (error) {
+    return { errors: [errorMessage(error)] };
+  }
+
+  revalidatePath("/blog");
+  redirect(blogHref(page));
 };
