@@ -1,13 +1,12 @@
 import { CSSProperties } from "react";
 
-export const MOUNTAIN_EFFECTS = ["zoomOut", "zoomIn", "fade", "rise"] as const;
+export const MOUNTAIN_EFFECTS = ["rise", "zoomIn", "fade"] as const;
 
 export type MountainEffect = (typeof MOUNTAIN_EFFECTS)[number];
 
 const EFFECT_CLASSES: Record<MountainEffect, string> = {
   fade: "motion-safe:animate-mountain-fade",
   rise: "motion-safe:animate-mountain-rise",
-  zoomOut: "origin-[50vw_bottom] motion-safe:animate-mountain-zoom-out",
   zoomIn: "origin-bottom-left motion-safe:animate-mountain-zoom-in",
 };
 
