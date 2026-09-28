@@ -1,9 +1,9 @@
-import EditPostButton from "@/app/blog/EditPostButton";
 import {
   postFullSizeImageHref,
   postImageHref,
   requestedPage,
 } from "@/app/blog/links";
+import PostAdminActions from "@/app/blog/PostAdminActions";
 import PostByline from "@/app/blog/PostByline";
 import PostHeaderImage from "@/app/blog/PostHeaderImage";
 import PostMarkdown from "@/app/blog/PostMarkdown";
@@ -54,7 +54,7 @@ const Post = async ({
       <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts page={page} postId={post._id} appearance="arrow" />
         <Suspense fallback={null}>
-          <EditPostButton postId={post._id} page={page} />
+          <PostAdminActions postId={post._id} page={page} />
         </Suspense>
       </div>
       <h1
