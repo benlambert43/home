@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import HeroMountains from "@/app/components/HeroMountains";
 import {
-  MOUNTAINS_EFFECT_COOKIE,
   MOUNTAINS_PAUSED_COOKIE,
   MOUNTAINS_PLAYED_COOKIE,
 } from "@/app/lib/heroMountains";
@@ -46,11 +45,7 @@ const Hero = async () => {
           </div>
         </div>
       </div>
-      <HeroMountains
-        autoplay={!paused && !played}
-        lastEffect={cookieStore.get(MOUNTAINS_EFFECT_COOKIE)?.value}
-        initialPaused={paused}
-      />
+      <HeroMountains autoplay={!paused && !played} initialPaused={paused} />
     </div>
   );
 };

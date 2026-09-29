@@ -1,15 +1,5 @@
 import { CSSProperties } from "react";
 
-export const MOUNTAIN_EFFECTS = ["rise", "zoomIn", "fade"] as const;
-
-export type MountainEffect = (typeof MOUNTAIN_EFFECTS)[number];
-
-const EFFECT_CLASSES: Record<MountainEffect, string> = {
-  fade: "motion-safe:animate-mountain-fade",
-  rise: "motion-safe:animate-mountain-rise",
-  zoomIn: "origin-bottom-left motion-safe:animate-mountain-zoom-in",
-};
-
 const LAYERS = [
   {
     d: "M0 120L223 79L445 67L668 42L890 22L1113 73L1336 127L1558 29L1781 106L2003 139L2226 25L2449 145L2671 85L2894 9L3117 10L3339 129L3562 43L3784 28L4007 11L4230 64L4452 28L4675 39L4897 11L5120 84L5120 201L4897 201L4675 201L4452 201L4230 201L4007 201L3784 201L3562 201L3339 201L3117 201L2894 201L2671 201L2449 201L2226 201L2003 201L1781 201L1558 201L1336 201L1113 201L890 201L668 201L445 201L223 201L0 201Z",
@@ -61,10 +51,9 @@ const LAYERS = [
   },
 ];
 
-const Mountains = ({ effect }: { effect: MountainEffect | null }) => {
+const Mountains = ({ animated }: { animated: boolean }) => {
   return (
     <svg
-      id="visual"
       viewBox="0 0 5120 200"
       width="5120"
       height="200"
@@ -77,7 +66,7 @@ const Mountains = ({ effect }: { effect: MountainEffect | null }) => {
           key={fill}
           d={d}
           fill={fill}
-          className={effect ? EFFECT_CLASSES[effect] : undefined}
+          className={animated ? "motion-safe:animate-mountain-rise" : undefined}
           style={
             {
               "--layer": index,
