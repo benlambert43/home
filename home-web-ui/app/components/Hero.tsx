@@ -5,13 +5,13 @@ import {
   MOUNTAINS_PAUSED_COOKIE,
   MOUNTAINS_PLAYED_COOKIE,
 } from "@/app/lib/heroMountains";
-import { ALWAYS_PLAY_MOUNTAINS } from "@/app/lib/publicEnv";
+import { ALWAYS_PLAY_HOMEPAGE_ANIMATION } from "@/app/lib/publicEnv";
 
 const Hero = async () => {
   const cookieStore = await cookies();
   const paused = cookieStore.get(MOUNTAINS_PAUSED_COOKIE)?.value === "true";
   const played =
-    !ALWAYS_PLAY_MOUNTAINS && cookieStore.has(MOUNTAINS_PLAYED_COOKIE);
+    !ALWAYS_PLAY_HOMEPAGE_ANIMATION && cookieStore.has(MOUNTAINS_PLAYED_COOKIE);
 
   return (
     <div className="relative flex flex-col items-center justify-center pt-8">

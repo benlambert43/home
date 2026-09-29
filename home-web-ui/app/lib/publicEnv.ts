@@ -14,5 +14,5 @@ export const CAPTCHA_PUBLIC = requireEnvironmentVariable(
   process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC,
 );
 
-export const ALWAYS_PLAY_MOUNTAINS =
-  process.env.NEXT_PUBLIC_ALWAYS_PLAY_MOUNTAINS === "true";
+export const ALWAYS_PLAY_HOMEPAGE_ANIMATION =
+  process.env.NEXT_PUBLIC_ALWAYS_PLAY_HOMEPAGE_ANIMATION === "true";
