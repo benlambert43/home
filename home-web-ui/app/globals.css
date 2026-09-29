@@ -9,7 +9,7 @@
 }
 
 @theme inline {
-  --animate-mountain-fade: mountain-fade 1.2s cubic-bezier(0.1, 1, 0.2, 1)
+  --animate-mountain-fade: mountain-fade 2s cubic-bezier(0.2, 0.61, 0.34, 0.77)
     calc(var(--layer-from-front) * 160ms) both;
   --animate-mountain-rise: mountain-rise 1.8s cubic-bezier(0.1, 1, 0.2, 1)
     calc(var(--layer-from-front) * 120ms) both;
