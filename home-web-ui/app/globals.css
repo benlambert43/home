@@ -1,41 +1,4 @@
 @import "tailwindcss";
+@import "./theme.css";
+@import "./animations.css";
 @plugin "@tailwindcss/typography";
-
-@theme {
-  --container-site-min: 320px;
-  --color-portrait-sky: #6aaaf0;
-  --color-portrait-haze: #d5d8ee;
-  --color-portrait-dusk: #f0a585;
-}
-
-@theme inline {
-  --animate-mountain-fade: mountain-fade 2s cubic-bezier(0.2, 0.61, 0.34, 0.77)
-    calc(var(--layer-from-front) * 160ms) both;
-  --animate-mountain-rise: mountain-rise 1.8s cubic-bezier(0.1, 1, 0.2, 1)
-    calc(var(--layer-from-front) * 120ms) both;
-  --animate-mountain-zoom-in: mountain-zoom-in 2.8s cubic-bezier(0.1, 1, 0.2, 1)
-    calc(var(--layer-from-front) * 100ms) both;
-
-  @keyframes mountain-fade {
-    from {
-      opacity: 0;
-    }
-  }
-
-  @keyframes mountain-rise {
-    from {
-      opacity: 0;
-      transform: translateY(calc(50px + var(--layer) * 4px));
-    }
-  }
-
-  @keyframes mountain-zoom-in {
-    0% {
-      opacity: 0;
-      transform: scale(calc(1 - (var(--layer) + 1) * 0.02));
-    }
-    40% {
-      opacity: 1;
-    }
-  }
-}
