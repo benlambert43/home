@@ -41,7 +41,7 @@ const HeroMountains = ({
 
   return (
     <>
-      <div className="absolute top-1 left-7 flex gap-1">
+      <div className="absolute top-2 left-4 flex gap-1">
         <button
           type="button"
           title={paused ? "Play header animations" : "Pause header animations"}

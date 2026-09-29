@@ -3,11 +3,18 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { Notifications } from "@/app/components/Notifications";
+import StickyNav from "@/app/components/StickyNav";
+import {
+  NAV_ICON_LINK_CLASSES,
+  NAV_TEXT_LINK_CLASSES,
+} from "@/app/ui/navStyles";
 
 const SignIn = () => {
   return (
     <div className="min-w-12">
-      <Link href="/signin">sign in</Link>
+      <Link href="/signin" className={NAV_TEXT_LINK_CLASSES}>
+        sign in
+      </Link>
     </div>
   );
 };
@@ -15,7 +22,7 @@ const SignIn = () => {
 const Profile = () => {
   return (
     <div>
-      <Link href="/profile">
+      <Link href="/profile" className={NAV_ICON_LINK_CLASSES}>
         <UserCircleIcon className="size-6" />
       </Link>
     </div>
@@ -25,7 +32,7 @@ const Profile = () => {
 const Settings = () => {
   return (
     <div>
-      <Link href="/settings">
+      <Link href="/settings" className={NAV_ICON_LINK_CLASSES}>
         <Cog6ToothIcon className="size-6" />
       </Link>
     </div>
@@ -48,22 +55,27 @@ const SessionActions = async () => {
 
 const Navbar = () => {
   return (
-    <nav
-      className="relative mx-2 flex flex-row flex-wrap-reverse items-center
-        justify-between gap-x-8 gap-y-6 rounded-xl bg-slate-600 px-6 py-4"
-    >
+    <StickyNav>
       <div className="flex flex-4 flex-wrap items-center justify-start gap-4">
-        <Link href="/">benlambert.tech</Link>
-        <Link href="/blog">blog</Link>
-        <Link href="/projects">projects</Link>
-        <Link href="/about">about</Link>
+        <Link href="/" className={NAV_TEXT_LINK_CLASSES}>
+          benlambert.tech
+        </Link>
+        <Link href="/blog" className={NAV_TEXT_LINK_CLASSES}>
+          blog
+        </Link>
+        <Link href="/projects" className={NAV_TEXT_LINK_CLASSES}>
+          projects
+        </Link>
+        <Link href="/about" className={NAV_TEXT_LINK_CLASSES}>
+          about
+        </Link>
       </div>
       <div className="flex min-h-6 flex-1 items-center gap-4 sm:justify-end">
         <Suspense fallback={null}>
           <SessionActions />
         </Suspense>
       </div>
-    </nav>
+    </StickyNav>
   );
 };
 

@@ -1,5 +1,6 @@
 import { NotificationContext } from "@/app/components/Notifications";
 import NotificationDrawer from "@/app/components/NotificationDrawer";
+import { NAV_ICON_LINK_CLASSES } from "@/app/ui/navStyles";
 import { BellIcon } from "@heroicons/react/16/solid";
 import { useContext, useEffect, useRef } from "react";
 
@@ -31,7 +32,10 @@ const NotificationIcon = () => {
 
   return (
     <div ref={containerRef} className="flex items-center">
-      <button className="hover:cursor-pointer" onClick={toggle}>
+      <button
+        className={`${NAV_ICON_LINK_CLASSES} hover:cursor-pointer`}
+        onClick={toggle}
+      >
         <div className="relative">
           <BellIcon className="size-6" />
           {hasUnread && (
