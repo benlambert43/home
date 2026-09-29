@@ -1,8 +1,7 @@
-import { getAnimationsPaused } from "@/app/lib/animationsPaused";
 import { pageMetadata } from "@/app/lib/metadata";
 import RouteMap from "@/app/projects/adventures/RouteMap";
 import BirdWire from "@/app/projects/lifelist/BirdWire";
-import ProjectAnimations from "@/app/projects/ProjectAnimations";
+import ProjectPage from "@/app/projects/ProjectPage";
 import Terminal from "@/app/projects/software/Terminal";
 import { ArrowRightIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
@@ -32,12 +31,8 @@ const SECTIONS: { href: string; title: string; preview: ReactNode }[] = [
   },
 ];
 
-const Projects = async () => (
-  <ProjectAnimations
-    initialPaused={await getAnimationsPaused()}
-    title="Projects"
-    className="flex max-w-280 flex-col gap-6 p-5"
-  >
+const Projects = () => (
+  <ProjectPage title="Projects" index>
     <ul className="grid gap-5 md:grid-cols-3">
       {SECTIONS.map(({ href, title, preview }, order) => (
         <li
@@ -47,10 +42,12 @@ const Projects = async () => (
         >
           <Link
             href={href}
-            className="group flex h-full flex-col overflow-clip rounded-2xl
-              bg-slate-700/40 ring-1 ring-slate-600 transition duration-300
-              ease-out hover:-translate-y-1 hover:shadow-xl
-              hover:shadow-slate-950/40 hover:ring-slate-400"
+            className="group animated:motion-safe:hover:-translate-y-1
+              animated:motion-safe:hover:shadow-xl
+              animated:motion-safe:hover:shadow-slate-950/40 flex h-full
+              flex-col overflow-clip rounded-2xl bg-slate-700/40 ring-1
+              ring-slate-600 transition duration-300 ease-out
+              hover:ring-slate-400"
           >
             <div className="relative aspect-video overflow-clip bg-slate-900">
               {preview}
@@ -59,9 +56,9 @@ const Projects = async () => (
               <h2 className="flex items-center gap-2 text-2xl font-semibold">
                 {title}
                 <ArrowRightIcon
-                  className="size-5 text-slate-400 transition-transform
-                    duration-300 ease-out group-hover:translate-x-1
-                    group-hover:text-slate-50"
+                  className="animated:motion-safe:group-hover:translate-x-1
+                    size-5 text-slate-400 transition-transform duration-300
+                    ease-out group-hover:text-slate-50"
                 />
               </h2>
             </div>
@@ -69,7 +66,7 @@ const Projects = async () => (
         </li>
       ))}
     </ul>
-  </ProjectAnimations>
+  </ProjectPage>
 );
 
 export default Projects;

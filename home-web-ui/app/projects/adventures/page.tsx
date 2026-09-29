@@ -10,7 +10,7 @@ const Adventures = () => (
       className="overflow-clip rounded-2xl bg-slate-900 shadow-xl ring-1
         shadow-slate-950/50 ring-slate-700"
     >
-      <RouteMap className="aspect-[2/1] w-full" />
+      <RouteMap className="aspect-2/1 w-full" />
     </div>
     <p>Adventures coming soon!</p>
   </ProjectPage>
