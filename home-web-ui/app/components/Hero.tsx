@@ -1,15 +1,13 @@
 import { cookies } from "next/headers";
 import Image from "next/image";
 import HeroMountains from "@/app/components/HeroMountains";
-import {
-  MOUNTAINS_PAUSED_COOKIE,
-  MOUNTAINS_PLAYED_COOKIE,
-} from "@/app/lib/heroMountains";
+import { getAnimationsPaused } from "@/app/lib/animationsPaused";
+import { MOUNTAINS_PLAYED_COOKIE } from "@/app/lib/heroMountains";
 import { ALWAYS_PLAY_HOMEPAGE_ANIMATION } from "@/app/lib/publicEnv";
 
 const Hero = async () => {
   const cookieStore = await cookies();
-  const paused = cookieStore.get(MOUNTAINS_PAUSED_COOKIE)?.value === "true";
+  const paused = await getAnimationsPaused();
   const played =
     !ALWAYS_PLAY_HOMEPAGE_ANIMATION && cookieStore.has(MOUNTAINS_PLAYED_COOKIE);
 
@@ -40,7 +38,7 @@ const Hero = async () => {
               src="/selfie.png"
               width={500}
               height={500}
-              alt="a selfie of Ben"
+              alt="A selfie of Ben"
             />
           </div>
         </div>

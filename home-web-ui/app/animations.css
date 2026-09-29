@@ -1,11 +1,91 @@
+@custom-variant animated (&:where([data-animated] *));
+
 @theme inline {
   --animate-mountain-rise: mountain-rise 1.8s cubic-bezier(0.1, 1, 0.2, 1)
     calc(var(--layer-from-front) * 120ms) both;
+  --animate-rise: rise 900ms cubic-bezier(0.1, 1, 0.2, 1)
+    calc(var(--rise-order, 0) * 100ms) both;
+  --animate-appear: appear 240ms ease-out calc(var(--delay, 0) * 1ms) both;
+  --animate-type: type calc(var(--chars) * var(--type-ms)) steps(var(--chars))
+    calc(var(--delay, 0) * 1ms) backwards;
+  --animate-cursor: cursor calc(var(--chars) * var(--type-ms)) linear
+    calc(var(--delay, 0) * 1ms);
+  --animate-blink: blink 1s step-end calc(var(--delay, 0) * 1ms) 3;
+  --animate-draw: draw 2.6s ease-in-out calc(var(--delay, 0) * 1ms) both;
+  --animate-travel: travel 2.6s ease-in-out calc(var(--delay, 0) * 1ms) both;
+  --animate-pop: pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1)
+    calc(var(--delay, 0) * 1ms) both;
+  --animate-fly-in: fly-in 1.6s cubic-bezier(0.2, 0.8, 0.2, 1)
+    calc(var(--delay, 0) * 1ms) both;
 
   @keyframes mountain-rise {
     from {
       opacity: 0;
       transform: translateY(calc(50px + var(--layer) * 4px));
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes type {
+    from {
+      width: 0;
+    }
+  }
+
+  @keyframes cursor {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1.01;
+    }
+  }
+
+  @keyframes travel {
+    from {
+      offset-distance: 0%;
+    }
+  }
+
+  @keyframes pop {
+    from {
+      opacity: 0;
+      scale: 0;
+    }
+  }
+
+  @keyframes fly-in {
+    from {
+      opacity: 0;
+      transform: translate(calc(var(--facing, 1) * -360px), -220px)
+        rotate(calc(var(--facing, 1) * -16deg));
+    }
+    55% {
+      opacity: 1;
+      transform: translate(calc(var(--facing, 1) * -48px), 22px)
+        rotate(calc(var(--facing, 1) * 8deg));
     }
   }
 }
