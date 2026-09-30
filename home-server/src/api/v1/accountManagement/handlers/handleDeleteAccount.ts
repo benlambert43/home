@@ -7,15 +7,35 @@ import { PasswordResetModel } from "../../model/passwordResetModel";
 import { UserModel } from "../../model/userModel";
 import { ApiMessage } from "../../http/messages";
 
-const anonymizeEmailRecords = async (userId: Types.ObjectId) => {
-  const anonymized = {
-    userId: new Types.ObjectId(),
-    email: `accountdeleted${randomUUID()}@example.com`,
-  };
+const anonymizeEmailRecords = async (user: {
+  _id: Types.ObjectId;
+  email: string;
+}) => {
+  const anonymizedEmail = `accountdeleted${randomUUID()}@example.com`;
+  const anonymized = [
+    {
+      $set: {
+        userId: new Types.ObjectId(),
+        email: anonymizedEmail,
+        gmailApiResponse: {
+          $replaceAll: {
+            input: "$gmailApiResponse",
+            find: { $literal: user.email },
+            replacement: anonymizedEmail,
+          },
+        },
+      },
+    },
+  ];
+  const options = { updatePipeline: true };
 
   await Promise.all([
-    EmailVerificationModel.updateMany({ userId }, anonymized),
-    PasswordResetModel.updateMany({ userId }, anonymized),
+    EmailVerificationModel.updateMany(
+      { userId: user._id },
+      anonymized,
+      options,
+    ),
+    PasswordResetModel.updateMany({ userId: user._id }, anonymized, options),
   ]);
 };
 
@@ -31,7 +51,7 @@ export const handleDeleteAccount = async (
   }
 
   await NotificationModel.deleteMany({ recipientUserId: foundUser._id });
-  await anonymizeEmailRecords(foundUser._id);
+  await anonymizeEmailRecords(foundUser);
   await UserModel.findByIdAndDelete(foundUser._id);
 
   return { error: false, message: ApiMessage.ACCOUNT_DELETED };
