@@ -125,11 +125,12 @@ const PrivacyNotice = () => (
     <h2>How long information is kept</h2>
     <p>
       Your account details and notifications are kept until you delete your
-      account, and are removed as soon as you do. Records of verification and
-      password reset emails are kept for troubleshooting and are not currently
-      removed when an account is deleted; they hold your email address and the
-      details of each send described above, and nothing else. The cookies the
-      site sets, and how long each lasts, are listed in the{" "}
+      account, and are removed as soon as you do. Your email address is removed
+      from the records of verification and password reset emails at the same
+      time. The records themselves are kept for troubleshooting, but what
+      remains shows only when each email was sent and how it was delivered, not
+      who it was sent to. The cookies the site sets, and how long each lasts,
+      are listed in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
     </p>
 

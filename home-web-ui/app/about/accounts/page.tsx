@@ -99,8 +99,8 @@ const AccountsAndEmail = () => (
     <p>
       Open your profile page, choose Delete Account, and confirm. Deletion
       happens immediately and cannot be undone: your account details and
-      notifications are removed. The Privacy Notice describes the email delivery
-      records that remain.
+      notifications are removed, and your email address is removed from the
+      site&apos;s records of the emails it sent you.
     </p>
   </Notice>
 );
