@@ -28,9 +28,10 @@ const PrivacyNotice = () => (
     <h2>Visiting without an account</h2>
     <p>
       You can read everything public on this site without an account. The site
-      does not use analytics, advertising, or tracking scripts of any kind, and
-      it sets one cookie only if you use the control that pauses animations,
-      described in the{" "}
+      does not use analytics, advertising, or tracking scripts of any kind.
+      Opening the home page sets one short-lived cookie that records only that
+      its header animation has played, and using the control that pauses
+      animations sets another; both are described in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The
       site&apos;s own server logs record errors, such as which request failed
       and why, but not who made the request. The infrastructure that hosts the
@@ -83,12 +84,12 @@ const PrivacyNotice = () => (
       To keep automated programs from creating accounts and requesting email,
       the create account, forgot password, and request new verification link
       pages include Google reCAPTCHA. Google&apos;s script is loaded only when
-      you open one of those pages. It may collect information about your browser
-      and device, your IP address, and how you interact with the page, and it
-      may set cookies, in order to decide whether you are a person. When you
-      submit one of those forms, the site sends your reCAPTCHA response to
-      Google to check it. Google&apos;s use of this information is described in
-      the{" "}
+      you choose to load it on one of those pages. It may collect information
+      about your browser and device, your IP address, and how you interact with
+      the page, and it may set cookies, in order to decide whether you are a
+      person. When you submit one of those forms, the site sends your reCAPTCHA
+      response to Google to check it. Google&apos;s use of this information is
+      described in the{" "}
       <a
         href={GOOGLE_PRIVACY_POLICY_URL}
         target="_blank"
