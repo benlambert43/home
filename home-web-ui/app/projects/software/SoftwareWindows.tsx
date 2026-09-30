@@ -7,7 +7,16 @@ import {
 import Link from "next/link";
 import { CSSProperties } from "react";
 
-const STACK = ["Next.js", "React", "Tailwind", "Express", "MongoDB"];
+const STACK = [
+  "TypeScript",
+  "Monorepo",
+  "Next.js",
+  "React",
+  "Tailwind",
+  "Express",
+  "MongoDB",
+  "Zod",
+];
 
 const FOOTER_LINK_CLASSES =
   "flex items-center gap-1 text-slate-300 transition-colors hover:text-slate-50 hover:underline";
@@ -30,14 +39,15 @@ const SoftwareWindows = () => (
             className="ml-auto shrink-0 rounded-full bg-slate-700 px-2 py-0.5
               text-slate-200"
           >
-            App
+            Website
           </span>
         </header>
         <div className="flex grow flex-col gap-3 p-4">
           <h2 className="text-lg font-semibold">benlambert.tech</h2>
           <p className="text-slate-300">
-            This website: a Next.js front end over an Express and MongoDB API,
-            with a Markdown blog, image uploads, accounts and notifications.
+            This personal website featuring a Next.js frontend, an Express
+            server backed by MongoDB, and a shared package of Zod schemas for
+            validation and type inference.
           </p>
           <ul className="flex flex-wrap gap-1.5">
             {STACK.map((item) => (
