@@ -1,11 +1,10 @@
 import Notice from "@/app/about/Notice";
 import { ACCOUNTS_AND_EMAIL, COOKIE_NOTICE } from "@/app/about/notices";
+import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
 export const metadata = pageMetadata("privacy notice");
-
-const GITHUB_PROFILE_URL = "https://github.com/benlambert43";
 
 const GOOGLE_PRIVACY_POLICY_URL = "https://policies.google.com/privacy";
 
@@ -20,13 +19,10 @@ const PrivacyNotice = () => (
     <h2>Who is responsible</h2>
     <p>
       Ben Lambert runs this site as an individual and is responsible for the
-      information described here. The site is operated from the United States,
-      and the information it holds is stored and handled there. To ask a
-      question or make a request about your information, contact Ben through{" "}
-      <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">
-        GitHub
-      </a>
-      .
+      information described here. The site is operated from Denver, Colorado, in
+      the United States, and the information it holds is stored and handled
+      there. To ask a question or make a request about your information, email
+      Ben at <ContactEmail />.
     </p>
 
     <h2>Visiting without an account</h2>
@@ -125,12 +121,14 @@ const PrivacyNotice = () => (
     <h2>How long information is kept</h2>
     <p>
       Your account details and notifications are kept until you delete your
-      account, and are removed as soon as you do. Your email address is removed
-      from the records of verification and password reset emails at the same
-      time. The records themselves are kept for troubleshooting, but what
-      remains shows only when each email was sent and how it was delivered, not
-      who it was sent to. The cookies the site sets, and how long each lasts,
-      are listed in the{" "}
+      account, and are removed as soon as you do. Deleting your account also
+      scrubs your email address out of the site&apos;s records of the
+      verification and password reset emails it sent you, including the delivery
+      reports from the mail provider, and replaces it with a random placeholder.
+      Those records are kept to troubleshoot email delivery, but once your
+      account is gone they show only when each email was sent and whether it was
+      delivered, and nothing that connects them to you. The cookies the site
+      sets, and how long each lasts, are listed in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
     </p>
 
@@ -147,7 +145,8 @@ const PrivacyNotice = () => (
       </li>
       <li>
         You can delete your account from your profile page. Deletion is
-        immediate and permanent.
+        immediate and permanent, and removes everything the site holds that
+        identifies you.
       </li>
       <li>
         You can ask for a copy of the information the site holds about you, ask

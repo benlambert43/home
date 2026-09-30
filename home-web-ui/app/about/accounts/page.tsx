@@ -1,11 +1,10 @@
 import Notice from "@/app/about/Notice";
 import { PRIVACY_NOTICE } from "@/app/about/notices";
+import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
 export const metadata = pageMetadata("accounts and email");
-
-const GITHUB_PROFILE_URL = "https://github.com/benlambert43";
 
 const AccountsAndEmail = () => (
   <Notice title="Accounts and Email" updated="2026-09-30">
@@ -87,20 +86,17 @@ const AccountsAndEmail = () => (
       </li>
       <li>
         First name, last name, and email address: these cannot be changed on the
-        site yet. Contact Ben through{" "}
-        <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">
-          GitHub
-        </a>{" "}
-        to have them corrected.
+        site yet. Email Ben at <ContactEmail /> to have them corrected.
       </li>
     </ul>
 
     <h2>Deleting your account</h2>
     <p>
       Open your profile page, choose Delete Account, and confirm. Deletion
-      happens immediately and cannot be undone: your account details and
-      notifications are removed, and your email address is removed from the
-      site&apos;s records of the emails it sent you.
+      happens immediately and cannot be undone. Your name, email address,
+      username, password, and notifications are all removed, and your email
+      address is scrubbed out of the site&apos;s records of the emails it sent
+      you, so nothing that identifies you is left behind.
     </p>
   </Notice>
 );

@@ -1,13 +1,14 @@
 import Notice from "@/app/about/Notice";
 import { PRIVACY_NOTICE } from "@/app/about/notices";
+import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
 export const metadata = pageMetadata("terms of use");
 
-const GITHUB_PROFILE_URL = "https://github.com/benlambert43";
-
 const GITHUB_REPOSITORY_URL = "https://github.com/benlambert43/home";
+
+const LICENSE_URL = `${GITHUB_REPOSITORY_URL}/blob/main/LICENSE`;
 
 const TermsOfUse = () => (
   <Notice title="Terms of Use" updated="2026-09-30">
@@ -71,8 +72,15 @@ const TermsOfUse = () => (
       republishing anything in full. The source code of the site is published on{" "}
       <a href={GITHUB_REPOSITORY_URL} target="_blank" rel="noopener noreferrer">
         GitHub
+      </a>{" "}
+      under the{" "}
+      <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">
+        GNU Affero General Public License, version 3
       </a>
-      , separately from its content.
+      , which lets anyone read it, learn from it, change it, and use it for any
+      purpose, as long as they share their own changes under the same license
+      when they distribute the code or run it as a service. The license covers
+      the code, not the site&apos;s content.
     </p>
 
     <h2>Other services and links</h2>
@@ -103,14 +111,15 @@ const TermsOfUse = () => (
       These terms may change. The date at the top shows when they last did, and
       using the site after a change means you accept the new terms.
     </p>
+    <p>
+      These terms are governed by the laws of the State of Colorado, and any
+      dispute about them or about the site will be heard in the state or federal
+      courts located in Denver, Colorado.
+    </p>
 
     <h2>Contact</h2>
     <p>
-      Questions about these terms can be sent to Ben through{" "}
-      <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">
-        GitHub
-      </a>
-      .
+      Questions about these terms can be emailed to Ben at <ContactEmail />.
     </p>
   </Notice>
 );
