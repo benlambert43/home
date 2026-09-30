@@ -1,0 +1,191 @@
+import Notice from "@/app/about/Notice";
+import { ACCOUNTS_AND_EMAIL, COOKIE_NOTICE } from "@/app/about/notices";
+import { pageMetadata } from "@/app/lib/metadata";
+import Link from "next/link";
+
+export const metadata = pageMetadata("privacy notice");
+
+const GITHUB_PROFILE_URL = "https://github.com/benlambert43";
+
+const GOOGLE_PRIVACY_POLICY_URL = "https://policies.google.com/privacy";
+
+const PrivacyNotice = () => (
+  <Notice title="Privacy Notice" updated="2026-09-30">
+    <p>
+      benlambert.tech is the personal website of Ben Lambert. This notice
+      explains what information the site collects, why it collects it, who else
+      handles it, and the choices you have.
+    </p>
+
+    <h2>Who is responsible</h2>
+    <p>
+      Ben Lambert runs this site as an individual and is responsible for the
+      information described here. The site is operated from the United States,
+      and the information it holds is stored and handled there. To ask a
+      question or make a request about your information, contact Ben through{" "}
+      <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">
+        GitHub
+      </a>
+      .
+    </p>
+
+    <h2>Visiting without an account</h2>
+    <p>
+      You can read everything public on this site without an account. The site
+      does not use analytics, advertising, or tracking scripts of any kind, and
+      it sets one cookie only if you use the control that pauses animations,
+      described in the{" "}
+      <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The
+      site&apos;s own server logs record errors, such as which request failed
+      and why, but not who made the request. The infrastructure that hosts the
+      site may keep standard, short-lived technical logs, such as IP addresses
+      and request times, for security and reliability.
+    </p>
+
+    <h2>Creating an account</h2>
+    <p>
+      When you create an account, the site asks for your first name, last name,
+      email address, and a password. It also gives you a random username, which
+      you can change at any time, and records when the account was created and
+      last modified, whether your email address has been verified, whether the
+      account is an administrator account, and whether it has been suspended.
+    </p>
+    <p>
+      Your password is stored only as a bcrypt hash, so the site cannot read it,
+      and no one at the site will ever ask you for it. Your name and email
+      address are shown only to you, on your profile page. Your username is
+      shown publicly only as the author of blog posts you have written, and only
+      the site&apos;s administrator can publish posts.
+    </p>
+    <p>
+      This information is used to provide your account: to sign you in, to
+      verify that the email address is yours, to send you a password reset link
+      when you ask for one, and to show you notifications inside the site.
+    </p>
+
+    <h2>Email</h2>
+    <p>
+      The site sends two kinds of email, and only when they are needed: a link
+      to verify your email address after you create an account, and a link to
+      choose a new password when you request one. It sends no newsletters or
+      marketing email. The{" "}
+      <Link href={ACCOUNTS_AND_EMAIL.href}>{ACCOUNTS_AND_EMAIL.title}</Link>{" "}
+      notice describes each message.
+    </p>
+    <p>
+      Email is sent through Gmail, a Google service, so Google handles your
+      email address and the contents of each message as the mail provider. The
+      site also keeps a record of each message it sends: your email address,
+      when it was sent, a hashed copy of the code in the link, whether the link
+      was used, and the delivery result reported by the mail provider. These
+      records exist to troubleshoot email delivery and contain nothing that can
+      be used to sign in.
+    </p>
+
+    <h2>reCAPTCHA</h2>
+    <p>
+      To keep automated programs from creating accounts and requesting email,
+      the create account, forgot password, and request new verification link
+      pages include Google reCAPTCHA. Google&apos;s script is loaded only when
+      you open one of those pages. It may collect information about your browser
+      and device, your IP address, and how you interact with the page, and it
+      may set cookies, in order to decide whether you are a person. When you
+      submit one of those forms, the site sends your reCAPTCHA response to
+      Google to check it. Google&apos;s use of this information is described in
+      the{" "}
+      <a
+        href={GOOGLE_PRIVACY_POLICY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Google Privacy Policy
+      </a>
+      .
+    </p>
+
+    <h2>Who else handles your information</h2>
+    <p>
+      The site does not sell, rent, or trade your information, and shares it
+      only with the services that make the site work:
+    </p>
+    <ul>
+      <li>
+        Google, which checks reCAPTCHA responses and delivers the site&apos;s
+        email.
+      </li>
+      <li>
+        The hosting providers that run the site&apos;s servers and database.
+      </li>
+    </ul>
+    <p>
+      Information may also be disclosed if the law requires it, or to protect
+      the site and the people who use it.
+    </p>
+
+    <h2>How long information is kept</h2>
+    <p>
+      Your account details and notifications are kept until you delete your
+      account, and are removed as soon as you do. Records of verification and
+      password reset emails are kept for troubleshooting and are not currently
+      removed when an account is deleted; they hold your email address and the
+      details of each send described above, and nothing else. The cookies the
+      site sets, and how long each lasts, are listed in the{" "}
+      <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
+    </p>
+
+    <h2>Your choices and rights</h2>
+    <ul>
+      <li>
+        You can see the information on your account on your{" "}
+        <Link href="/profile">profile</Link> and{" "}
+        <Link href="/settings">settings</Link> pages.
+      </li>
+      <li>
+        You can change your username on the settings page and your password on
+        your profile page. To correct your name or email address, contact Ben.
+      </li>
+      <li>
+        You can delete your account from your profile page. Deletion is
+        immediate and permanent.
+      </li>
+      <li>
+        You can ask for a copy of the information the site holds about you, ask
+        for it to be corrected or deleted, or object to how it is used, by
+        contacting Ben.
+      </li>
+    </ul>
+    <p>
+      If you are in the European Economic Area, the United Kingdom, or another
+      place with data protection law, you also have the right to complain to
+      your local data protection authority. In those places, the legal bases for
+      handling your information are that it is needed to provide the account you
+      asked for, and the site&apos;s legitimate interest in keeping the site
+      secure and working. If you are a California resident, the site does not
+      sell or share your personal information, and you can use the choices above
+      to know, correct, and delete it.
+    </p>
+
+    <h2>Security</h2>
+    <p>
+      Connections to the site are encrypted with HTTPS, passwords are stored as
+      bcrypt hashes, and sign-in sessions use cookies that scripts on the page
+      cannot read. No website can promise perfect security, so please use a
+      password you do not use anywhere else.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      This site is not directed at children under 13, and it does not knowingly
+      collect information from them. If you believe a child has created an
+      account, contact Ben and it will be removed.
+    </p>
+
+    <h2>Changes to this notice</h2>
+    <p>
+      If this notice changes, the date at the top will be updated, and changes
+      that affect how your information is used will be described on this page.
+    </p>
+  </Notice>
+);
+
+export default PrivacyNotice;
