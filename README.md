@@ -37,3 +37,9 @@ Each workspace's `eslint.config.mjs` layers its own framework config and ignores
 ## Timestamps
 
 All timestamp strings should be in ISO 8601 format.
+
+## License
+
+Copyright (C) 2026 Ben Lambert
+
+The source code is licensed under the GNU Affero General Public License, version 3 or later. See [LICENSE](LICENSE).

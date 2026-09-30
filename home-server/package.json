@@ -2,7 +2,7 @@
   "name": "home-server",
   "version": "1.0.0",
   "description": "Express + mongoose API.",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "private": true,
   "type": "commonjs",
   "scripts": {

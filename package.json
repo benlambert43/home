@@ -2,7 +2,7 @@
   "name": "home",
   "version": "1.0.0",
   "description": "Ben Lambert's Personal Website",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "private": true,
   "workspaces": [
     "home-shared",
