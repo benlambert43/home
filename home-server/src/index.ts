@@ -9,6 +9,7 @@ import { handleRequestError } from "./api/v1/http/handleRequestError";
 import { requireDatabase } from "./api/v1/http/requireDatabase";
 import { sendSuccess } from "./api/v1/http/respond";
 import { resumePostThumbnails } from "./api/v1/post/postThumbnails";
+import { API_PORT, BASE_FRONTEND_URL, MONGO_URI } from "./serverEnv";
 
 const POSTS_PATH = "/api/v1/posts";
 
@@ -19,22 +20,14 @@ const app = express();
 app.use((req, res, next) =>
   req.path.startsWith(POSTS_PATH) ? next() : parseJsonBody(req, res, next),
 );
-app.use(
-  cors({
-    origin: process.env.BASE_FRONTEND_URL
-      ? new URL(process.env.BASE_FRONTEND_URL).origin
-      : false,
-  }),
-);
-
-const API_PORT = process.env.API_PORT;
+app.use(cors({ origin: new URL(BASE_FRONTEND_URL).origin }));
 
 const MONGO_RETRY_SECONDS = 5;
 
 const connectToMongo = async () => {
   for (;;) {
     try {
-      await mongoose.connect(process.env.MONGO_URI || "", {});
+      await mongoose.connect(MONGO_URI, {});
       return;
     } catch (e) {
       if (!(e instanceof mongoose.Error.MongooseServerSelectionError)) throw e;
