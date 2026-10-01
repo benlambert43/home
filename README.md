@@ -43,3 +43,5 @@ All timestamp strings should be in ISO 8601 format.
 Copyright (C) 2026 Ben Lambert
 
 The source code is licensed under the GNU Affero General Public License, version 3 or later. See [LICENSE](LICENSE).
+
+The license covers the code only. The photographs, other images, and writing in this repository and on the site, such as `home-web-ui/public/selfie.png`, are not licensed under it and remain the property of Ben Lambert.

@@ -1,4 +1,5 @@
 import { NOTICES } from "@/app/about/notices";
+import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
@@ -10,8 +11,8 @@ const About = () => (
     <section className="flex flex-col gap-4">
       <h2 className="text-2xl font-semibold">Notices</h2>
       <p>
-        Legal and privacy information about this website, your account, and the
-        email address you give it.
+        Legal, privacy, and licensing information about this website, your
+        account, and the email address you give it.
       </p>
       <ul className="flex flex-col gap-3">
         {NOTICES.map(({ href, title, description }) => (
@@ -23,6 +24,13 @@ const About = () => (
           </li>
         ))}
       </ul>
+    </section>
+    <section className="flex flex-col gap-4">
+      <h2 className="text-2xl font-semibold">Contact</h2>
+      <p>
+        Questions about the site or any of these notices can be emailed to Ben
+        at <ContactEmail />.
+      </p>
     </section>
   </div>
 );

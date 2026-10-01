@@ -1,22 +1,24 @@
+import { GITHUB_REPOSITORY_URL, LICENSE_URL } from "@/app/about/links";
 import Notice from "@/app/about/Notice";
-import { PRIVACY_NOTICE } from "@/app/about/notices";
+import {
+  NO_WARRANTY_ID,
+  PRIVACY_NOTICE,
+  SOURCE_AND_LICENSES,
+} from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
 export const metadata = pageMetadata("terms of use");
 
-const GITHUB_REPOSITORY_URL = "https://github.com/benlambert43/home";
-
-const LICENSE_URL = `${GITHUB_REPOSITORY_URL}/blob/main/LICENSE`;
-
 const TermsOfUse = () => (
   <Notice title="Terms of Use" updated="2026-09-30">
     <p>
-      benlambert.tech is the personal website of Ben Lambert. These terms apply
-      to everyone who uses the site and to holding an account on it. By using
-      the site you agree to them; if you do not agree, please do not use the
-      site. How the site handles your information is described in the{" "}
+      benlambert.tech is the personal website of Ben Lambert, who builds and
+      runs it alone, as an individual and not a company. These terms apply to
+      everyone who uses the site and to holding an account on it. By using the
+      site you agree to them; if you do not agree, please do not use the site.
+      How the site handles your information is described in the{" "}
       <Link href={PRIVACY_NOTICE.href}>{PRIVACY_NOTICE.title}</Link>.
     </p>
 
@@ -40,6 +42,10 @@ const TermsOfUse = () => (
     <h2>Accounts</h2>
     <ul>
       <li>
+        You must be at least 13 years old to create an account, or older if the
+        law where you live requires it.
+      </li>
+      <li>
         Give accurate details, and keep the email address on your account one
         that you can read: it is the only way to verify your account or recover
         your password.
@@ -54,8 +60,8 @@ const TermsOfUse = () => (
         or pretend to be someone else.
       </li>
       <li>
-        Choose a username you would be happy to see in public. Offensive
-        usernames are refused.
+        Choose a username you would be happy to see in public. The site tries to
+        refuse offensive usernames.
       </li>
       <li>
         Ben may suspend or delete an account that breaks these terms or that
@@ -75,35 +81,55 @@ const TermsOfUse = () => (
       </a>{" "}
       under the{" "}
       <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">
-        GNU Affero General Public License, version 3
+        GNU Affero General Public License, version 3 or later
       </a>
       , which lets anyone read it, learn from it, change it, and use it for any
       purpose, as long as they share their own changes under the same license
       when they distribute the code or run it as a service. The license covers
-      the code, not the site&apos;s content.
+      the code, not the site&apos;s content.{" "}
+      <Link href={SOURCE_AND_LICENSES.href}>{SOURCE_AND_LICENSES.title}</Link>{" "}
+      has the details.
     </p>
 
     <h2>Other services and links</h2>
     <p>
-      Google reCAPTCHA protects some of the site&apos;s forms, and Google&apos;s
-      terms apply to it on those pages. The site links to other websites, such
-      as GitHub. Those sites have their own terms and privacy practices, and
-      this site is not responsible for them.
+      Google reCAPTCHA protects some of the site&apos;s forms. Google provides
+      it to this site as a service, and the{" "}
+      <Link href={PRIVACY_NOTICE.href}>{PRIVACY_NOTICE.title}</Link> explains
+      what it collects. The site links to other websites, such as GitHub. Those
+      sites have their own terms and privacy practices, and this site is not
+      responsible for them.
     </p>
 
-    <h2>No warranty</h2>
+    <h2 id={NO_WARRANTY_ID} className="scroll-mt-28">
+      No warranty
+    </h2>
     <p>
-      This is a personal site, offered as it is and as it is available. It may
-      change, break, or go offline at any time without notice, and nothing on it
-      is professional advice. To the fullest extent the law allows, the site is
-      provided without warranties of any kind.
+      This is a personal site, built and run by one person and not by a company,
+      and it is offered as it is and as it is available. It may change, break,
+      or go offline at any time without notice, and nothing on it is
+      professional advice.
+    </p>
+    <p>
+      The site&apos;s notices describe how it is meant to work, and Ben keeps
+      them accurate on a best-effort basis. Software has bugs, though, and code
+      written in error can have consequences nobody intended, so the site may
+      not always behave as the notices describe. If you find that it does not,
+      please email Ben at <ContactEmail />, who will do what is reasonably
+      possible to put it right.
+    </p>
+    <p>
+      To the fullest extent the law allows, the site is provided without
+      warranties of any kind, whether express or implied.
     </p>
 
     <h2>Limitation of liability</h2>
     <p>
       To the fullest extent the law allows, Ben Lambert is not liable for any
       loss or damage arising from your use of the site or your inability to use
-      it. Nothing in these terms limits liability that cannot be limited by law.
+      it, including loss or damage caused by software bugs, mistakes in the
+      code, or other unintended consequences of how the site was built. Nothing
+      in these terms limits liability that cannot be limited by law.
     </p>
 
     <h2>Changes</h2>
@@ -111,6 +137,8 @@ const TermsOfUse = () => (
       These terms may change. The date at the top shows when they last did, and
       using the site after a change means you accept the new terms.
     </p>
+
+    <h2>Governing law</h2>
     <p>
       These terms are governed by the laws of the State of Colorado, and any
       dispute about them or about the site will be heard in the state or federal

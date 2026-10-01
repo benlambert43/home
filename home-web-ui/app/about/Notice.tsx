@@ -1,3 +1,4 @@
+import { NO_WARRANTY_HREF, TERMS_OF_USE } from "@/app/about/notices";
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -29,6 +30,16 @@ const Notice = ({
     <h1 className="text-4xl font-bold">{title}</h1>
     <p className="text-sm text-slate-400">
       Last updated <time dateTime={updated}>{formatUpdated(updated)}</time>
+    </p>
+    <p className="rounded-xl bg-slate-700/40 p-4 text-sm text-slate-300">
+      This site is built and run by one person, Ben Lambert, as an individual
+      and not a company. This page describes how the site is meant to work and
+      is kept accurate on a best-effort basis, but software has bugs, and the
+      site may not always behave exactly as described. The{" "}
+      <Link href={NO_WARRANTY_HREF} className="underline">
+        {TERMS_OF_USE.title}
+      </Link>{" "}
+      explain what that means for you.
     </p>
     <div
       className="prose prose-invert prose-code:before:content-none

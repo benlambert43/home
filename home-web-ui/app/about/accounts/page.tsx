@@ -54,28 +54,28 @@ const AccountsAndEmail = () => (
       email address and a reCAPTCHA, and emails you a link to choose a new
       password. The link works for 15 minutes, and only one link is active at a
       time. The page shows the same message whether or not an account exists for
-      the address, so it cannot be used to find out who has an account. If you
-      did not ask for a reset, ignore the email: your password does not change
-      unless the link is used.
+      the address, so that it does not reveal who has an account. If you did not
+      ask for a reset, ignore the email: your password does not change unless
+      the link is used.
     </p>
 
     <h2>The emails this site sends</h2>
     <p>
-      The site sends only the two emails described above: an email verification
-      link and a password reset link. Both are plain text, come from a Gmail
-      address, and have a subject line that starts with{" "}
-      <em>benlambert dot tech</em>. No email from the site will ever ask you for
-      your password or any other details. The site never emails you on its own;
-      each message is the result of creating an account or asking for a link.
-      There are no newsletters, announcements, or marketing emails, so there is
-      nothing to unsubscribe from.
+      The site is designed to send only the two emails described above: an email
+      verification link and a password reset link. Both are plain text, come
+      from a Gmail address, and have a subject line that starts with{" "}
+      <em>benlambert dot tech</em>. Neither asks you for your password or any
+      other details, so treat any email that does as suspicious. The site is not
+      meant to email you on its own; each message is the result of creating an
+      account or asking for a link. There are no newsletters, announcements, or
+      marketing emails, so there is nothing to unsubscribe from.
     </p>
 
     <h2>Staying signed in</h2>
     <p>
       Signing in keeps you signed in on that browser for 7 days, after which you
-      sign in again. Logging out from your profile page ends the session
-      straight away.
+      sign in again. Logging out from your profile page ends the session on that
+      browser straight away.
     </p>
 
     <h2>Changing your details</h2>
@@ -93,10 +93,11 @@ const AccountsAndEmail = () => (
     <h2>Deleting your account</h2>
     <p>
       Open your profile page, choose Delete Account, and confirm. Deletion
-      happens immediately and cannot be undone. Your name, email address,
-      username, password, and notifications are all removed, and your email
-      address is scrubbed out of the site&apos;s records of the emails it sent
-      you, so nothing that identifies you is left behind.
+      happens immediately and cannot be undone. It is designed to remove your
+      name, email address, username, password, and notifications, and to scrub
+      your email address out of the site&apos;s records of the emails it sent
+      you, so that nothing that identifies you is left behind. If you think
+      something was missed, email Ben at <ContactEmail /> to have it removed.
     </p>
   </Notice>
 );
