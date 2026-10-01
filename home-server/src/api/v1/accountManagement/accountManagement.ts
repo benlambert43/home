@@ -139,7 +139,10 @@ accountManagementRouter.post(
       return sendFailure(res, ApiMessage.USERNAME_NOT_ALLOWED);
     }
 
-    const available = await checkUniqueUsername(body.newUsername);
+    const available = await checkUniqueUsername(
+      body.newUsername,
+      token.user._id,
+    );
     if (!available) return sendFailure(res, accountAlreadyExists("username"));
 
     sendResult(res, await handleChangeUsername(token, body.newUsername));
