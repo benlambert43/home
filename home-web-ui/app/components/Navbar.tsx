@@ -22,7 +22,11 @@ const SignIn = () => {
 const Profile = () => {
   return (
     <div>
-      <Link href="/profile" className={NAV_ICON_LINK_CLASSES}>
+      <Link
+        href="/profile"
+        aria-label="Profile"
+        className={NAV_ICON_LINK_CLASSES}
+      >
         <UserCircleIcon className="size-6" />
       </Link>
     </div>
@@ -32,7 +36,11 @@ const Profile = () => {
 const Settings = () => {
   return (
     <div>
-      <Link href="/settings" className={NAV_ICON_LINK_CLASSES}>
+      <Link
+        href="/settings"
+        aria-label="Settings"
+        className={NAV_ICON_LINK_CLASSES}
+      >
         <Cog6ToothIcon className="size-6" />
       </Link>
     </div>

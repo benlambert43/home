@@ -33,6 +33,7 @@ const NotificationIcon = () => {
   return (
     <div ref={containerRef} className="flex items-center">
       <button
+        aria-label={hasUnread ? "Notifications (unread)" : "Notifications"}
         className={`${NAV_ICON_LINK_CLASSES} hover:cursor-pointer`}
         onClick={toggle}
       >
