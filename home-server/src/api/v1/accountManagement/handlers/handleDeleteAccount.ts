@@ -7,6 +7,15 @@ import { PasswordResetModel } from "../../model/passwordResetModel";
 import { UserModel } from "../../model/userModel";
 import { ApiMessage } from "../../http/messages";
 
+const withLowercaseDomain = (email: string) => {
+  const domainStart = email.lastIndexOf("@");
+  return email.slice(0, domainStart) + email.slice(domainStart).toLowerCase();
+};
+
+const replaceEmail = (input: unknown, email: string, replacement: string) => ({
+  $replaceAll: { input, find: { $literal: email }, replacement },
+});
+
 const anonymizeEmailRecords = async (user: {
   _id: Types.ObjectId;
   email: string;
@@ -17,13 +26,11 @@ const anonymizeEmailRecords = async (user: {
       $set: {
         userId: new Types.ObjectId(),
         email: anonymizedEmail,
-        gmailApiResponse: {
-          $replaceAll: {
-            input: "$gmailApiResponse",
-            find: { $literal: user.email },
-            replacement: anonymizedEmail,
-          },
-        },
+        gmailApiResponse: replaceEmail(
+          replaceEmail("$gmailApiResponse", user.email, anonymizedEmail),
+          withLowercaseDomain(user.email),
+          anonymizedEmail,
+        ),
       },
     },
   ];

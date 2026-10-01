@@ -12,7 +12,7 @@ export const metadata = pageMetadata("profile");
 type VerificationResult =
   | { status: "complete"; message?: string; session?: SessionPayload }
   | { status: "failed"; message: string }
-  | { status: "missingParams" }
+  | { status: "missingCode" }
   | { status: "unreachable"; error: string };
 
 const resolveVerification = async (
@@ -23,13 +23,13 @@ const resolveVerification = async (
     return { status: "complete" };
   }
 
-  const { username, email, code } = await searchParams;
+  const { code } = await searchParams;
 
-  if (!paramFilled(username) || !paramFilled(email) || !paramFilled(code)) {
-    return { status: "missingParams" };
+  if (!paramFilled(code)) {
+    return { status: "missingCode" };
   }
 
-  const verificationStatus = await verifyEmail(username, email, code);
+  const verificationStatus = await verifyEmail(code);
 
   if (verificationStatus.error) {
     return { status: "failed", message: verificationStatus.message };
@@ -61,10 +61,8 @@ const VerifyEmail = async ({
     );
   }
 
-  if (result.status === "missingParams") {
-    return (
-      <VerificationProblem headline="Missing username, email and/or code." />
-    );
+  if (result.status === "missingCode") {
+    return <VerificationProblem headline="Missing verification code." />;
   }
 
   if (result.status === "unreachable") {

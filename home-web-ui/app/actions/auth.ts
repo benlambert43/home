@@ -157,17 +157,11 @@ export const requestNewEmailVerificationLink = async (
   redirect("/profile/accountManagement/requestNewEmailVerificationLinkSuccess");
 };
 
-export const verifyEmail = async (
-  username: string,
-  email: string,
-  code: string,
-): Promise<VerifyEmailResponse> => {
-  const path = [username, email, code].map(encodeURIComponent).join("/");
-
-  return apiRequest<VerifyEmailResponse>(`${VERIFY_EMAIL_URL}/${path}`, {
-    cache: "no-store",
-  });
-};
+export const verifyEmail = async (code: string): Promise<VerifyEmailResponse> =>
+  apiRequest<VerifyEmailResponse>(
+    `${VERIFY_EMAIL_URL}/${encodeURIComponent(code)}`,
+    { cache: "no-store" },
+  );
 
 export const requestPasswordReset = async (
   state: RequestPasswordResetFormState,

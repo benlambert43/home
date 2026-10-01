@@ -7,27 +7,20 @@ import { serializeUser } from "../../types/serialize";
 import { removeNotification } from "../../notification/handlers/removeNotification";
 import { ApiMessage } from "../../http/messages";
 
-export const handleVerifyEmailCallback = async ({
-  username,
-  email,
-  code,
-}: {
-  username: string;
-  email: string;
-  code: string;
-}): Promise<VerifyEmailResponse> => {
-  const user = await UserModel.findOne({ username, email }).lean();
-
-  if (!user) {
-    return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
-  }
-
+export const handleVerifyEmailCallback = async (
+  code: string,
+): Promise<VerifyEmailResponse> => {
   const emailVerification = await EmailVerificationModel.findOne({
-    userId: user._id,
     verificationCodeHash: hashEmailedCode(code),
   }).lean();
 
   if (!emailVerification) {
+    return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
+  }
+
+  const user = await UserModel.findById(emailVerification.userId).lean();
+
+  if (!user) {
     return { error: true, message: ApiMessage.VERIFICATION_LINK_INVALID };
   }
 

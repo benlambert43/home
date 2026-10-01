@@ -27,7 +27,6 @@ import { checkUniqueEmail, checkUniqueUsername } from "../user/userQueries";
 import { usernameHasProfanity } from "../user/usernameFilter";
 import { serializeUser } from "../types/serialize";
 import { handleSendEmailVerification } from "../email/handleSendEmailVerification";
-import { decodeUrlSafeB64 } from "../http/urlSafeB64";
 import { handleVerifyEmailCallback } from "./handlers/handleVerifyEmailCallback";
 import { verifyCaptcha } from "../auth/verifyCaptcha";
 import { authenticateApiToken } from "../auth/authenticateApiToken";
@@ -42,8 +41,6 @@ import { handleDeleteAccount } from "./handlers/handleDeleteAccount";
 import { frontendUrl } from "../http/frontendUrl";
 
 interface VerifyEmailParams {
-  username: string;
-  email: string;
   code: string;
 }
 
@@ -94,23 +91,17 @@ accountManagementRouter.post(
 );
 
 accountManagementRouter.get(
-  "/verifyEmail/:username/:email/:code",
+  "/verifyEmail/:code",
   route<VerifyEmailParams>(async (req, res) => {
-    const username = decodeUrlSafeB64(req.params.username);
-    const email = decodeUrlSafeB64(req.params.email);
+    const params = verifyEmailParamsSchema.safeParse({
+      code: req.params.code,
+    });
 
-    if (!username || !email) {
+    if (!params.success) {
       return sendFailure(res, ApiMessage.VERIFICATION_LINK_INVALID);
     }
 
-    const params = parseRequest(
-      verifyEmailParamsSchema,
-      { username, email, code: req.params.code },
-      res,
-    );
-    if (!params) return;
-
-    sendResult(res, await handleVerifyEmailCallback(params));
+    sendResult(res, await handleVerifyEmailCallback(params.data.code));
   }),
 );
 

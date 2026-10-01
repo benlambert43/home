@@ -71,8 +71,6 @@ export const signInBodySchema = z.object({
 });
 
 export const verifyEmailParamsSchema = z.object({
-  username: usernameField,
-  email: emailField,
   code: verificationCodeField,
 });
 

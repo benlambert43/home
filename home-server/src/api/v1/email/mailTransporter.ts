@@ -86,26 +86,42 @@ const createBackupTransporter = () =>
     },
   });
 
-const describe = (value: unknown) =>
-  value instanceof Error ? value.message : JSON.stringify(value);
+const REDACTED_RECIPIENT = "[recipient]";
 
-const fireBackupTransporter = async (safeMailOptions: Mail.Options) => {
+const redactRecipient = (text: string, recipient: string) =>
+  text.replace(
+    new RegExp(recipient.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
+    REDACTED_RECIPIENT,
+  );
+
+const describe = (value: unknown, recipient: string) =>
+  redactRecipient(
+    value instanceof Error ? value.message : JSON.stringify(value),
+    recipient,
+  );
+
+const fireBackupTransporter = async (
+  safeMailOptions: Mail.Options,
+  recipient: string,
+) => {
   console.error("Transporter Error!");
   console.log("Attempting to send with backup transporter...");
 
   try {
     const res = await createBackupTransporter().sendMail(safeMailOptions);
-    console.log(JSON.stringify(res, undefined, "  "));
+    const response = describe(res, recipient);
+    console.log(response);
     if (res.response.includes("OK")) {
       console.log(
         "Backup send appears to have been successful. Update the primary API key ASAP.",
       );
     }
-    return { ok: true, response: describe(res) };
+    return { ok: true, response };
   } catch (e) {
+    const response = describe(e, recipient);
     console.error("Backup Mail Send Error!");
-    console.error(e);
-    return { ok: false, response: describe(e) };
+    console.error(response);
+    return { ok: false, response };
   }
 };
 
@@ -124,8 +140,8 @@ export const sendMail = async ({
     const transporter = await createTransporter();
     const res = await transporter.sendMail(safeMailOptions);
     console.log(`Emails sent today: ${await countEmailsSentToday()}`);
-    return { ok: true, response: describe(res) };
+    return { ok: true, response: describe(res, to) };
   } catch {
-    return fireBackupTransporter(safeMailOptions);
+    return fireBackupTransporter(safeMailOptions, to);
   }
 };
