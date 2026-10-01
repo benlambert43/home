@@ -11,22 +11,22 @@ const CLOUD_DATA_PROCESSING_ADDENDUM_URL =
   "https://cloud.google.com/terms/data-processing-addendum";
 
 const PrivacyNotice = () => (
-  <Notice title="Privacy Notice" updated="2026-09-30">
+  <Notice title="Privacy Notice" updated="2026-10-01">
     <p>
-      benlambert.tech is the personal website of Ben Lambert. This notice
-      explains what information the site collects, why it collects it, who else
-      handles it, and the choices you have.
+      benlambert.tech is my personal website. This notice explains what
+      information the site collects, why it collects it, who else handles it,
+      and the choices you have.
     </p>
 
     <h2>Who is responsible</h2>
     <p>
-      Ben Lambert runs this site as an individual, not a company, and is
+      I, Ben Lambert, run this site as an individual, not a company, and I am
       responsible for the information described here. The site is operated from
       Denver, Colorado, in the United States, and the information it holds is
       stored and handled there. If you use the site from another country, your
       information is transferred to the United States, where privacy law may
       differ from the law where you live. To ask a question or make a request
-      about your information, email Ben at <ContactEmail />.
+      about your information, email me at <ContactEmail />.
     </p>
 
     <h2>Visiting without an account</h2>
@@ -53,12 +53,11 @@ const PrivacyNotice = () => (
     </p>
     <p>
       Your password is stored only as a bcrypt hash, so the site cannot read it,
-      and no one at the site will ever ask you for it. Your name and email
-      address are meant to be shown only to you, on your profile page. Ben, who
-      runs the site and its database, is the only other person who can see your
-      account information. Your username is shown publicly only as the author of
-      blog posts you have written, and only the site&apos;s administrator can
-      publish posts.
+      and I will never ask you for it. Your name and email address are meant to
+      be shown only to you, on your profile page. I run the site and its
+      database, and I am the only other person who can see your account
+      information. Your username is shown publicly only as the author of blog
+      posts you have written, and only I can publish posts.
     </p>
     <p>
       This information is used to provide your account: to sign you in, to
@@ -98,7 +97,7 @@ const PrivacyNotice = () => (
       the answer only to accept or refuse the form, and does not keep it.
     </p>
     <p>
-      Google provides reCAPTCHA to this site as a service provider. Ben is
+      Google provides reCAPTCHA to this site as a service provider. I am
       responsible for the information reCAPTCHA collects here, and Google
       handles it on the site&apos;s behalf under its{" "}
       <a
@@ -159,19 +158,19 @@ const PrivacyNotice = () => (
       </li>
       <li>
         You can change your username on the settings page and your password on
-        your profile page. To correct your name or email address, contact Ben.
+        your profile page. To correct your name or email address, contact me.
       </li>
       <li>
         You can delete your account from your profile page. Deletion is
         immediate and permanent, and is designed to remove everything the site
-        holds that identifies you. If you think something was missed, contact
-        Ben to have it removed.
+        holds that identifies you. If you think something was missed, contact me
+        to have it removed.
       </li>
       <li>
         You can ask for a copy of the information the site holds about you, in a
         format you can take to another service, ask for it to be corrected or
         deleted, ask for its use to be restricted, or object to how it is used,
-        by contacting Ben.
+        by contacting me.
       </li>
       <li>
         reCAPTCHA loads only with your consent. You can withdraw that consent by
@@ -200,16 +199,16 @@ const PrivacyNotice = () => (
     <p>
       Connections to the site are encrypted with HTTPS, passwords are stored as
       bcrypt hashes, and sign-in sessions use cookies that scripts on the page
-      cannot read. No website can promise perfect security, and this one is
-      built and maintained by one person, so please use a password you do not
-      use anywhere else.
+      cannot read. No website can promise perfect security, and I build and
+      maintain this one on my own, so please use a password you do not use
+      anywhere else.
     </p>
 
     <h2>Children</h2>
     <p>
       This site is not directed at children under 13, and it does not knowingly
       collect information from them. If you believe a child has created an
-      account, contact Ben and it will be removed.
+      account, contact me and it will be removed.
     </p>
 
     <h2>Changes to this notice</h2>

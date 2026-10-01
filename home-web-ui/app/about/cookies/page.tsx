@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("cookie notice");
 
 const CookieNotice = () => (
-  <Notice title="Cookie Notice" updated="2026-09-30">
+  <Notice title="Cookie Notice" updated="2026-10-01">
     <p>
       Cookies are small pieces of text that a website asks your browser to keep
       and send back on later visits. This site uses cookies only to keep you
@@ -20,8 +20,8 @@ const CookieNotice = () => (
 
     <h2>Cookies this site sets</h2>
     <p>
-      To the best of Ben&apos;s knowledge, these are all the cookies the
-      site&apos;s own code sets:
+      To the best of my knowledge, these are all the cookies the site&apos;s own
+      code sets:
     </p>
     <ul>
       <li>

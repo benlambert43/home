@@ -12,13 +12,13 @@ import Link from "next/link";
 export const metadata = pageMetadata("terms of use");
 
 const TermsOfUse = () => (
-  <Notice title="Terms of Use" updated="2026-09-30">
+  <Notice title="Terms of Use" updated="2026-10-01">
     <p>
-      benlambert.tech is the personal website of Ben Lambert, who builds and
-      runs it alone, as an individual and not a company. These terms apply to
-      everyone who uses the site and to holding an account on it. By using the
-      site you agree to them; if you do not agree, please do not use the site.
-      How the site handles your information is described in the{" "}
+      benlambert.tech is my personal website. I, Ben Lambert, build and run it
+      alone, as an individual and not a company. These terms apply to everyone
+      who uses the site and to holding an account on it. By using the site you
+      agree to them; if you do not agree, please do not use the site. How the
+      site handles your information is described in the{" "}
       <Link href={PRIVACY_NOTICE.href}>{PRIVACY_NOTICE.title}</Link>.
     </p>
 
@@ -52,8 +52,7 @@ const TermsOfUse = () => (
       </li>
       <li>
         Keep your password to yourself. You are responsible for everything done
-        with your account, and no one at the site will ever ask you for your
-        password.
+        with your account, and I will never ask you for your password.
       </li>
       <li>
         Create one account for yourself. Do not create accounts for other people
@@ -64,7 +63,7 @@ const TermsOfUse = () => (
         refuse offensive usernames.
       </li>
       <li>
-        Ben may suspend or delete an account that breaks these terms or that
+        I may suspend or delete an account that breaks these terms or that
         appears to be abusive or automated. You may delete your own account at
         any time from your <Link href="/profile">profile</Link> page.
       </li>
@@ -73,9 +72,9 @@ const TermsOfUse = () => (
     <h2>Content and copyright</h2>
     <p>
       Unless something says otherwise, the writing, photographs, and other
-      content on this site belong to Ben Lambert. You are welcome to link to any
-      page and to quote short excerpts with credit, but please ask before
-      republishing anything in full. The source code of the site is published on{" "}
+      content on this site belong to me. You are welcome to link to any page and
+      to quote short excerpts with credit, but please ask before republishing
+      anything in full. The source code of the site is published on{" "}
       <a href={GITHUB_REPOSITORY_URL} target="_blank" rel="noopener noreferrer">
         GitHub
       </a>{" "}
@@ -105,17 +104,17 @@ const TermsOfUse = () => (
       No warranty
     </h2>
     <p>
-      This is a personal site, built and run by one person and not by a company,
+      This is my personal site, built and run by me alone and not by a company,
       and it is offered as it is and as it is available. It may change, break,
       or go offline at any time without notice, and nothing on it is
       professional advice.
     </p>
     <p>
-      The site&apos;s notices describe how it is meant to work, and Ben keeps
-      them accurate on a best-effort basis. Software has bugs, though, and code
+      The site&apos;s notices describe how it is meant to work, and I keep them
+      accurate on a best-effort basis. Software has bugs, though, and code
       written in error can have consequences nobody intended, so the site may
       not always behave as the notices describe. If you find that it does not,
-      please email Ben at <ContactEmail />, who will do what is reasonably
+      please email me at <ContactEmail />, and I will do what is reasonably
       possible to put it right.
     </p>
     <p>
@@ -125,11 +124,11 @@ const TermsOfUse = () => (
 
     <h2>Limitation of liability</h2>
     <p>
-      To the fullest extent the law allows, Ben Lambert is not liable for any
-      loss or damage arising from your use of the site or your inability to use
-      it, including loss or damage caused by software bugs, mistakes in the
-      code, or other unintended consequences of how the site was built. Nothing
-      in these terms limits liability that cannot be limited by law.
+      To the fullest extent the law allows, I am not liable for any loss or
+      damage arising from your use of the site or your inability to use it,
+      including loss or damage caused by software bugs, mistakes in the code, or
+      other unintended consequences of how the site was built. Nothing in these
+      terms limits liability that cannot be limited by law.
     </p>
 
     <h2>Changes</h2>
@@ -147,7 +146,7 @@ const TermsOfUse = () => (
 
     <h2>Contact</h2>
     <p>
-      Questions about these terms can be emailed to Ben at <ContactEmail />.
+      If you have questions about these terms, email me at <ContactEmail />.
     </p>
   </Notice>
 );

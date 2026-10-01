@@ -28,7 +28,7 @@ const About = () => (
     <section className="flex flex-col gap-4">
       <h2 className="text-2xl font-semibold">Contact</h2>
       <p>
-        Questions about the site or any of these notices can be emailed to Ben
+        If you have questions about the site or any of these notices, email me
         at <ContactEmail />.
       </p>
     </section>

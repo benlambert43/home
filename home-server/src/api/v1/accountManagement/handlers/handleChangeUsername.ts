@@ -3,15 +3,18 @@ import { createApiToken } from "../../auth/createApiToken";
 import { UserModel } from "../../model/userModel";
 import { serializeUser } from "../../types/serialize";
 import { ApiMessage } from "../../http/messages";
+import { rejectDuplicateAccount } from "../../user/rejectDuplicateAccount";
 
 export const handleChangeUsername = async (
   decodedToken: EncodedAccountJwt,
   newUsername: string,
 ): Promise<ChangeUsernameResponse> => {
-  const updatedUser = await UserModel.findByIdAndUpdate(
-    decodedToken.user._id,
-    { username: newUsername, modifiedDate: new Date() },
-    { returnDocument: "after" },
+  const updatedUser = await rejectDuplicateAccount(
+    UserModel.findByIdAndUpdate(
+      decodedToken.user._id,
+      { username: newUsername, modifiedDate: new Date() },
+      { returnDocument: "after" },
+    ),
   );
 
   if (!updatedUser) {

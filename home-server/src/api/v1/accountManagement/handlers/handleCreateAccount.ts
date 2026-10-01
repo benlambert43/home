@@ -4,6 +4,7 @@ import { UserModel } from "../../model/userModel";
 import { createApiToken } from "../../auth/createApiToken";
 import { UserDocument } from "../../types/db";
 import { checkUniqueUsername } from "../../user/userQueries";
+import { rejectDuplicateAccount } from "../../user/rejectDuplicateAccount";
 import { usernameHasProfanity } from "../../user/usernameFilter";
 import { hashPassword } from "../../auth/password";
 
@@ -59,7 +60,7 @@ const handleCreateUser = async ({
     role: shouldCreateAdminAccount(email, password) ? "admin" : "user",
   });
 
-  return (await newUser.save()) as UserDocument;
+  return (await rejectDuplicateAccount(newUser.save())) as UserDocument;
 };
 
 export const handleCreateAccount = async (newAccount: NewAccount) => {

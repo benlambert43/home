@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("accounts and email");
 
 const AccountsAndEmail = () => (
-  <Notice title="Accounts and Email" updated="2026-09-30">
+  <Notice title="Accounts and Email" updated="2026-10-01">
     <p>
       This page explains what happens when you create an account on
       benlambert.tech, which emails the site sends, and how to change or delete
@@ -86,7 +86,7 @@ const AccountsAndEmail = () => (
       </li>
       <li>
         First name, last name, and email address: these cannot be changed on the
-        site yet. Email Ben at <ContactEmail /> to have them corrected.
+        site yet. Email me at <ContactEmail /> to have them corrected.
       </li>
     </ul>
 
@@ -97,7 +97,7 @@ const AccountsAndEmail = () => (
       name, email address, username, password, and notifications, and to scrub
       your email address out of the site&apos;s records of the emails it sent
       you, so that nothing that identifies you is left behind. If you think
-      something was missed, email Ben at <ContactEmail /> to have it removed.
+      something was missed, email me at <ContactEmail /> to have it removed.
     </p>
   </Notice>
 );

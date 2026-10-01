@@ -92,7 +92,7 @@ const OPEN_SOURCE_PROJECTS = [
 ];
 
 const SourceAndLicenses = () => (
-  <Notice title="Source and Licenses" updated="2026-09-30">
+  <Notice title="Source and Licenses" updated="2026-10-01">
     <p>
       benlambert.tech is open source. This page explains how the site&apos;s own
       code is licensed, what the license does not cover, and which open-source
@@ -119,8 +119,8 @@ const SourceAndLicenses = () => (
     <p>
       The license covers the code, not the site&apos;s content. The writing,
       photographs, and other images on this site, including the image files kept
-      in the repository, belong to Ben Lambert and are not licensed under it.
-      The <Link href={TERMS_OF_USE.href}>{TERMS_OF_USE.title}</Link> explain how
+      in the repository, belong to me and are not licensed under it. The{" "}
+      <Link href={TERMS_OF_USE.href}>{TERMS_OF_USE.title}</Link> explain how
       they may be used.
     </p>
 
@@ -148,7 +148,7 @@ const SourceAndLicenses = () => (
         package files
       </a>{" "}
       in the repository. This list is kept up to date on a best-effort basis, so
-      if a project is missing or credited incorrectly, please email Ben at{" "}
+      if a project is missing or credited incorrectly, please email me at{" "}
       <ContactEmail /> so it can be corrected.
     </p>
   </Notice>
