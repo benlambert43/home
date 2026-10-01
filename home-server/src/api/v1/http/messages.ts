@@ -72,6 +72,9 @@ export const ApiMessage = {
 export const accountAlreadyExists = (field: "email" | "username") =>
   `An account with this ${field} already exists.`;
 
+export const tooManySignInAttempts = (minutes: number) =>
+  `Too many sign in attempts. Please wait ${minutes} ${minutes === 1 ? "minute" : "minutes"} and try again.`;
+
 export const imageNotAnImage = (name: string) =>
   `${name} is not a PNG, JPEG, WebP, GIF, or AVIF image.`;
 

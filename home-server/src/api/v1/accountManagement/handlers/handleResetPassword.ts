@@ -1,6 +1,7 @@
 import { ResetPasswordRequestBody, ResetPasswordResponse } from "@home/shared";
 import { findPasswordReset } from "../../auth/findPasswordReset";
 import { hashPassword } from "../../auth/password";
+import { clearSignInAttempts } from "../../auth/signInThrottle";
 import { PasswordResetModel } from "../../model/passwordResetModel";
 import { UserModel } from "../../model/userModel";
 import { ApiMessage } from "../../http/messages";
@@ -36,6 +37,8 @@ export const handleResetPassword = async ({
     { userId, resetCodeUsed: false },
     { resetCodeUsed: true, usedDate: new Date() },
   );
+
+  await clearSignInAttempts(updatedUser.email);
 
   return { error: false, message: ApiMessage.PASSWORD_CHANGED };
 };
