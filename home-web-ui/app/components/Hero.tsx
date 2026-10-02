@@ -36,7 +36,7 @@ const Hero = () => (
             src={PERSON_PORTRAIT_PATH}
             width={500}
             height={500}
-            alt="A selfie of me, Ben Lambert, smiling. I'm a man with short brown hair and round tortoiseshell glasses."
+            alt="A selfie of me, Ben Lambert. I'm a man with short brown hair and round tortoiseshell glasses."
           />
         </div>
       </div>
