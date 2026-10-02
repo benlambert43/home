@@ -21,6 +21,7 @@ import {
   discardPostUploadOnFailure,
 } from "../api/v1/post/postUploads";
 import { serializeUser } from "../api/v1/types/serialize";
+import { hashPassword } from "../api/v1/auth/password";
 import {
   seededTitle,
   SeedPost,
@@ -36,6 +37,14 @@ const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 const HOURS_BETWEEN_POSTS = 53;
 
 const HOURS_BETWEEN_REVISIONS = 12;
+
+const TEST_ACCOUNT = {
+  firstname: "Test",
+  lastname: "Account",
+  username: "test-account",
+  email: "test@example.com",
+  password: "testtest123",
+};
 
 type PostResponse = ApiResponse<{ post: Post }>;
 
@@ -69,6 +78,24 @@ const findAuthor = async (): Promise<UserNoPassword> => {
   }
 
   return serializeUser(author);
+};
+
+const seedTestAccount = async () => {
+  if (await UserModel.exists({ email: TEST_ACCOUNT.email })) {
+    console.log(`Test account ${TEST_ACCOUNT.email} already existed.`);
+    return;
+  }
+
+  await new UserModel({
+    ...TEST_ACCOUNT,
+    confirmedEmail: true,
+    userBanned: false,
+    password: await hashPassword(TEST_ACCOUNT.password),
+    createdDate: new Date(),
+    modifiedDate: new Date(),
+    role: "user",
+  }).save();
+  console.log(`Seeded test account ${TEST_ACCOUNT.email}.`);
 };
 
 const findSeededTitles = async (titles: string[]) => {
@@ -220,6 +247,8 @@ const seedPosts = async () => {
   await mongoose.set("strictQuery", false).connect(requireEnv("MONGO_URI"));
 
   try {
+    await seedTestAccount();
+
     const author = await findAuthor();
     const seeded = await findSeededTitles(posts.map(seededTitle));
 
