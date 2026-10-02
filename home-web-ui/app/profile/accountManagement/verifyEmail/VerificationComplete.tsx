@@ -5,18 +5,20 @@ import {
   CompleteEmailVerificationResult,
 } from "@/app/actions/auth";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 
 const VerificationComplete = ({ code }: { code: string }) => {
   const hasStarted = useRef(false);
-  const [failure, setFailure] = useState<CompleteEmailVerificationResult>();
+  const [failure, verify] = useActionState<
+    CompleteEmailVerificationResult | undefined
+  >(() => completeEmailVerification(code), undefined);
 
   useEffect(() => {
     if (hasStarted.current) return;
     hasStarted.current = true;
 
-    void completeEmailVerification(code).then(setFailure);
-  }, [code]);
+    startTransition(verify);
+  }, [verify]);
 
   if (failure?.unreachable) {
     return (
