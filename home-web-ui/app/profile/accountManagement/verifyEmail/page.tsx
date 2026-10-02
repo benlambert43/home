@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 
 export const metadata = pageMetadata("profile");
 
+export const instant = false;
+
 const VerifyEmail = async ({
   searchParams,
 }: {

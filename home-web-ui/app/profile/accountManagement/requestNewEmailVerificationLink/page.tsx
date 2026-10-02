@@ -4,6 +4,8 @@ import { pageMetadata } from "@/app/lib/metadata";
 
 export const metadata = pageMetadata("profile");
 
+export const instant = false;
+
 const RequestNewEmailVerificationLink = async () => {
   await requireBffSessionUser();
 

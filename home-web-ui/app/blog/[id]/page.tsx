@@ -6,6 +6,8 @@ import { SearchParams } from "@/app/lib/searchParams";
 
 type PostProps = { params: PostParams; searchParams: SearchParams };
 
+export const instant = false;
+
 export const generateMetadata = async ({ params }: PostProps) => {
   const { id } = await params;
   const result = await getPost(id);

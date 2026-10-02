@@ -10,6 +10,8 @@ import { redirect } from "next/navigation";
 
 export const metadata = pageMetadata("edit blog post");
 
+export const instant = false;
+
 const EditPost = async ({
   params,
   searchParams,

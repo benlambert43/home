@@ -7,6 +7,8 @@ import Button from "@/app/ui/Button";
 
 export const metadata = pageMetadata("profile");
 
+export const instant = false;
+
 const Profile = async () => {
   const user = await requireBffSessionUser();
 

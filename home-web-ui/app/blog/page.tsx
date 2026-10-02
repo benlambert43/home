@@ -6,6 +6,8 @@ import { Suspense } from "react";
 
 export const metadata = pageMetadata("blog");
 
+export const instant = false;
+
 const Blog = ({ searchParams }: { searchParams: SearchParams }) => (
   <div className="flex flex-col gap-4 p-5">
     <div className="flex flex-row flex-wrap items-center gap-4">

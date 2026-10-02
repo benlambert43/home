@@ -4,6 +4,8 @@ import OpenGmailButton from "@/app/ui/OpenGmailButton";
 
 export const metadata = pageMetadata("profile");
 
+export const instant = false;
+
 const RequestNewEmailVerificationLinkSuccess = async () => {
   await requireBffSessionUser();
 

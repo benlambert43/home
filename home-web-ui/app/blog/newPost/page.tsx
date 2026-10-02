@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 
 export const metadata = pageMetadata("new blog post");
 
+export const instant = false;
+
 const NewPost = async ({ searchParams }: { searchParams: SearchParams }) => {
   const user = await requireBffSessionUser();
   if (user.role !== "admin") {

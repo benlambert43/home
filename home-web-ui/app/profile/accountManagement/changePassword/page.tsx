@@ -10,6 +10,8 @@ import { CheckPasswordResetLinkResponse } from "@home/shared";
 
 export const metadata = pageMetadata("profile");
 
+export const instant = false;
+
 const ResetPassword = async ({ code }: { code: string }) => {
   let linkStatus: CheckPasswordResetLinkResponse;
 

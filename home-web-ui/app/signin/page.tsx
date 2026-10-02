@@ -5,6 +5,8 @@ import Link from "next/link";
 
 export const metadata = pageMetadata("sign in");
 
+export const instant = false;
+
 const SignIn = async () => {
   await redirectSignedInUser();
 

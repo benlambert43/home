@@ -4,6 +4,8 @@ import { pageMetadata } from "@/app/lib/metadata";
 
 export const metadata = pageMetadata("create account");
 
+export const instant = false;
+
 const CreateAccount = async () => {
   await redirectSignedInUser();
 

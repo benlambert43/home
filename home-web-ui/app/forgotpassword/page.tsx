@@ -5,6 +5,8 @@ import Link from "next/link";
 
 export const metadata = pageMetadata("forgot password");
 
+export const instant = false;
+
 const ForgotPassword = async () => {
   await redirectSignedInUser();
 

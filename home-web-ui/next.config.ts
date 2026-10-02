@@ -38,6 +38,7 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  cacheComponents: true,
   headers: () =>
     Promise.resolve([{ source: "/(.*)", headers: SECURITY_HEADERS }]),
 };

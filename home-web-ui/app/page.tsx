@@ -3,6 +3,8 @@ import Content from "@/app/components/Content";
 import Hero from "@/app/components/Hero";
 import { ReactNode } from "react";
 
+export const instant = false;
+
 const HIGHLIGHTS: { title: string; description: ReactNode }[] = [
   {
     title: "👋",
