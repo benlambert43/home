@@ -67,35 +67,33 @@ const requestedPostCount = () => {
   return count;
 };
 
-const findAuthor = async (): Promise<UserNoPassword> => {
-  const email = requireEnv("ADMIN_EMAIL");
-  const author = await UserModel.findOne({ email });
+const seedTestAccount = async (): Promise<UserNoPassword> => {
+  const existing = await UserModel.findOne({ email: TEST_ACCOUNT.email });
 
-  if (!author) {
-    throw new Error(
-      `No account with the email ${email}, create the admin account before seeding.`,
-    );
-  }
-
-  return serializeUser(author);
-};
-
-const seedTestAccount = async () => {
-  if (await UserModel.exists({ email: TEST_ACCOUNT.email })) {
+  if (existing?.role === "admin") {
     console.log(`Test account ${TEST_ACCOUNT.email} already existed.`);
-    return;
+    return serializeUser(existing);
   }
 
-  await new UserModel({
+  if (existing) {
+    existing.role = "admin";
+    existing.modifiedDate = new Date();
+    await existing.save();
+    console.log(`Made test account ${TEST_ACCOUNT.email} an admin.`);
+    return serializeUser(existing);
+  }
+
+  const account = await new UserModel({
     ...TEST_ACCOUNT,
     confirmedEmail: true,
     userBanned: false,
     password: await hashPassword(TEST_ACCOUNT.password),
     createdDate: new Date(),
     modifiedDate: new Date(),
-    role: "user",
+    role: "admin",
   }).save();
   console.log(`Seeded test account ${TEST_ACCOUNT.email}.`);
+  return serializeUser(account);
 };
 
 const findSeededTitles = async (titles: string[]) => {
@@ -247,9 +245,7 @@ const seedPosts = async () => {
   await mongoose.set("strictQuery", false).connect(requireEnv("MONGO_URI"));
 
   try {
-    await seedTestAccount();
-
-    const author = await findAuthor();
+    const author = await seedTestAccount();
     const seeded = await findSeededTitles(posts.map(seededTitle));
 
     for (const [position, post] of posts.entries()) {
