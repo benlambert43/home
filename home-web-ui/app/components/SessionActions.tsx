@@ -7,9 +7,14 @@ import { ReactNode, useEffect, useState } from "react";
 const SessionActions = ({
   signedIn,
   signedOut,
-}: Readonly<{ signedIn: ReactNode; signedOut: ReactNode }>) => {
+  pending,
+}: Readonly<{
+  signedIn: ReactNode;
+  signedOut: ReactNode;
+  pending: ReactNode;
+}>) => {
   const pathname = usePathname();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -30,6 +35,8 @@ const SessionActions = ({
       active = false;
     };
   }, [pathname]);
+
+  if (isSignedIn === null) return pending;
 
   return isSignedIn ? signedIn : signedOut;
 };

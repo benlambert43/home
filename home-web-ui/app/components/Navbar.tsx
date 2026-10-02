@@ -19,6 +19,21 @@ const SignIn = () => {
   );
 };
 
+const SkeletonIcon = () => (
+  <span
+    aria-hidden
+    className="size-6 rounded-full bg-slate-50/10 motion-safe:animate-pulse"
+  />
+);
+
+const SessionActionsSkeleton = () => (
+  <>
+    <SkeletonIcon />
+    <SkeletonIcon />
+    <SkeletonIcon />
+  </>
+);
+
 const Profile = () => {
   return (
     <div>
@@ -65,8 +80,9 @@ const Navbar = () => {
         </Link>
       </div>
       <div className="flex min-h-6 flex-1 items-center gap-4 sm:justify-end">
-        <Suspense fallback={<SignIn />}>
+        <Suspense fallback={<SessionActionsSkeleton />}>
           <SessionActions
+            pending={<SessionActionsSkeleton />}
             signedOut={<SignIn />}
             signedIn={
               <>
