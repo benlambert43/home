@@ -1,47 +1,51 @@
+import { GITHUB_REPOSITORY_URL } from "@/app/about/links";
 import RecentPosts from "@/app/blog/RecentPosts";
 import Content from "@/app/components/Content";
 import Hero from "@/app/components/Hero";
+import PersonJsonLd from "@/app/components/PersonJsonLd";
 import { homeMetadata } from "@/app/lib/metadata";
 import { ReactNode } from "react";
 
 export const metadata = homeMetadata;
 
-const HIGHLIGHTS: { title: string; description: ReactNode }[] = [
+const HIGHLIGHTS: { emoji: string; description: ReactNode }[] = [
   {
-    title: "👋",
-    description: <div>Welcome!</div>,
+    emoji: "👋",
+    description: "Welcome!",
   },
   {
-    title: "⌨️",
+    emoji: "⌨️",
     description: (
-      <div>
+      <>
         The source code for this website is available{" "}
         <a
           target="_blank"
-          href="https://github.com/benlambert43/home"
+          href={GITHUB_REPOSITORY_URL}
           rel="noopener noreferrer"
+          className="underline"
         >
-          <u>here</u>
+          here
         </a>
         .
-      </div>
+      </>
     ),
   },
 ];
 
 const Highlights = () => (
-  <div className="flex flex-col gap-4">
-    {HIGHLIGHTS.map((item) => (
-      <div key={item.title}>
-        <h2 className="text-2xl">{item.title}</h2>
-        <div>{item.description}</div>
-      </div>
+  <ul className="flex flex-col gap-4">
+    {HIGHLIGHTS.map(({ emoji, description }) => (
+      <li key={emoji}>
+        <p className="text-2xl">{emoji}</p>
+        <p>{description}</p>
+      </li>
     ))}
-  </div>
+  </ul>
 );
 
 const Home = () => (
   <div>
+    <PersonJsonLd />
     <Hero />
     <Content>
       <RecentPosts />

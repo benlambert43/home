@@ -4,6 +4,7 @@ import HeroMountains, {
   HeroMountainsPlaceholder,
 } from "@/app/components/HeroMountains";
 import { getAnimationsPaused } from "@/app/lib/animationsPaused";
+import { PERSON_PORTRAIT_PATH } from "@/app/lib/person";
 
 const CookieHeroMountains = async () => (
   <HeroMountains initialPaused={await getAnimationsPaused()} />
@@ -18,8 +19,8 @@ const Hero = () => (
       >
         <div className="px-4">
           <h1>Hi there!</h1>
-          <h2>My name is Ben.</h2>
-          <h2>I am:</h2>
+          <p>My name is Ben.</p>
+          <p>I am:</p>
 
           <ul className="list-inside list-disc">
             <li>a software developer</li>
@@ -33,10 +34,10 @@ const Hero = () => (
         >
           <Image
             priority
-            src="/selfie.png"
+            src={PERSON_PORTRAIT_PATH}
             width={500}
             height={500}
-            alt="A selfie of Ben"
+            alt="A selfie of me, Ben Lambert, smiling. I'm a man with short brown hair and round tortoiseshell glasses."
           />
         </div>
       </div>
