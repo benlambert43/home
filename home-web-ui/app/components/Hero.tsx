@@ -1,21 +1,13 @@
-import { cookies } from "next/headers";
 import Image from "next/image";
 import { Suspense } from "react";
 import HeroMountains, {
   HeroMountainsPlaceholder,
 } from "@/app/components/HeroMountains";
 import { getAnimationsPaused } from "@/app/lib/animationsPaused";
-import { MOUNTAINS_PLAYED_COOKIE } from "@/app/lib/heroMountains";
-import { ALWAYS_PLAY_HOMEPAGE_ANIMATION } from "@/app/lib/publicEnv";
 
-const CookieHeroMountains = async () => {
-  const cookieStore = await cookies();
-  const paused = await getAnimationsPaused();
-  const played =
-    !ALWAYS_PLAY_HOMEPAGE_ANIMATION && cookieStore.has(MOUNTAINS_PLAYED_COOKIE);
-
-  return <HeroMountains autoplay={!paused && !played} initialPaused={paused} />;
-};
+const CookieHeroMountains = async () => (
+  <HeroMountains initialPaused={await getAnimationsPaused()} />
+);
 
 const Hero = () => (
   <div className="relative flex flex-col items-center justify-center pt-8">

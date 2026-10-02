@@ -11,7 +11,7 @@ const CLOUD_DATA_PROCESSING_ADDENDUM_URL =
   "https://cloud.google.com/terms/data-processing-addendum";
 
 const PrivacyNotice = () => (
-  <Notice title="Privacy Notice" updated="2026-10-01">
+  <Notice title="Privacy Notice" updated="2026-10-02">
     <p>
       benlambert.tech is my personal website. This notice explains what
       information the site collects, why it collects it, who else handles it,
@@ -33,9 +33,8 @@ const PrivacyNotice = () => (
     <p>
       You can read everything public on this site without an account. The site
       does not use analytics, advertising, or tracking scripts of any kind.
-      Opening the home page sets one short-lived cookie that records only that
-      its header animation has played, and using the control that pauses
-      animations sets another; both are described in the{" "}
+      Using the control that pauses animations sets one cookie, which records
+      only that choice and is described in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The
       site&apos;s own server logs are designed to record errors, such as which
       request failed and why, and not who made the request. The infrastructure

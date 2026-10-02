@@ -1,15 +1,12 @@
 "use client";
 
 import { ArrowPathIcon } from "@heroicons/react/16/solid";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AnimationsPauseButton, {
   ANIMATION_BUTTON_CLASSES,
 } from "@/app/components/AnimationsPauseButton";
 import { setAnimationsPausedCookie } from "@/app/lib/animationsPausedCookie";
-import { MOUNTAINS_PLAYED_COOKIE } from "@/app/lib/heroMountains";
 import Mountains from "@/app/ui/Mountains";
-
-const PLAYED_MAX_AGE_SECONDS = 60 * 30;
 
 const MOUNTAINS_FRAME_CLASSES = "max-w-full overflow-clip";
 
@@ -19,19 +16,9 @@ export const HeroMountainsPlaceholder = () => (
   </div>
 );
 
-const HeroMountains = ({
-  autoplay,
-  initialPaused,
-}: {
-  autoplay: boolean;
-  initialPaused: boolean;
-}) => {
+const HeroMountains = ({ initialPaused }: { initialPaused: boolean }) => {
   const [paused, setPaused] = useState(initialPaused);
-  const [playCount, setPlayCount] = useState(autoplay ? 1 : 0);
-
-  useEffect(() => {
-    document.cookie = `${MOUNTAINS_PLAYED_COOKIE}=true; path=/; max-age=${PLAYED_MAX_AGE_SECONDS}; samesite=lax`;
-  }, []);
+  const [playCount, setPlayCount] = useState(0);
 
   const replay = () => {
     setPlayCount((count) => count + 1);
@@ -59,7 +46,7 @@ const HeroMountains = ({
         )}
       </div>
       <div className={MOUNTAINS_FRAME_CLASSES}>
-        <Mountains key={playCount} animated={!paused && playCount > 0} />
+        <Mountains key={playCount} animated={!paused} />
       </div>
     </>
   );

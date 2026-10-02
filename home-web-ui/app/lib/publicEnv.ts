@@ -13,6 +13,3 @@ export const CAPTCHA_PUBLIC = requireEnvironmentVariable(
   "NEXT_PUBLIC_CAPTCHA_PUBLIC",
   process.env.NEXT_PUBLIC_CAPTCHA_PUBLIC,
 );
-
-export const ALWAYS_PLAY_HOMEPAGE_ANIMATION =
-  process.env.NEXT_PUBLIC_ALWAYS_PLAY_HOMEPAGE_ANIMATION === "true";
