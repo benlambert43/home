@@ -10,6 +10,22 @@ export const siteMetadata: Metadata = {
   description: SITE_DESCRIPTION,
 };
 
+const HOME_DESCRIPTION =
+  "home page of ben lambert's personal website. A place to share my projects and experiences.";
+
+export const homeMetadata: Metadata = {
+  title: SITE_NAME,
+  description: HOME_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: HOME_DESCRIPTION,
+  },
+};
+
 export const pageMetadata = (
   page: string,
   canonicalPath?: string,
