@@ -86,6 +86,8 @@ const createBackupTransporter = () =>
     },
   });
 
+const NEVER_EMAILED_ADDRESS = "test@example.com";
+
 const REDACTED_RECIPIENT = "[recipient]";
 
 const redactRecipient = (text: string, recipient: string) =>
@@ -134,6 +136,10 @@ export const sendMail = async ({
   subject: string;
   text: string;
 }) => {
+  if (to.toLowerCase() === NEVER_EMAILED_ADDRESS) {
+    return { ok: true, response: "Skipped sending to the test account." };
+  }
+
   const safeMailOptions: Mail.Options = { to, subject, text };
 
   try {
