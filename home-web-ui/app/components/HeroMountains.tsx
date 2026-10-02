@@ -11,6 +11,14 @@ import Mountains from "@/app/ui/Mountains";
 
 const PLAYED_MAX_AGE_SECONDS = 60 * 30;
 
+const MOUNTAINS_FRAME_CLASSES = "max-w-full overflow-clip";
+
+export const HeroMountainsPlaceholder = () => (
+  <div className={`invisible ${MOUNTAINS_FRAME_CLASSES}`}>
+    <Mountains animated={false} />
+  </div>
+);
+
 const HeroMountains = ({
   autoplay,
   initialPaused,
@@ -50,7 +58,7 @@ const HeroMountains = ({
           </button>
         )}
       </div>
-      <div className="max-w-full overflow-clip">
+      <div className={MOUNTAINS_FRAME_CLASSES}>
         <Mountains key={playCount} animated={!paused && playCount > 0} />
       </div>
     </>

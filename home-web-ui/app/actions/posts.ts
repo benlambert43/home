@@ -28,7 +28,7 @@ import {
   UpdatePostRequestBody,
   UpdatePostResponse,
 } from "@home/shared";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 const submittedUploadId = (formData: FormData) => {
@@ -70,6 +70,7 @@ export const createPost = async (
     return { values, errors: [errorMessage(error)] };
   }
 
+  updateTag("posts");
   revalidatePath("/blog");
   redirect("/blog");
 };
@@ -114,6 +115,7 @@ export const updatePost = async (
     return { values, errors: [errorMessage(error)] };
   }
 
+  updateTag("posts");
   revalidatePath(postHref(id));
   revalidatePath("/blog");
   redirect(postHref(id, page));
@@ -135,6 +137,7 @@ export const deletePost = async (
     return { errors: [errorMessage(error)] };
   }
 
+  updateTag("posts");
   revalidatePath("/blog");
   redirect(blogHref(page));
 };

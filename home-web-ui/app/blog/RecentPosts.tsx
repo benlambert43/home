@@ -2,12 +2,18 @@ import { blogHref, postHref } from "@/app/blog/links";
 import PostThumbnail from "@/app/blog/PostThumbnail";
 import { getPosts } from "@/app/lib/posts";
 import { PostSummary } from "@home/shared";
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
-import { connection } from "next/server";
+import { Suspense } from "react";
 
 const RECENT_POSTS_COUNT = 10;
 
 const THUMBNAIL_PIXELS = 32;
+
+const SKELETON_TITLE_WIDTHS = ["w-3/4", "w-1/2", "w-5/6", "w-2/3", "w-3/5"];
+
+const skeletonTitleWidth = (index: number) =>
+  SKELETON_TITLE_WIDTHS[index % SKELETON_TITLE_WIDTHS.length];
 
 const RecentPostRow = ({ post }: { post: PostSummary }) => (
   <li>
@@ -30,9 +36,18 @@ const RecentPostRow = ({ post }: { post: PostSummary }) => (
   </li>
 );
 
-const RecentPostList = async () => {
-  await connection();
+const getRecentPosts = async () => {
+  "use cache";
+  cacheTag("posts");
+
   const result = await getPosts(1, RECENT_POSTS_COUNT);
+  if (result.error) cacheLife("seconds");
+
+  return result;
+};
+
+const RecentPostList = async () => {
+  const result = await getRecentPosts();
 
   if (result.error) return <p>{result.message}</p>;
 
@@ -60,10 +75,30 @@ const RecentPostList = async () => {
   );
 };
 
+const SkeletonBlock = ({ className }: { className: string }) => (
+  <span className={`rounded-sm bg-slate-700 ${className}`} />
+);
+
+const RecentPostListSkeleton = () => (
+  <>
+    <ul className="flex flex-col gap-3 motion-safe:animate-pulse" aria-hidden>
+      {Array.from({ length: RECENT_POSTS_COUNT }, (_, index) => (
+        <li key={index} className="flex flex-row items-center gap-3">
+          <SkeletonBlock className="size-8 shrink-0" />
+          <SkeletonBlock className={`h-4 ${skeletonTitleWidth(index)}`} />
+        </li>
+      ))}
+    </ul>
+    <SkeletonBlock className="my-1 h-3 w-24 motion-safe:animate-pulse" />
+  </>
+);
+
 const RecentPosts = () => (
   <section className="flex flex-col gap-4">
     <h2 className="text-2xl">Recent Activity</h2>
-    <RecentPostList />
+    <Suspense fallback={<RecentPostListSkeleton />}>
+      <RecentPostList />
+    </Suspense>
   </section>
 );
 

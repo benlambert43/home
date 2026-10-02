@@ -4,8 +4,6 @@ import Hero from "@/app/components/Hero";
 import { homeMetadata } from "@/app/lib/metadata";
 import { ReactNode } from "react";
 
-export const instant = false;
-
 export const metadata = homeMetadata;
 
 const HIGHLIGHTS: { title: string; description: ReactNode }[] = [
