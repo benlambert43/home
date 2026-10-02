@@ -46,6 +46,8 @@ const TEST_ACCOUNT = {
   password: "testtest123",
 };
 
+const LOCAL_DATABASE_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
+
 type PostResponse = ApiResponse<{ post: Post }>;
 
 const requireEnv = (name: string) => {
@@ -54,6 +56,20 @@ const requireEnv = (name: string) => {
     throw new Error(`${name} is not defined.`);
   }
   return value;
+};
+
+const requireLocalDatabase = (uri: string) => {
+  const host = URL.canParse(uri)
+    ? new URL(uri).hostname.toLowerCase()
+    : undefined;
+
+  if (host === undefined || !LOCAL_DATABASE_HOSTS.includes(host)) {
+    throw new Error(
+      "Seeding creates an admin account with a published password, so MONGO_URI must point at a database on localhost.",
+    );
+  }
+
+  return uri;
 };
 
 const requestedPostCount = () => {
@@ -239,10 +255,11 @@ const seedPost = async (
 };
 
 const seedPosts = async () => {
+  const uri = requireLocalDatabase(requireEnv("MONGO_URI"));
   const posts = seedPostCatalogue(requestedPostCount());
   const now = Date.now();
 
-  await mongoose.set("strictQuery", false).connect(requireEnv("MONGO_URI"));
+  await mongoose.set("strictQuery", false).connect(uri);
 
   try {
     const author = await seedTestAccount();
