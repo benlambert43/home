@@ -17,6 +17,11 @@ npm run dev
 
 npm run dev:server
 
+## Test account:
+
+test@example.com
+testtest123
+
 ## home-shared
 
 home-shared must be built before web client and server are run.
@@ -26,7 +31,6 @@ home-shared must be built before web client and server are run.
 ## Post storage
 
 home-server stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores, and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
-
 
 ## Linting
 
