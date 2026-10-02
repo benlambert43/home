@@ -1,7 +1,7 @@
 "use server";
 
-import { createSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import { createSession } from "@/app/auth/sessionCookies";
 import { apiFetch, apiRequest, errorMessage } from "@/app/lib/api";
 import {
   CreateAccountFormState,
@@ -157,11 +157,37 @@ export const requestNewEmailVerificationLink = async (
   redirect("/profile/accountManagement/requestNewEmailVerificationLinkSuccess");
 };
 
-export const verifyEmail = async (code: string): Promise<VerifyEmailResponse> =>
-  apiRequest<VerifyEmailResponse>(
-    `${VERIFY_EMAIL_URL}/${encodeURIComponent(code)}`,
-    { cache: "no-store" },
-  );
+export type CompleteEmailVerificationResult = {
+  error: true;
+  message: string;
+  unreachable?: boolean;
+};
+
+export const completeEmailVerification = async (
+  code: string,
+): Promise<CompleteEmailVerificationResult> => {
+  if (typeof code !== "string" || code === "") {
+    return { error: true, message: "Missing verification code." };
+  }
+
+  let verification: VerifyEmailResponse;
+
+  try {
+    verification = await apiRequest<VerifyEmailResponse>(
+      `${VERIFY_EMAIL_URL}/${encodeURIComponent(code)}`,
+      { cache: "no-store" },
+    );
+  } catch (error) {
+    return { error: true, message: errorMessage(error), unreachable: true };
+  }
+
+  if (verification.error) {
+    return { error: true, message: verification.message };
+  }
+
+  await createSession(verification.jwt, verification.user);
+  redirect("/profile");
+};
 
 export const requestPasswordReset = async (
   state: RequestPasswordResetFormState,

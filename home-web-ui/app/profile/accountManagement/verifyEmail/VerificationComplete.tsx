@@ -1,31 +1,43 @@
 "use client";
 
-import { createSession } from "@/app/actions/session";
-import { SessionPayload } from "@home/shared";
-import { redirect } from "next/navigation";
-import { useEffect, useRef } from "react";
+import {
+  completeEmailVerification,
+  CompleteEmailVerificationResult,
+} from "@/app/actions/auth";
+import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
+import { useEffect, useRef, useState } from "react";
 
-const VerificationComplete = (props: {
-  message?: string;
-  session?: SessionPayload;
-}) => {
-  const { message, session } = props;
-  const hasCompleted = useRef(false);
+const VerificationComplete = ({ code }: { code: string }) => {
+  const hasStarted = useRef(false);
+  const [failure, setFailure] = useState<CompleteEmailVerificationResult>();
 
   useEffect(() => {
-    if (hasCompleted.current) return;
-    hasCompleted.current = true;
+    if (hasStarted.current) return;
+    hasStarted.current = true;
 
-    const complete = async () => {
-      if (session) {
-        await createSession(session.jwt, session.user);
-      }
-      redirect("/profile");
-    };
-    void complete();
-  }, [session]);
+    void completeEmailVerification(code).then(setFailure);
+  }, [code]);
 
-  return <div className="p-5 py-5">{message}</div>;
+  if (failure?.unreachable) {
+    return (
+      <VerificationProblem
+        headline="An error occurred. Unable to reach email verification service."
+        detail={failure.message}
+      />
+    );
+  }
+
+  if (failure) {
+    return (
+      <VerificationProblem
+        headline="An error occurred. Please refresh the page or request a new email verification link."
+        detail={failure.message}
+        showRequestNewLink
+      />
+    );
+  }
+
+  return <div className="p-5 py-5">Verifying your email...</div>;
 };
 
 export default VerificationComplete;

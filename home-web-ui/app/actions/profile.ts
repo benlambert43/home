@@ -1,7 +1,7 @@
 "use server";
 
-import { createSession, removeSession } from "@/app/actions/session";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import { clearSession, createSession } from "@/app/auth/sessionCookies";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
   ChangePasswordFormState,
@@ -109,5 +109,6 @@ export const deleteAccount = async (): Promise<
     return { errors: [errorMessage(error)] };
   }
 
-  await removeSession();
+  await clearSession();
+  redirect("/signin");
 };

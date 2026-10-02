@@ -1,86 +1,29 @@
-import { verifyEmail } from "@/app/actions/auth";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import { errorMessage } from "@/app/lib/api";
 import { pageMetadata } from "@/app/lib/metadata";
 import { paramFilled, SearchParams } from "@/app/lib/searchParams";
 import VerificationComplete from "@/app/profile/accountManagement/verifyEmail/VerificationComplete";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
-import { SessionPayload } from "@home/shared";
+import { redirect } from "next/navigation";
 
 export const metadata = pageMetadata("profile");
-
-type VerificationResult =
-  | { status: "complete"; message?: string; session?: SessionPayload }
-  | { status: "failed"; message: string }
-  | { status: "missingCode" }
-  | { status: "unreachable"; error: string };
-
-const resolveVerification = async (
-  searchParams: SearchParams,
-): Promise<VerificationResult> => {
-  const user = await getBffSessionUser();
-  if (user?._id && user.confirmedEmail === true) {
-    return { status: "complete" };
-  }
-
-  const { code } = await searchParams;
-
-  if (!paramFilled(code)) {
-    return { status: "missingCode" };
-  }
-
-  const verificationStatus = await verifyEmail(code);
-
-  if (verificationStatus.error) {
-    return { status: "failed", message: verificationStatus.message };
-  }
-
-  const { message, jwt, user: verifiedUser } = verificationStatus;
-  return { status: "complete", message, session: { jwt, user: verifiedUser } };
-};
 
 const VerifyEmail = async ({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) => {
-  let result: VerificationResult;
-
-  try {
-    result = await resolveVerification(searchParams);
-  } catch (e) {
-    result = {
-      status: "unreachable",
-      error: errorMessage(e),
-    };
+  const user = await getBffSessionUser();
+  if (user?._id && user.confirmedEmail === true) {
+    redirect("/profile");
   }
 
-  if (result.status === "complete") {
-    return (
-      <VerificationComplete message={result.message} session={result.session} />
-    );
-  }
+  const { code } = await searchParams;
 
-  if (result.status === "missingCode") {
+  if (!paramFilled(code)) {
     return <VerificationProblem headline="Missing verification code." />;
   }
 
-  if (result.status === "unreachable") {
-    return (
-      <VerificationProblem
-        headline="An error occurred. Unable to reach email verification service."
-        detail={result.error}
-      />
-    );
-  }
-
-  return (
-    <VerificationProblem
-      headline="An error occurred. Please refresh the page or request a new email verification link."
-      detail={result.message}
-      showRequestNewLink
-    />
-  );
+  return <VerificationComplete code={code} />;
 };
 
 export default VerifyEmail;

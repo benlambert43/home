@@ -1,4 +1,4 @@
-import { removeSession } from "@/app/actions/session";
+import { logOut } from "@/app/actions/session";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import { pageMetadata } from "@/app/lib/metadata";
 import DeleteAccountButton from "@/app/profile/DeleteAccountButton";
@@ -56,7 +56,7 @@ const Profile = async () => {
       </div>
 
       <div className="py-5">
-        <form action={removeSession}>
+        <form action={logOut}>
           <Button type="submit" size="large">
             Log Out
           </Button>
