@@ -1,8 +1,8 @@
 import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { Notifications } from "@/app/components/Notifications";
+import SessionActions from "@/app/components/SessionActions";
 import StickyNav from "@/app/components/StickyNav";
 import {
   NAV_ICON_LINK_CLASSES,
@@ -47,20 +47,6 @@ const Settings = () => {
   );
 };
 
-const SessionActions = async () => {
-  const user = await getBffSessionUser();
-
-  if (!user) return <SignIn />;
-
-  return (
-    <>
-      <Notifications />
-      <Settings />
-      <Profile />
-    </>
-  );
-};
-
 const Navbar = () => {
   return (
     <StickyNav>
@@ -79,8 +65,17 @@ const Navbar = () => {
         </Link>
       </div>
       <div className="flex min-h-6 flex-1 items-center gap-4 sm:justify-end">
-        <Suspense fallback={null}>
-          <SessionActions />
+        <Suspense fallback={<SignIn />}>
+          <SessionActions
+            signedOut={<SignIn />}
+            signedIn={
+              <>
+                <Notifications />
+                <Settings />
+                <Profile />
+              </>
+            }
+          />
         </Suspense>
       </div>
     </StickyNav>
