@@ -32,8 +32,8 @@
     "@eslint/js": "^9",
     "eslint": "^9",
     "husky": "^9.1.7",
-    "prettier": "^3.9.6",
-    "typescript-eslint": "^8.67.0"
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.0"
   },
   "allowScripts": {
     "bcrypt@6.0.0": true,
