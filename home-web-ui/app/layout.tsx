@@ -1,10 +1,12 @@
 import "@/app/globals.css";
 import Footer from "@/app/components/Footer";
 import Navbar from "@/app/components/Navbar";
-import { siteMetadata } from "@/app/lib/metadata";
+import { siteMetadata, siteViewport } from "@/app/lib/metadata";
 import { ReactNode } from "react";
 
 export const metadata = siteMetadata;
+
+export const viewport = siteViewport;
 
 const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
   <html

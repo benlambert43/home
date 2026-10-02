@@ -1,13 +1,17 @@
 import { BASE_SITE_URL } from "@/app/lib/serverEnv";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
-const SITE_NAME = "ben lambert";
+export const SITE_NAME = "ben lambert";
 const SITE_DESCRIPTION = "ben lambert's personal website 🧑‍💻";
 
 export const siteMetadata: Metadata = {
   metadataBase: new URL(BASE_SITE_URL),
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
+};
+
+export const siteViewport: Viewport = {
+  themeColor: "#1d293d",
 };
 
 const HOME_DESCRIPTION =
