@@ -1,6 +1,6 @@
 import Post, { PostParams } from "@/app/blog/Post";
 import { postHref } from "@/app/blog/links";
-import { pageMetadata } from "@/app/lib/metadata";
+import { pageMetadata, unavailableBlogMetadata } from "@/app/lib/metadata";
 import { getPost } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
 
@@ -12,7 +12,9 @@ export const generateMetadata = async ({ params }: PostProps) => {
   const { id } = await params;
   const result = await getPost(id);
 
-  return pageMetadata(result.error ? "blog" : result.post.title, postHref(id));
+  if (result.error) return unavailableBlogMetadata;
+
+  return pageMetadata(result.post.title, { canonicalPath: postHref(id) });
 };
 
 const BlogPost = ({ params, searchParams }: PostProps) => (
