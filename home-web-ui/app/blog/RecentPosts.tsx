@@ -1,8 +1,7 @@
 import { blogHref, postHref } from "@/app/blog/links";
 import PostThumbnail from "@/app/blog/PostThumbnail";
-import { getPosts } from "@/app/lib/posts";
+import { getCachedPosts } from "@/app/lib/posts";
 import { PostSummary } from "@home/shared";
-import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -36,18 +35,8 @@ const RecentPostRow = ({ post }: { post: PostSummary }) => (
   </li>
 );
 
-const getRecentPosts = async () => {
-  "use cache";
-  cacheTag("posts");
-
-  const result = await getPosts(1, RECENT_POSTS_COUNT);
-  if (result.error) cacheLife("seconds");
-
-  return result;
-};
-
 const RecentPostList = async () => {
-  const result = await getRecentPosts();
+  const result = await getCachedPosts(1, RECENT_POSTS_COUNT);
 
   if (result.error) return <p>{result.message}</p>;
 

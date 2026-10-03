@@ -13,16 +13,25 @@ import {
   GetPostsResponse,
   postIdParamsSchema,
 } from "@home/shared";
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 
 export const POSTS_URL = `${BASE_API_URL}/posts`;
 
-const postUrl = (id: string) => {
+export const POSTS_TAG = "posts";
+
+export const postTag = (id: string) => `post:${id}`;
+
+export type PostLookup = GetPostResponse | { error: false; post: null };
+
+const requirePostId = (id: string) => {
   const params = postIdParamsSchema.safeParse({ id });
   if (!params.success) notFound();
 
-  return `${POSTS_URL}/${params.data.id}`;
+  return params.data.id;
 };
+
+const postUrl = (id: string) => `${POSTS_URL}/${id}`;
 
 export const getPosts = async (
   page: number,
@@ -38,24 +47,51 @@ export const getPosts = async (
   }
 };
 
-export const getPost = async (id: string): Promise<GetPostResponse> => {
-  const url = postUrl(id);
+export const getCachedPosts = async (
+  page: number,
+  pageSize?: number,
+): Promise<GetPostsResponse> => {
+  "use cache";
+  cacheTag(POSTS_TAG);
+  cacheLife("days");
+
+  const result = await getPosts(page, pageSize);
+  if (result.error) cacheLife("seconds");
+
+  return result;
+};
+
+export const getCachedPost = async (id: string): Promise<PostLookup> => {
+  "use cache";
+  cacheTag(postTag(id));
+  cacheLife("days");
 
   try {
-    return await apiFetch<GetPostResponse>(url);
+    return await apiFetch<GetPostResponse>(postUrl(id));
   } catch (error) {
+    cacheLife("seconds");
+
     if (error instanceof ApiError && error.status === NOT_FOUND_STATUS) {
-      notFound();
+      return { error: false, post: null };
     }
 
     return { error: true, message: errorMessage(error) };
   }
 };
 
+export const getPost = async (id: string): Promise<GetPostResponse> => {
+  const result = await getCachedPost(requirePostId(id));
+
+  if (result.error) return result;
+  if (result.post === null) notFound();
+
+  return result;
+};
+
 export const getPostForEdit = async (
   id: string,
 ): Promise<GetPostForEditResponse> => {
-  const url = `${postUrl(id)}/edit`;
+  const url = `${postUrl(requirePostId(id))}/edit`;
 
   try {
     return await apiFetch<GetPostForEditResponse>(url, {

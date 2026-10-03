@@ -6,7 +6,7 @@ import {
 } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
 import PostThumbnail from "@/app/blog/PostThumbnail";
-import { getPosts } from "@/app/lib/posts";
+import { getCachedPosts } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
 import Button from "@/app/ui/Button";
 import { PostPagination, PostSummary } from "@home/shared";
@@ -73,7 +73,7 @@ const Pagination = ({ page, totalPages, hasMore }: PostPagination) => (
 
 const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
   const page = requestedPage((await searchParams).page);
-  const result = await getPosts(page);
+  const result = await getCachedPosts(page);
 
   if (result.error) return <p>{result.message}</p>;
 

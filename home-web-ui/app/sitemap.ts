@@ -1,5 +1,5 @@
 import { postHref } from "@/app/blog/links";
-import { getPosts } from "@/app/lib/posts";
+import { getPosts, POSTS_TAG } from "@/app/lib/posts";
 import { siteUrl } from "@/app/lib/siteUrl";
 import { MAX_POST_PAGE_SIZE, PostSummary } from "@home/shared";
 import type { MetadataRoute } from "next";
@@ -34,7 +34,7 @@ const getAllPosts = async (): Promise<PostSummary[] | undefined> => {
 
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
   "use cache";
-  cacheTag("posts");
+  cacheTag(POSTS_TAG);
 
   const posts = await getAllPosts();
   if (posts === undefined) cacheLife("seconds");
