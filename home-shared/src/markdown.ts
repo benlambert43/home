@@ -19,6 +19,8 @@ const EXTERNAL_IMAGE_MESSAGE =
 const LINK_MESSAGE =
   "Links in post content must start with https://, http://, mailto:, or /.";
 
+const MAX_POST_EXCERPT_CHARACTERS = 160;
+
 const markdown = new Marked();
 
 export const normalizePostContent = (content: string) => {
@@ -78,3 +80,55 @@ export const postImageReferences = (content: string) => [
 ];
 
 export const isExternalPostLink = (href: string) => EXTERNAL_LINK.test(href);
+
+const proseText = (tokens: Token[], separator: string): string =>
+  (tokens as MarkedToken[]).map(tokenProse).join(separator);
+
+const tokenProse = (token: MarkedToken): string => {
+  switch (token.type) {
+    case "paragraph":
+    case "strong":
+    case "em":
+    case "del":
+    case "link":
+      return proseText(token.tokens, "");
+    case "blockquote":
+    case "list_item":
+      return proseText(token.tokens, " ");
+    case "list":
+      return proseText(token.items, " ");
+    case "text":
+      return token.tokens ? proseText(token.tokens, "") : token.text;
+    case "escape":
+    case "codespan":
+      return token.text;
+    case "br":
+      return " ";
+    default:
+      return "";
+  }
+};
+
+const truncatedAtWord = (text: string, maxCharacters: number) => {
+  const characters = [...text];
+  if (characters.length <= maxCharacters) return text;
+
+  const head = characters.slice(0, maxCharacters).join("");
+  const wordEnd = head.lastIndexOf(" ");
+  const kept =
+    wordEnd > 0
+      ? head.slice(0, wordEnd)
+      : characters.slice(0, maxCharacters - 1).join("");
+
+  return `${kept.replace(/[\s.,;:!?]+$/, "")}…`;
+};
+
+export const postExcerpt = (content: string) => {
+  const prose = proseText(markdown.lexer(content), " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return prose.length === 0
+    ? undefined
+    : truncatedAtWord(prose, MAX_POST_EXCERPT_CHARACTERS);
+};
