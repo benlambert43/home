@@ -1,6 +1,9 @@
 import { Types } from "mongoose";
 import { ApiFailure } from "@home/shared";
-import { writePostThumbnails } from "../fileOperations/postStorage";
+import {
+  writePostShareImage,
+  writePostThumbnails,
+} from "../fileOperations/postStorage";
 import { CURRENT_AND_PREVIOUS_REVISIONS, PostModel } from "../model/postModel";
 import {
   latestRevision,
@@ -40,6 +43,15 @@ const createPostThumbnails = async ({
       );
     });
   }
+
+  await writePostShareImage(post, revision, previous).catch(
+    (error: unknown) => {
+      console.error(
+        `Failed to create the share image in revision ${revision.fingerprint} of post ${post}:`,
+        error,
+      );
+    },
+  );
 };
 
 export const queuePostThumbnails = (job: PostThumbnailsJob) => {

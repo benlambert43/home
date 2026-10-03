@@ -1,6 +1,7 @@
 import { PostThumbnailSize } from "@home/shared";
 import { CURRENT_REVISION_ONLY, PostModel } from "../../model/postModel";
 import {
+  findStoredShareImage,
   findStoredThumbnail,
   storedFileTag,
 } from "../../fileOperations/postStorage";
@@ -12,7 +13,18 @@ export interface PostImageFile {
   etag: string;
 }
 
-const findCurrentImage = async (postId: string, name: string) => {
+interface CurrentImage {
+  post: string;
+  revision: string;
+  image: StoredPostFile;
+}
+
+const SHARE_IMAGE_FALLBACK_SIZE: PostThumbnailSize = "large";
+
+const findCurrentImage = async (
+  postId: string,
+  name: string,
+): Promise<CurrentImage | undefined> => {
   const post = await PostModel.findById(postId, CURRENT_REVISION_ONLY);
   const revision = post ? latestRevision(post.revisions) : undefined;
   const image = revision
@@ -41,25 +53,43 @@ export const findPostImage = async (
   return found && fullSizeImage(found.image);
 };
 
-export const findPostThumbnail = async (
-  postId: string,
-  name: string,
+const thumbnailOf = async (
+  { post, revision, image }: CurrentImage,
   size: PostThumbnailSize,
-): Promise<PostImageFile | undefined> => {
-  const found = await findCurrentImage(postId, name);
-  if (!found) return undefined;
-
-  const thumbnail = await findStoredThumbnail(
-    found.post,
-    found.revision,
-    found.image.name,
-    size,
-  );
-  if (!thumbnail) return fullSizeImage(found.image);
+): Promise<PostImageFile> => {
+  const thumbnail = await findStoredThumbnail(post, revision, image.name, size);
+  if (!thumbnail) return fullSizeImage(image);
 
   return {
     file: thumbnail.file,
     contentType: thumbnail.contentType,
     etag: await storedFileTag(thumbnail.file),
   };
+};
+
+export const findPostThumbnail = async (
+  postId: string,
+  name: string,
+  size: PostThumbnailSize,
+): Promise<PostImageFile | undefined> => {
+  const found = await findCurrentImage(postId, name);
+
+  return found && thumbnailOf(found, size);
+};
+
+export const findPostShareImage = async (
+  postId: string,
+  name: string,
+): Promise<PostImageFile | undefined> => {
+  const found = await findCurrentImage(postId, name);
+  if (!found) return undefined;
+
+  const shareImage = await findStoredShareImage(
+    found.post,
+    found.revision,
+    found.image.name,
+  );
+  if (!shareImage) return thumbnailOf(found, SHARE_IMAGE_FALLBACK_SIZE);
+
+  return { ...shareImage, etag: await storedFileTag(shareImage.file) };
 };

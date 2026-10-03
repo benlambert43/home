@@ -1,4 +1,4 @@
-import { POST_FULL_SIZE_SEGMENT } from "@home/shared";
+import { POST_FULL_SIZE_SEGMENT, POST_SHARE_IMAGE_SEGMENT } from "@home/shared";
 
 export const requestedPage = (value: string | string[] | undefined) => {
   const page = Number(value);
@@ -30,6 +30,9 @@ export const postImageHref = (id: string, name: string) =>
 
 export const postFullSizeImageHref = (id: string, name: string) =>
   `${postImageHref(id, name)}/${POST_FULL_SIZE_SEGMENT}`;
+
+export const postShareImageHref = (id: string, name: string) =>
+  `${postImageHref(id, name)}/${POST_SHARE_IMAGE_SEGMENT}`;
 
 export const postUploadImageHref = (uploadId: string, name: string) =>
   `/blog/uploads/${uploadId}/images/${encodeURIComponent(name)}`;

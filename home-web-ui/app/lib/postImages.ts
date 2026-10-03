@@ -10,6 +10,7 @@ import {
   postFullSizeImagePath,
   postImageParamsSchema,
   postImagePath,
+  postShareImagePath,
 } from "@home/shared";
 
 const RETURNED_HEADERS = [
@@ -46,3 +47,5 @@ const proxyImage = (imagePath: ImagePath) => async (params: unknown) => {
 export const proxyPostImage = proxyImage(postImagePath);
 
 export const proxyFullSizePostImage = proxyImage(postFullSizeImagePath);
+
+export const proxyPostShareImage = proxyImage(postShareImagePath);

@@ -19,7 +19,11 @@ import { hasErrorCode, isMissing, unlessMissing } from "./fileErrors";
 import { fingerprint } from "./fingerprint";
 import { detectFileImageType } from "./imageType";
 import { resolveStoragePath } from "./storagePath";
-import { createThumbnail } from "./thumbnails";
+import {
+  createShareImage,
+  createThumbnail,
+  SHARE_IMAGE_CONTENT_TYPE,
+} from "./thumbnails";
 
 const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
@@ -28,6 +32,10 @@ const BLOG_POSTS_DIRECTORY = "blog-posts";
 export const FULL_SIZE_IMAGES_DIRECTORY = "full_size_images";
 
 const THUMBNAILS_DIRECTORY = "thumbnails";
+
+const SHARE_IMAGES_DIRECTORY = "share";
+
+type ThumbnailsFolder = PostThumbnailSize | typeof SHARE_IMAGES_DIRECTORY;
 
 const STORAGE_REMOVAL_RETRIES = 5;
 
@@ -68,20 +76,20 @@ const revisionDirectory = (post: string, revision: string) =>
 const thumbnailsDirectory = (
   post: string,
   revision: string,
-  size: PostThumbnailSize,
+  folder: ThumbnailsFolder,
 ) =>
   path.posix.join(
     revisionDirectory(post, revision),
     THUMBNAILS_DIRECTORY,
-    size,
+    folder,
   );
 
 const thumbnailFile = (
   post: string,
   revision: string,
-  size: PostThumbnailSize,
+  folder: ThumbnailsFolder,
   name: string,
-) => path.posix.join(thumbnailsDirectory(post, revision, size), name);
+) => path.posix.join(thumbnailsDirectory(post, revision, folder), name);
 
 const prepareStoredFile = async (directory: string, name: string) => {
   const file = path.posix.join(directory, name);
@@ -247,10 +255,10 @@ const markOversized = (absolutePath: string) =>
 const prepareThumbnailFile = async (
   post: string,
   revision: string,
-  size: PostThumbnailSize,
+  folder: ThumbnailsFolder,
   name: string,
 ) => {
-  const file = thumbnailFile(post, revision, size, name);
+  const file = thumbnailFile(post, revision, folder, name);
   const absolutePath = resolveStoragePath(file);
 
   try {
@@ -428,4 +436,71 @@ export const findStoredThumbnail = async (
   }
 
   return undefined;
+};
+
+const reuseShareImage = async (
+  post: string,
+  revision: string | undefined,
+  name: string,
+  absolutePath: string,
+) => {
+  if (revision === undefined) return false;
+
+  const earlier = resolveStoragePath(
+    thumbnailFile(post, revision, SHARE_IMAGES_DIRECTORY, name),
+  );
+
+  return unlessMissing(
+    () => link(earlier, absolutePath).then(() => true),
+    false,
+  );
+};
+
+export const writePostShareImage = async (
+  post: string,
+  revision: StoredPostRevision,
+  previous?: StoredPostRevision,
+) => {
+  const image = revision.headerImage;
+  if (!image) return;
+
+  const prepared = await prepareThumbnailFile(
+    post,
+    revision.fingerprint,
+    SHARE_IMAGES_DIRECTORY,
+    image.name,
+  );
+  if (!prepared) return;
+
+  const { absolutePath } = prepared;
+  await rm(temporaryFile(absolutePath), { force: true });
+
+  const stored =
+    (await fileExists(absolutePath)) ||
+    (await reuseShareImage(
+      post,
+      previous?.headerImage?.name === image.name
+        ? previous.fingerprint
+        : undefined,
+      image.name,
+      absolutePath,
+    ));
+  if (stored) return;
+
+  await writeCompleteFile(
+    absolutePath,
+    await createShareImage(resolveStoragePath(image.file)),
+  );
+};
+
+export const findStoredShareImage = async (
+  post: string,
+  revision: string,
+  name: string,
+): Promise<Omit<StoredThumbnail, "size"> | undefined> => {
+  const file = thumbnailFile(post, revision, SHARE_IMAGES_DIRECTORY, name);
+
+  return (await fileExists(resolveStoragePath(file)))
+    ? { file, contentType: SHARE_IMAGE_CONTENT_TYPE }
+    : undefined;
 };

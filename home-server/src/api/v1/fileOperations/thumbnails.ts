@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { POST_SHARE_IMAGE_HEIGHT, POST_SHARE_IMAGE_WIDTH } from "@home/shared";
 import { readImageFrame } from "./imageDimensions";
 import { isAnimatedPngOrAvifSequence } from "./imageType";
 
@@ -17,6 +18,12 @@ const ESTIMATED_BITS_PER_PIXEL = 2;
 const QUALITIES = [80, 60, 40];
 
 const SHRINK_FACTOR = 0.75;
+
+export const SHARE_IMAGE_CONTENT_TYPE = "image/jpeg";
+
+const SHARE_IMAGE_QUALITY = 80;
+
+const SHARE_IMAGE_BACKGROUND = "#1d293d";
 
 interface Box {
   width: number;
@@ -167,3 +174,17 @@ export const createThumbnail = async (
 
   throw new Error(`Could not fit ${file} into ${maxBytes} bytes.`);
 };
+
+export const createShareImage = (file: string): Promise<Buffer> =>
+  sharp(file, { limitInputPixels: MAX_DECODED_PIXELS })
+    .autoOrient()
+    .timeout({ seconds: TIME_LIMIT_MILLISECONDS / 1000 })
+    .resize({
+      width: POST_SHARE_IMAGE_WIDTH,
+      height: POST_SHARE_IMAGE_HEIGHT,
+      fit: "cover",
+      position: sharp.strategy.attention,
+    })
+    .flatten({ background: SHARE_IMAGE_BACKGROUND })
+    .jpeg({ quality: SHARE_IMAGE_QUALITY, mozjpeg: true })
+    .toBuffer();

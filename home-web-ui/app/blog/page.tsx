@@ -1,14 +1,22 @@
 import { requestedPage } from "@/app/blog/links";
 import NewPostButton from "@/app/blog/NewPostButton";
 import Posts from "@/app/blog/Posts";
-import { blogMetadata, unavailableBlogMetadata } from "@/app/lib/metadata";
+import {
+  blogMetadata,
+  siteShareImages,
+  unavailableBlogMetadata,
+} from "@/app/lib/metadata";
 import { getCachedPosts } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
+import type { ResolvingMetadata } from "next";
 import { Suspense } from "react";
 
 type BlogProps = { searchParams: SearchParams };
 
-export const generateMetadata = async ({ searchParams }: BlogProps) => {
+export const generateMetadata = async (
+  { searchParams }: BlogProps,
+  parent: ResolvingMetadata,
+) => {
   const page = requestedPage((await searchParams).page);
   const result = await getCachedPosts(page);
 
@@ -16,7 +24,7 @@ export const generateMetadata = async ({ searchParams }: BlogProps) => {
     return unavailableBlogMetadata;
   }
 
-  return blogMetadata(page);
+  return blogMetadata(page, await siteShareImages(parent));
 };
 
 export const instant = false;

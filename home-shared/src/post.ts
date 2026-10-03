@@ -77,6 +77,12 @@ export const POST_IMAGE_FIELD = "image";
 
 export const POST_FULL_SIZE_SEGMENT = "fullSize";
 
+export const POST_SHARE_IMAGE_SEGMENT = "share";
+
+export const POST_SHARE_IMAGE_WIDTH = 1200;
+
+export const POST_SHARE_IMAGE_HEIGHT = 630;
+
 export interface UploadedPostImage {
   name: string;
   contentType: string;
@@ -119,6 +125,9 @@ export const postImagePath = (postId: string, name: string) =>
 
 export const postFullSizeImagePath = (postId: string, name: string) =>
   `${postImagePath(postId, name)}/${POST_FULL_SIZE_SEGMENT}`;
+
+export const postShareImagePath = (postId: string, name: string) =>
+  `${postImagePath(postId, name)}/${POST_SHARE_IMAGE_SEGMENT}`;
 
 export const postThumbnailPath = (
   postId: string,

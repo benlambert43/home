@@ -1,24 +1,27 @@
 import Post, { PostParams } from "@/app/blog/Post";
-import { postHref } from "@/app/blog/links";
-import { pageMetadata, unavailableBlogMetadata } from "@/app/lib/metadata";
+import {
+  postMetadata,
+  siteShareImages,
+  unavailableBlogMetadata,
+} from "@/app/lib/metadata";
 import { getPost } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
-import { postExcerpt } from "@home/shared";
+import type { ResolvingMetadata } from "next";
 
 type PostProps = { params: PostParams; searchParams: SearchParams };
 
 export const instant = false;
 
-export const generateMetadata = async ({ params }: PostProps) => {
+export const generateMetadata = async (
+  { params }: PostProps,
+  parent: ResolvingMetadata,
+) => {
   const { id } = await params;
   const result = await getPost(id);
 
   if (result.error) return unavailableBlogMetadata;
 
-  return pageMetadata(result.post.title, {
-    canonicalPath: postHref(id),
-    description: postExcerpt(result.post.content),
-  });
+  return postMetadata(result.post, await siteShareImages(parent));
 };
 
 const BlogPost = ({ params, searchParams }: PostProps) => (

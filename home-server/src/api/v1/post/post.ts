@@ -10,6 +10,7 @@ import {
   GetPostsResponse,
   MAX_POST_REQUEST_BODY_BYTES,
   POST_FULL_SIZE_SEGMENT,
+  POST_SHARE_IMAGE_SEGMENT,
   postIdParamsSchema,
   postImageParamsSchema,
   postListQuerySchema,
@@ -44,6 +45,7 @@ import { handleGetPost } from "./handlers/handleGetPost";
 import { handleGetPostForEdit } from "./handlers/handleGetPostForEdit";
 import {
   findPostImage,
+  findPostShareImage,
   findPostThumbnail,
   PostImageFile,
 } from "./handlers/handleGetPostImage";
@@ -254,6 +256,19 @@ postRouter.get(
     if (!params) return;
 
     const image = await findPostImage(params.id, params.name);
+    if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+
+    await sendImage(res, image);
+  }),
+);
+
+postRouter.get(
+  `/:id/images/:name/${POST_SHARE_IMAGE_SEGMENT}`,
+  route(async (req, res) => {
+    const params = parseRequest(postImageParamsSchema, req.params, res);
+    if (!params) return;
+
+    const image = await findPostShareImage(params.id, params.name);
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     await sendImage(res, image);
