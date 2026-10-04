@@ -31,7 +31,7 @@ import {
 } from "./seed/seedPostCatalogue";
 import { renderSeedImage, SeedImage } from "./seed/seedPostImages";
 
-const DEFAULT_POST_COUNT = 30;
+const DEFAULT_POST_COUNT = 33;
 
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 
