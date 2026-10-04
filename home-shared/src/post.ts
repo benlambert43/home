@@ -102,6 +102,7 @@ export interface PostSummary {
   _id: string;
   slug: string;
   title: string;
+  excerpt: string | null;
   authorUserId: string;
   authorUsername: string | null;
   createdDate: string;

@@ -12,13 +12,11 @@ import {
   GetPostForEditResponse,
   GetPostResponse,
   GetPostsResponse,
-  postExcerpt,
   postIdParamsSchema,
   postSlugParamsSchema,
 } from "@home/shared";
 import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 
 export const POSTS_URL = `${BASE_API_URL}/posts`;
 
@@ -116,8 +114,6 @@ export const getCachedPost = async (slug: string): Promise<PostLookup> => {
     return { error: true, message: errorMessage(error) };
   }
 };
-
-export const getPostExcerpt = cache(postExcerpt);
 
 export const getPost = async (slug: string): Promise<GetPostResponse> => {
   const result = await getCachedPost(requirePostSlug(slug));

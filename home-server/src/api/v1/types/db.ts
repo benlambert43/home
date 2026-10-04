@@ -30,6 +30,7 @@ export interface StoredPostRevision<Timestamp = Date> {
   fingerprint: string;
   createdDate: Timestamp;
   content: StoredPostFile;
+  excerpt?: string;
   headerImage?: StoredPostImage;
   inlineImages: StoredPostImage[];
 }

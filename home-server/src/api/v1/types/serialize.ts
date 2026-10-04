@@ -78,6 +78,7 @@ export const serializePostSummary = (
     _id,
     slug: post.slug,
     title: post.title,
+    excerpt: revision.excerpt ?? null,
     authorUserId: toId(post.authorUserId),
     authorUsername,
     createdDate: toIsoDate(post.createdDate),

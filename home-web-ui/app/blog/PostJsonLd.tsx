@@ -6,7 +6,6 @@ import {
 } from "@/app/blog/links";
 import JsonLd from "@/app/components/JsonLd";
 import { BLOG_ID, breadcrumbList } from "@/app/lib/jsonLd";
-import { getPostExcerpt } from "@/app/lib/posts";
 import { siteUrl } from "@/app/lib/siteUrl";
 import { Post } from "@home/shared";
 
@@ -37,7 +36,7 @@ const PostJsonLd = ({ post }: { post: Post }) => {
           mainEntityOfPage: { "@type": "WebPage", "@id": url },
           isPartOf: { "@id": BLOG_ID },
           headline: post.title,
-          description: getPostExcerpt(post.content),
+          description: post.excerpt ?? undefined,
           datePublished: post.createdDate,
           dateModified: post.modifiedDate,
           inLanguage: "en",

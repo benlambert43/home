@@ -5,6 +5,7 @@ import {
   MAX_POST_THUMBNAIL_BYTES,
   POST_CONTENT_NAME,
   POST_THUMBNAIL_SIZES,
+  postExcerpt,
   PostThumbnailSize,
 } from "@home/shared";
 import { ApiError } from "../http/apiError";
@@ -166,6 +167,7 @@ export const writePostRevision = async (
       fingerprint: revision,
       createdDate,
       content: await writeStoredFile(directory, markdownFile(content)),
+      excerpt: postExcerpt(content),
       headerImage: headerImage
         ? await storeImage(fullSizeImages, headerImage)
         : undefined,

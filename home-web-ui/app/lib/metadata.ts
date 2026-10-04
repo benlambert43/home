@@ -1,5 +1,4 @@
 import { blogHref, postHref, postShareImageHref } from "@/app/blog/links";
-import { getPostExcerpt } from "@/app/lib/posts";
 import { BASE_SITE_URL } from "@/app/lib/serverEnv";
 import { Post } from "@home/shared";
 import type { Metadata, ResolvingMetadata, Viewport } from "next";
@@ -106,7 +105,7 @@ const postShareImages = ({
 
 export const postMetadata = (post: Post, siteImages: ShareImages): Metadata => {
   const canonicalPath = postHref(post.slug);
-  const description = getPostExcerpt(post.content) ?? SITE_DESCRIPTION;
+  const description = post.excerpt ?? SITE_DESCRIPTION;
   const authors =
     post.authorUsername === null ? undefined : [post.authorUsername];
 

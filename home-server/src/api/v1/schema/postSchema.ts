@@ -23,6 +23,7 @@ const postRevisionSchema = new mongoose.Schema(
     fingerprint: { type: String, required: true },
     createdDate: { type: Date, required: true },
     content: { type: postFileSchema, required: true },
+    excerpt: { type: String, required: false },
     headerImage: { type: postImageSchema, required: false },
     inlineImages: { type: [postImageSchema], required: true },
   },

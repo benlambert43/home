@@ -52,6 +52,8 @@ export const SLUG = "building-the-blog";
 
 export const CONTENT = "# Building the blog\n\nA first post about the API.\n";
 
+export const EXCERPT = "A first post about the API.";
+
 export const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 export const MISSING_POST_ID = new Types.ObjectId().toHexString();
@@ -356,6 +358,7 @@ export const postSummaryResponse = (
   _id: post._id.toString(),
   slug: SLUG,
   title: TITLE,
+  excerpt: EXCERPT,
   authorUserId: admin._id,
   authorUsername: admin.username,
   createdDate: post.createdDate.toISOString(),

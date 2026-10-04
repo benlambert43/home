@@ -173,6 +173,7 @@ describe("the blog post api", () => {
         message: ApiMessage.POST_UPDATED,
         post: postResponse(post, {
           title: "Take two",
+          excerpt: "The post, rewritten.",
           content: NEW_CONTENT,
           headerImage: null,
         }),

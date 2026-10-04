@@ -34,7 +34,7 @@ const PostRowThumbnail = ({
 const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
   <li
     id={postAnchor(post.slug)}
-    className="box-content flex h-30 scroll-mt-4 flex-row items-center gap-4
+    className="box-content flex min-h-30 scroll-mt-4 flex-row items-center gap-4
       py-4 first:pt-0 last:pb-0 sm:gap-6"
   >
     <PostRowThumbnail post={post} page={page} />
@@ -46,6 +46,11 @@ const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
       >
         {post.title}
       </Link>
+      {post.excerpt && (
+        <p className="line-clamp-2 text-sm leading-5 text-slate-300">
+          {post.excerpt}
+        </p>
+      )}
       <PostByline post={post} />
     </div>
   </li>
