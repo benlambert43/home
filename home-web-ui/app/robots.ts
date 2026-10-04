@@ -11,6 +11,7 @@ const robots = (): MetadataRoute.Robots => ({
       "/session",
       "/blog/newPost",
       "/blog/*/edit",
+      "/blog/uploads/",
     ],
   },
   sitemap: siteUrl("/sitemap.xml"),

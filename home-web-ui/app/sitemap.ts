@@ -1,13 +1,16 @@
-import { postHref } from "@/app/blog/links";
+import { blogHref, postHref, postImageHref } from "@/app/blog/links";
 import { getPosts, POSTS_TAG } from "@/app/lib/posts";
 import { siteUrl } from "@/app/lib/siteUrl";
-import { MAX_POST_PAGE_SIZE, PostSummary } from "@home/shared";
+import {
+  DEFAULT_POST_PAGE_SIZE,
+  MAX_POST_PAGE_SIZE,
+  PostSummary,
+} from "@home/shared";
 import type { MetadataRoute } from "next";
 import { cacheLife, cacheTag } from "next/cache";
 
 const PAGE_PATHS = [
   "/",
-  "/blog",
   "/projects",
   "/projects/software",
   "/projects/lifelist",
@@ -32,6 +35,16 @@ const getAllPosts = async (): Promise<PostSummary[] | undefined> => {
   return posts;
 };
 
+const blogLastModified = (posts: PostSummary[]) =>
+  posts
+    .slice(0, DEFAULT_POST_PAGE_SIZE)
+    .map((post) => post.modifiedDate)
+    .sort()
+    .at(-1);
+
+const postImages = ({ slug, headerImage }: PostSummary) =>
+  headerImage ? [siteUrl(postImageHref(slug, headerImage.name))] : undefined;
+
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
   "use cache";
   cacheTag(POSTS_TAG);
@@ -45,9 +58,14 @@ const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
 
   return [
     ...PAGE_PATHS.map((path) => ({ url: siteUrl(path) })),
+    {
+      url: siteUrl(blogHref(1)),
+      lastModified: blogLastModified(posts ?? []),
+    },
     ...(posts ?? []).map((post) => ({
       url: siteUrl(postHref(post.slug)),
       lastModified: post.modifiedDate,
+      images: postImages(post),
     })),
   ];
 };
