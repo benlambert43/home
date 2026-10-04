@@ -138,6 +138,8 @@ describe("the blog post api", () => {
       expect(response.body).toEqual({
         error: false,
         post: postResponse(post, { headerImage: null }),
+        previous: null,
+        next: null,
       });
     });
 

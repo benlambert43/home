@@ -172,10 +172,10 @@ postRouter.get(
     const params = parseRequest(postSlugParamsSchema, req.params, res);
     if (!params) return;
 
-    const post = await handleGetPost(params.slug);
-    if (!post) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
+    const found = await handleGetPost(params.slug);
+    if (!found) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
-    sendSuccess<GetPostResponse>(res, { post });
+    sendSuccess<GetPostResponse>(res, found);
   }),
 );
 

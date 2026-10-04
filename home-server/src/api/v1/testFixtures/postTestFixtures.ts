@@ -128,11 +128,11 @@ export const stubPostLookup = (post: PostDocument | null) => {
   );
   vi.spyOn(PostModel, "findOne").mockImplementation(
     (filter) =>
-      Promise.resolve(
-        post && filter && "slug" in filter && filter.slug === post.slug
-          ? post
-          : null,
-      ) as unknown as ReturnType<typeof PostModel.findOne>,
+      (filter && "slug" in filter
+        ? Promise.resolve(post && filter.slug === post.slug ? post : null)
+        : {
+            sort: () => ({ lean: () => Promise.resolve(null) }),
+          }) as unknown as ReturnType<typeof PostModel.findOne>,
   );
 };
 

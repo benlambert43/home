@@ -125,6 +125,11 @@ export interface Post extends PostSummary {
   shareImage: PostShareImage | null;
 }
 
+export interface AdjacentPost {
+  slug: string;
+  title: string;
+}
+
 export interface PostPagination {
   page: number;
   pageSize: number;

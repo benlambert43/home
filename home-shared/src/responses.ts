@@ -1,5 +1,11 @@
 import { Notification } from "./notification";
-import { Post, PostPagination, PostSummary, UploadedPostImage } from "./post";
+import {
+  AdjacentPost,
+  Post,
+  PostPagination,
+  PostSummary,
+  UploadedPostImage,
+} from "./post";
 import { UserNoPassword } from "./user";
 
 export interface ApiFailure {
@@ -54,7 +60,11 @@ export type GetPostsResponse = ApiResponse<{
   pagination: PostPagination;
 }>;
 
-export type GetPostResponse = ApiResponse<{ post: Post }>;
+export type GetPostResponse = ApiResponse<{
+  post: Post;
+  previous: AdjacentPost | null;
+  next: AdjacentPost | null;
+}>;
 
 export type GetPostForEditResponse = ApiResponse<{
   post: Post;
