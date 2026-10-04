@@ -8,13 +8,16 @@ import {
 } from "@/app/lib/api";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
+  DEFAULT_POST_PAGE_SIZE,
   GetPostForEditResponse,
   GetPostResponse,
   GetPostsResponse,
+  postExcerpt,
   postIdParamsSchema,
 } from "@home/shared";
 import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 export const POSTS_URL = `${BASE_API_URL}/posts`;
 
@@ -49,9 +52,9 @@ export const getPosts = async (
   }
 };
 
-export const getCachedPosts = async (
+const getCachedPostsPage = async (
   page: number,
-  pageSize?: number,
+  pageSize: number,
 ): Promise<GetPostsResponse> => {
   "use cache";
   cacheTag(POSTS_TAG);
@@ -70,6 +73,11 @@ export const getCachedPosts = async (
 
   return result;
 };
+
+export const getCachedPosts = (
+  page: number,
+  pageSize = DEFAULT_POST_PAGE_SIZE,
+) => getCachedPostsPage(page, pageSize);
 
 export const getCachedPost = async (id: string): Promise<PostLookup> => {
   "use cache";
@@ -92,6 +100,8 @@ export const getCachedPost = async (id: string): Promise<PostLookup> => {
     return { error: true, message: errorMessage(error) };
   }
 };
+
+export const getPostExcerpt = cache(postExcerpt);
 
 export const getPost = async (id: string): Promise<GetPostResponse> => {
   const result = await getCachedPost(requirePostId(id));
