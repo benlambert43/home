@@ -107,9 +107,15 @@ export interface PostSummary {
   headerImage: PostImage | null;
 }
 
+export interface PostShareImage {
+  width: number;
+  height: number;
+}
+
 export interface Post extends PostSummary {
   content: string;
   inlineImages: PostImage[];
+  shareImage: PostShareImage | null;
 }
 
 export interface PostPagination {

@@ -1,5 +1,8 @@
 import { Post } from "@home/shared";
-import { readPostContent } from "../fileOperations/postStorage";
+import {
+  readPostContent,
+  readStoredShareImage,
+} from "../fileOperations/postStorage";
 import { PostDocument, requireLatestRevision } from "../types/db";
 import { serializePost } from "../types/serialize";
 import { findAuthorUsername } from "./postAuthors";
@@ -11,5 +14,6 @@ export const toPostResponse = async (post: PostDocument): Promise<Post> => {
     post,
     await findAuthorUsername(post.authorUserId),
     await readPostContent(revision),
+    (await readStoredShareImage(post.fingerprint, revision)) ?? null,
   );
 };

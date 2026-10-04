@@ -346,6 +346,7 @@ export const postResponse = (
   ...postSummaryResponse(post, overrides),
   content: CONTENT,
   inlineImages: [],
+  shareImage: null,
   ...overrides,
 });
 

@@ -17,6 +17,7 @@ import {
 } from "../types/db";
 import { hasErrorCode, isMissing, unlessMissing } from "./fileErrors";
 import { fingerprint } from "./fingerprint";
+import { ImageDimensions, readImageDimensions } from "./imageDimensions";
 import { detectFileImageType } from "./imageType";
 import { resolveStoragePath } from "./storagePath";
 import {
@@ -504,3 +505,20 @@ export const findStoredShareImage = async (
     ? { file, contentType: SHARE_IMAGE_CONTENT_TYPE }
     : undefined;
 };
+
+export const readStoredShareImage = async (
+  post: string,
+  revision: StoredPostRevision,
+): Promise<ImageDimensions | undefined> =>
+  revision.headerImage
+    ? readImageDimensions(
+        resolveStoragePath(
+          thumbnailFile(
+            post,
+            revision.fingerprint,
+            SHARE_IMAGES_DIRECTORY,
+            revision.headerImage.name,
+          ),
+        ),
+      )
+    : undefined;

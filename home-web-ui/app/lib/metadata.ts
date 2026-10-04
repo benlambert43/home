@@ -1,11 +1,7 @@
 import { blogHref, postHref, postShareImageHref } from "@/app/blog/links";
 import { getPostExcerpt } from "@/app/lib/posts";
 import { BASE_SITE_URL } from "@/app/lib/serverEnv";
-import {
-  Post,
-  POST_SHARE_IMAGE_HEIGHT,
-  POST_SHARE_IMAGE_WIDTH,
-} from "@home/shared";
+import { Post } from "@home/shared";
 import type { Metadata, ResolvingMetadata, Viewport } from "next";
 
 export const SITE_NAME = "benlambert.tech";
@@ -92,14 +88,18 @@ export const unavailableBlogMetadata: Metadata = {
   robots: { index: false },
 };
 
-const postShareImages = ({ _id, title, headerImage }: Post): ShareImages =>
+const postShareImages = ({
+  _id,
+  title,
+  headerImage,
+  shareImage,
+}: Post): ShareImages =>
   headerImage
     ? [
         {
           url: postShareImageHref(_id, headerImage.name),
-          width: POST_SHARE_IMAGE_WIDTH,
-          height: POST_SHARE_IMAGE_HEIGHT,
           alt: title,
+          ...shareImage,
         },
       ]
     : undefined;

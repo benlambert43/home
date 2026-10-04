@@ -6,6 +6,7 @@ import {
   PostImage,
   postImagePath,
   postImageReference,
+  PostShareImage,
   PostSummary,
   UserNoPassword,
   UserFields,
@@ -91,6 +92,7 @@ export const serializePost = (
   post: SerializablePost,
   authorUsername: string | null,
   content: string,
+  shareImage: PostShareImage | null,
 ): Post => {
   const summary = serializePostSummary(post, authorUsername);
 
@@ -100,5 +102,6 @@ export const serializePost = (
     inlineImages: requireLatestRevision(post).inlineImages.map((image) =>
       serializePostImage(summary._id, image),
     ),
+    shareImage,
   };
 };

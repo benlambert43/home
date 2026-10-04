@@ -85,9 +85,15 @@ export const getCachedPost = async (id: string): Promise<PostLookup> => {
 
   try {
     const result = await apiFetch<GetPostResponse>(postUrl(id));
+    const { post } = result;
 
-    cacheLife("days");
-    cacheTag(postAuthorTag(result.post.authorUserId));
+    if (post.headerImage && !post.shareImage) {
+      cacheLife("minutes");
+    } else {
+      cacheLife("days");
+    }
+
+    cacheTag(postAuthorTag(post.authorUserId));
 
     return result;
   } catch (error) {

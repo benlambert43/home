@@ -73,7 +73,7 @@ const createPost = async (
     response: {
       error: false,
       message: ApiMessage.POST_CREATED,
-      post: serializePost(post, author.username, body.content),
+      post: serializePost(post, author.username, body.content, null),
     },
     thumbnails: {
       post: post.fingerprint,
