@@ -89,7 +89,7 @@ const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
   if (pagination.totalPosts === 0) return <p>No posts yet.</p>;
 
   return (
-    <div className="flex max-w-240 flex-col gap-6 2xl:max-w-280">
+    <div className="mx-auto flex w-full max-w-240 flex-col gap-6 2xl:max-w-280">
       <ul className="flex flex-col divide-y divide-slate-700">
         {posts.map((post) => (
           <PostRow key={post._id} post={post} page={page} />

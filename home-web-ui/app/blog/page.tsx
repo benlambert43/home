@@ -31,7 +31,7 @@ export const generateMetadata = async (
 export const instant = false;
 
 const Blog = ({ searchParams }: BlogProps) => (
-  <div className="flex flex-col gap-4 p-5">
+  <div className="flex flex-col gap-12 p-5">
     <BlogJsonLd />
     <div className="flex flex-row flex-wrap items-center gap-4">
       <h1 className="text-4xl font-bold">Blog</h1>
