@@ -1,5 +1,6 @@
 import { Marked, MarkedToken, Token } from "marked";
 import { POST_IMAGE_REFERENCE_PREFIX } from "./post";
+import { postHeadingId } from "./postSlug";
 
 const ALLOWED_LINK = /^(?:https?:\/\/|mailto:|\/(?![/\\]))/i;
 
@@ -107,6 +108,22 @@ const tokenProse = (token: MarkedToken): string => {
     default:
       return "";
   }
+};
+
+export const postHeadingIds = (content: string) => {
+  const ids = new Set<string>();
+
+  for (const token of flattenTokens(markdown.lexer(content))) {
+    if (token.type !== "heading") continue;
+
+    const text = proseText(token.tokens, "");
+    let attempt = 1;
+    while (ids.has(postHeadingId(text, attempt))) attempt += 1;
+
+    ids.add(postHeadingId(text, attempt));
+  }
+
+  return [...ids];
 };
 
 const truncatedAtWord = (text: string, maxCharacters: number) => {

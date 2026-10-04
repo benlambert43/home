@@ -12,6 +12,7 @@ import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import { getPost } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
+import { postHeadingIds } from "@home/shared";
 import { Suspense } from "react";
 
 export type PostParams = Promise<{ slug: string }>;
@@ -75,7 +76,11 @@ const Post = async ({
           <PostByline post={post} />
           <PostHeaderImage post={post} />
         </header>
-        <PostMarkdown content={post.content} images={images} />
+        <PostMarkdown
+          content={post.content}
+          images={images}
+          headingIds={postHeadingIds(post.content)}
+        />
       </article>
       <div>
         <ReturnToBlogPosts page={page} postSlug={post.slug} />

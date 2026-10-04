@@ -2,6 +2,8 @@ import { MAX_POST_SLUG_CHARACTERS } from "./post";
 
 const FALLBACK_POST_SLUG = "post";
 
+const FALLBACK_POST_HEADING_ID = "section";
+
 const MARKS = /\p{M}/gu;
 
 const APOSTROPHES = /['’]/g;
@@ -37,12 +39,18 @@ const joinedWithin = (
   return slug;
 };
 
-export const postSlug = (title: string, attempt = 1) => {
+const slug = (text: string, fallback: string, attempt: number) => {
   const suffix = attempt > 1 ? `-${attempt}` : "";
   const base = joinedWithin(
-    slugWords(title),
+    slugWords(text),
     MAX_POST_SLUG_CHARACTERS - suffix.length,
   );
 
-  return `${base === "" ? FALLBACK_POST_SLUG : base}${suffix}`;
+  return `${base === "" ? fallback : base}${suffix}`;
 };
+
+export const postSlug = (title: string, attempt = 1) =>
+  slug(title, FALLBACK_POST_SLUG, attempt);
+
+export const postHeadingId = (text: string, attempt = 1) =>
+  slug(text, FALLBACK_POST_HEADING_ID, attempt);

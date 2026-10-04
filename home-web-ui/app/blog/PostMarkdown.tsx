@@ -15,6 +15,19 @@ const CELL_ALIGNMENTS: Record<CellAlignment, string> = {
   right: "text-right",
 };
 
+type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
+
+const HEADING_TAGS: Record<HeadingLevel, "h2" | "h3" | "h4" | "h5" | "h6"> = {
+  1: "h2",
+  2: "h3",
+  3: "h4",
+  4: "h5",
+  5: "h6",
+  6: "h6",
+};
+
+const headingsRendered = new WeakMap<ReactRenderer, number>();
+
 export type PostMarkdownImage = {
   reference: string;
   src: string;
@@ -23,7 +36,24 @@ export type PostMarkdownImage = {
   height: number;
 };
 
-const renderer = (images: PostMarkdownImage[]) => ({
+const renderer = (images: PostMarkdownImage[], headingIds: string[]) => ({
+  heading(this: ReactRenderer, children: ReactNode, level: HeadingLevel) {
+    const position = headingsRendered.get(this) ?? 0;
+    const Heading = HEADING_TAGS[level];
+
+    headingsRendered.set(this, position + 1);
+
+    return (
+      <Heading
+        key={this.elementId}
+        id={headingIds.at(position)}
+        className="scroll-mt-32 sm:scroll-mt-24"
+      >
+        {children}
+      </Heading>
+    );
+  },
+
   link(this: ReactRenderer, href: string, text: ReactNode) {
     const external = isExternalPostLink(href);
 
@@ -92,15 +122,17 @@ const renderer = (images: PostMarkdownImage[]) => ({
 const PostMarkdown = ({
   content,
   images = [],
+  headingIds = [],
 }: {
   content: string;
   images?: PostMarkdownImage[];
+  headingIds?: string[];
 }) => (
   <div
     className="prose prose-invert prose-pre:bg-slate-900
       prose-code:before:content-none prose-code:after:content-none max-w-none"
   >
-    <Markdown value={content} renderer={renderer(images)} />
+    <Markdown value={content} renderer={renderer(images, headingIds)} />
   </div>
 );
 
