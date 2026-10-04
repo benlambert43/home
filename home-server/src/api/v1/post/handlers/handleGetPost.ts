@@ -38,7 +38,7 @@ export const handleGetPost = async (
 
   return {
     post: await toPostResponse(post),
-    previous: await findAdjacentPost(post.createdDate, "older"),
-    next: await findAdjacentPost(post.createdDate, "newer"),
+    previous: await findAdjacentPost(post.createdDate, "newer"),
+    next: await findAdjacentPost(post.createdDate, "older"),
   };
 };

@@ -53,7 +53,7 @@ const Post = async ({
   }));
 
   return (
-    <div className="flex max-w-160 flex-col gap-4 p-5">
+    <div className="mx-auto flex w-full flex-col gap-4 p-5 lg:w-2/3">
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts
@@ -84,8 +84,8 @@ const Post = async ({
         />
       </article>
       <AdjacentPosts previous={previous} next={next} page={page} />
-      <div>
-        <ReturnToBlogPosts page={page} postSlug={post.slug} />
+      <div className="mt-8 flex justify-center">
+        <ReturnToBlogPosts page={page} postSlug={post.slug} appearance="text" />
       </div>
     </div>
   );

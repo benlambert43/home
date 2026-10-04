@@ -9,7 +9,7 @@ const PostProblem = ({
   detail: string;
   page?: number;
 }) => (
-  <div className="flex max-w-160 flex-col gap-4 p-5">
+  <div className="mx-auto flex w-full flex-col gap-4 p-5 lg:w-2/3">
     <h1 className="text-4xl font-bold">{headline}</h1>
     <p>{detail}</p>
     <div>
