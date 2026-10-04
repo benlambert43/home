@@ -296,7 +296,7 @@ const MarkdownEditor = ({
 
       <div
         className={`${FIELD_WIDTHS.wide.field} grid grid-cols-1 gap-2
-          xl:max-w-324 xl:grid-cols-2 xl:gap-x-4`}
+          2xl:max-w-324 2xl:grid-cols-2 2xl:gap-x-4`}
       >
         <div className="flex flex-row flex-wrap items-center gap-2">
           {TOOLBAR.map((item) => (
@@ -334,7 +334,7 @@ const MarkdownEditor = ({
             </Button>
           )}
 
-          <div className="ml-auto flex flex-row gap-2 xl:hidden">
+          <div className="ml-auto flex flex-row gap-2 2xl:hidden">
             <Button
               type="button"
               size="small"
@@ -370,13 +370,13 @@ const MarkdownEditor = ({
             setContent(event.target.value);
           }}
           onKeyDown={onKeyDown}
-          className={`${previewing ? "hidden xl:block" : ""} w-full
-            ${FIELD_CLASSES} font-mono xl:col-start-1`}
+          className={`${previewing ? "hidden 2xl:block" : ""} w-full
+            ${FIELD_CLASSES} font-mono 2xl:col-start-1`}
         />
 
         <div
-          className={`${previewing ? "" : "hidden xl:block"} min-h-64
-            overflow-x-auto ${FIELD_CLASSES} xl:col-start-2 xl:row-start-2`}
+          className={`${previewing ? "" : "hidden 2xl:block"} min-h-64
+            overflow-x-auto ${FIELD_CLASSES} 2xl:col-start-2 2xl:row-start-2`}
         >
           <PostMarkdown
             content={normalizePostContent(content)}
