@@ -22,7 +22,12 @@ const PostRowThumbnail = ({
   post: PostSummary;
   page: number;
 }) => (
-  <Link href={postHref(post.slug, page)} className="shrink-0">
+  <Link
+    href={postHref(post.slug, page)}
+    tabIndex={-1}
+    aria-hidden
+    className="shrink-0"
+  >
     <PostThumbnail
       post={post}
       pixels={THUMBNAIL_PIXELS}

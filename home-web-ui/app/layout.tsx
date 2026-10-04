@@ -16,7 +16,7 @@ const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
     <body>
       <div className="flex min-h-screen flex-col py-8">
         <Navbar />
-        <div className="flex-1">{children}</div>
+        <main className="flex-1">{children}</main>
         <Footer />
       </div>
     </body>

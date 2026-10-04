@@ -63,16 +63,20 @@ const Post = async ({
           <PostAdminActions postId={post._id} slug={post.slug} page={page} />
         </Suspense>
       </div>
-      <h1
-        className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
-          bg-linear-to-r bg-clip-text text-5xl leading-tight font-medium
-          text-transparent sm:text-6xl"
-      >
-        {post.title}
-      </h1>
-      <PostByline post={post} />
-      <PostHeaderImage post={post} />
-      <PostMarkdown content={post.content} images={images} />
+      <article className="flex flex-col gap-4">
+        <header className="flex flex-col gap-4">
+          <h1
+            className="from-portrait-dusk via-portrait-haze to-portrait-sky
+              w-fit bg-linear-to-r bg-clip-text text-5xl leading-tight
+              font-medium text-transparent sm:text-6xl"
+          >
+            {post.title}
+          </h1>
+          <PostByline post={post} />
+          <PostHeaderImage post={post} />
+        </header>
+        <PostMarkdown content={post.content} images={images} />
+      </article>
       <div>
         <ReturnToBlogPosts page={page} postSlug={post.slug} />
       </div>
