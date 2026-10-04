@@ -1,7 +1,7 @@
 import { blogHref } from "@/app/blog/links";
 import Button from "@/app/ui/Button";
+import SubtleLink from "@/app/ui/SubtleLink";
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
-import Link from "next/link";
 
 const ReturnToBlogPosts = ({
   page = 1,
@@ -24,12 +24,9 @@ const ReturnToBlogPosts = ({
 
   if (appearance === "text") {
     return (
-      <Link
-        href={linkProps.href}
-        className="text-sm text-slate-400 hover:text-slate-200 hover:underline"
-      >
+      <SubtleLink href={linkProps.href} textSize="base">
         Go Back
-      </Link>
+      </SubtleLink>
     );
   }
 

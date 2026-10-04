@@ -84,7 +84,7 @@ const Post = async ({
         />
       </article>
       <AdjacentPosts previous={previous} next={next} page={page} />
-      <div className="mt-8 flex justify-center">
+      <div className="mt-6 flex justify-center">
         <ReturnToBlogPosts page={page} postSlug={post.slug} appearance="text" />
       </div>
     </div>

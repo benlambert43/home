@@ -1,8 +1,5 @@
 import { NOTICES } from "@/app/about/notices";
-import Link from "next/link";
-
-const FOOTER_LINK_CLASSES =
-  "underline decoration-transparent decoration-1 underline-offset-4 transition-colors duration-200 ease-out hover:text-slate-200 hover:decoration-slate-200/50 focus-visible:text-slate-200 focus-visible:decoration-slate-200/50";
+import SubtleLink from "@/app/ui/SubtleLink";
 
 const Footer = () => (
   <footer
@@ -14,9 +11,9 @@ const Footer = () => (
       className="flex flex-wrap justify-center gap-x-5 gap-y-2"
     >
       {NOTICES.map(({ href, title }) => (
-        <Link key={href} href={href} className={FOOTER_LINK_CLASSES}>
+        <SubtleLink key={href} href={href}>
           {title}
-        </Link>
+        </SubtleLink>
       ))}
     </nav>
     <p>© 2026 Ben Lambert</p>
