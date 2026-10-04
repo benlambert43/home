@@ -1,5 +1,4 @@
-import { Url } from "next/dist/shared/lib/router/router";
-import Link from "next/link";
+import Link, { type LinkProps as NextLinkProps } from "next/link";
 import { HTMLAttributeAnchorTarget, MouseEventHandler, ReactNode } from "react";
 
 type ButtonSize = "large" | "small";
@@ -28,7 +27,7 @@ const COLOR_CLASSES: Record<ButtonEmphasis, Record<ButtonColor, string>> = {
 };
 
 type LinkProps = {
-  href: Url;
+  href: NextLinkProps["href"];
   target?: HTMLAttributeAnchorTarget;
   rel?: string;
 };

@@ -4,7 +4,7 @@ import HeroMountains, {
   HeroMountainsPlaceholder,
 } from "@/app/components/HeroMountains";
 import { getAnimationsPaused } from "@/app/lib/animationsPaused";
-import { PERSON_NAME, PERSON_PORTRAIT_PATH } from "@/app/lib/person";
+import { PERSON_PORTRAIT_PATH } from "@/app/lib/person";
 
 const CookieHeroMountains = async () => (
   <HeroMountains initialPaused={await getAnimationsPaused()} />
@@ -18,7 +18,7 @@ const Hero = () => (
           gap-y-2"
       >
         <div className="px-4">
-          <h1>Hi there! My name is {PERSON_NAME}.</h1>
+          <h1>Hi there! My name is Ben Lambert.</h1>
           <p>I am:</p>
 
           <ul className="list-inside list-disc">
