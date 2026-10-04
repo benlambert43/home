@@ -15,7 +15,7 @@ export const postImageSizing = (image: ImageDimensions) => {
   const xlMaxWidth = heightLimitedWidth(image, XL_MAX_HEIGHT_REM);
 
   return {
-    sizes: `(min-width: 1280px) min(67vw, ${image.width}px, ${xlMaxWidth}), min(100vw, ${image.width}px, ${maxWidth})`,
+    sizes: `(min-width: 1280px) min(75vw, ${image.width}px, ${xlMaxWidth}), min(100vw, ${image.width}px, ${maxWidth})`,
     className:
       "mx-auto h-auto max-w-(--max-width) rounded-md xl:max-w-(--xl-max-width)",
     style: {
