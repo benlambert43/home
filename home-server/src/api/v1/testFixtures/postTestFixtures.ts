@@ -17,6 +17,7 @@ import {
 import { createApiToken } from "../auth/createApiToken";
 import { handleRequestError } from "../http/handleRequestError";
 import { PostModel } from "../model/postModel";
+import { RetiredPostSlugModel } from "../model/retiredPostSlugModel";
 import { UserModel } from "../model/userModel";
 import postRouter from "../post/post";
 import {
@@ -103,22 +104,33 @@ const stubSave = () =>
     return Promise.resolve(this);
   });
 
-const stubSlugLookup = () =>
-  vi
-    .spyOn(PostModel, "exists")
-    .mockImplementation(
-      () =>
-        Promise.resolve(null) as unknown as ReturnType<typeof PostModel.exists>,
-    );
+const stubSlugLookup = () => {
+  vi.spyOn(PostModel, "exists").mockImplementation(
+    () =>
+      Promise.resolve(null) as unknown as ReturnType<typeof PostModel.exists>,
+  );
+  vi.spyOn(RetiredPostSlugModel, "exists").mockImplementation(
+    () =>
+      Promise.resolve(null) as unknown as ReturnType<
+        typeof RetiredPostSlugModel.exists
+      >,
+  );
+};
 
 export const stubPostLookup = (post: PostDocument | null) => {
   vi.spyOn(PostModel, "findById").mockImplementation(
-    () =>
-      Promise.resolve(post) as unknown as ReturnType<typeof PostModel.findById>,
+    (id) =>
+      Promise.resolve(
+        post?._id.toString() === String(id) ? post : null,
+      ) as unknown as ReturnType<typeof PostModel.findById>,
   );
   vi.spyOn(PostModel, "findOne").mockImplementation(
-    () =>
-      Promise.resolve(post) as unknown as ReturnType<typeof PostModel.findOne>,
+    (filter) =>
+      Promise.resolve(
+        post && filter && "slug" in filter && filter.slug === post.slug
+          ? post
+          : null,
+      ) as unknown as ReturnType<typeof PostModel.findOne>,
   );
 };
 
@@ -139,15 +151,20 @@ export const stubPostList = (posts: PostDocument[]) => {
   );
 };
 
-export const stubPostDelete = (post: PostDocument | null) =>
-  vi
-    .spyOn(PostModel, "findByIdAndDelete")
-    .mockImplementation(
-      () =>
-        Promise.resolve(post) as unknown as ReturnType<
-          typeof PostModel.findByIdAndDelete
-        >,
-    );
+export const stubPostDelete = (post: PostDocument) => {
+  vi.spyOn(RetiredPostSlugModel, "updateOne").mockImplementation(
+    () =>
+      Promise.resolve({ acknowledged: true }) as unknown as ReturnType<
+        typeof RetiredPostSlugModel.updateOne
+      >,
+  );
+  vi.spyOn(PostModel, "findByIdAndDelete").mockImplementation(
+    () =>
+      Promise.resolve(post) as unknown as ReturnType<
+        typeof PostModel.findByIdAndDelete
+      >,
+  );
+};
 
 type ApiMethod = "get" | "post" | "patch" | "delete";
 

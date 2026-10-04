@@ -32,7 +32,7 @@ const postRevisionSchema = new mongoose.Schema(
 export const postSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, required: true, unique: true, immutable: true },
     fingerprint: { type: String, required: true, unique: true },
     authorUserId: { type: Schema.Types.ObjectId, required: true },
     createdDate: { type: Date, required: true },

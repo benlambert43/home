@@ -231,7 +231,7 @@ describe("the blog post api", () => {
     });
 
     it("is not found when the post does not exist", async () => {
-      stubPostDelete(null);
+      stubPostLookup(null);
 
       expectFailure(
         await apiCall("delete", `/${MISSING_POST_ID}`),

@@ -1,7 +1,13 @@
 import { PostModel } from "../../model/postModel";
 import { deletePostStorage } from "../../fileOperations/postStorage";
+import { retirePostSlug } from "../postSlugs";
 
 export const handleDeletePost = async (postId: string): Promise<boolean> => {
+  const found = await PostModel.findById(postId, "slug");
+  if (!found) return false;
+
+  await retirePostSlug(found.slug);
+
   const post = await PostModel.findByIdAndDelete(postId);
   if (!post) return false;
 

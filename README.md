@@ -36,6 +36,12 @@ home-shared must be built before web client and server are run.
 
 home-server stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores, and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
 
+## Post slugs
+
+A post's address is `/blog/<slug>`. The slug is made from the title when the post is created and never changes. When a post is deleted its slug is retired, and no later post is given it.
+
+`RESERVED_POST_SLUGS` in `home-shared/src/postSlug.ts` lists the slugs that static routes under `/blog` already use. It is maintained by hand. When adding a static route under `home-web-ui/app/blog`, add its name in lowercase to the list, and first check that no post already has that slug: the static route would take over the address and hide the post.
+
 ## Linting
 
 Lint rules shared by every workspace live in eslint.config.base.mjs

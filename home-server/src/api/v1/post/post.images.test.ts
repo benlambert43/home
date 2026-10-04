@@ -165,7 +165,7 @@ describe("images on a blog post", () => {
     });
   });
 
-  describe("GET /api/v1/posts/:id/images/:name", () => {
+  describe("GET /api/v1/posts/:slug/images/:name", () => {
     it("returns the header image by name with its caching headers", async () => {
       const post = await publishPost();
 
@@ -193,7 +193,7 @@ describe("images on a blog post", () => {
     });
   });
 
-  describe("GET /api/v1/posts/:id/images/:name/fullSize", () => {
+  describe("GET /api/v1/posts/:slug/images/:name/fullSize", () => {
     it("returns the header image at full size with its caching headers", async () => {
       const post = await publishPost();
 
