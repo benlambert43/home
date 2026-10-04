@@ -89,7 +89,7 @@ export const getCachedPosts = (
 
 export const getCachedPost = async (slug: string): Promise<PostLookup> => {
   "use cache";
-  cacheTag(postSlugTag(slug));
+  cacheTag(POSTS_TAG, postSlugTag(slug));
 
   try {
     const result = await apiFetch<GetPostResponse>(postUrl(slug));

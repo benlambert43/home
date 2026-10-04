@@ -1,3 +1,4 @@
+import AdjacentPosts from "@/app/blog/AdjacentPosts";
 import {
   postFullSizeImageHref,
   postImageHref,
@@ -37,7 +38,7 @@ const Post = async ({
     );
   }
 
-  const { post } = result;
+  const { post, previous, next } = result;
 
   const postImages = post.headerImage
     ? [post.headerImage, ...post.inlineImages]
@@ -82,6 +83,7 @@ const Post = async ({
           headingIds={postHeadingIds(post.content)}
         />
       </article>
+      <AdjacentPosts previous={previous} next={next} page={page} />
       <div>
         <ReturnToBlogPosts page={page} postSlug={post.slug} />
       </div>
