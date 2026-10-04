@@ -1,5 +1,4 @@
 import { blogHref, postHref, postShareImageHref } from "@/app/blog/links";
-import { PERSON_NAME } from "@/app/lib/person";
 import { BASE_SITE_URL } from "@/app/lib/serverEnv";
 import {
   Post,
@@ -108,16 +107,18 @@ const postShareImages = ({ _id, title, headerImage }: Post): ShareImages =>
 export const postMetadata = (post: Post, siteImages: ShareImages): Metadata => {
   const canonicalPath = postHref(post._id);
   const description = postExcerpt(post.content) ?? SITE_DESCRIPTION;
+  const authors =
+    post.authorUsername === null ? undefined : [post.authorUsername];
 
   return {
     ...pageMetadata(post.title, { canonicalPath, description }),
-    authors: [{ name: PERSON_NAME }],
+    authors: authors?.map((name) => ({ name })),
     openGraph: {
       type: "article",
       ...openGraphPage(post.title, description, canonicalPath),
       publishedTime: post.createdDate,
       modifiedTime: post.modifiedDate,
-      authors: [PERSON_NAME],
+      authors,
       images: postShareImages(post) ?? siteImages,
     },
   };
