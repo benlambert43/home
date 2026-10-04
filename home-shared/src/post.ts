@@ -15,6 +15,8 @@ export const MAX_POST_IMAGE_NAME_CHARACTERS = 64;
 
 export const MAX_POST_SLUG_CHARACTERS = 80;
 
+export const MAX_POST_HEADER_IMAGE_ALT_CHARACTERS = 200;
+
 export const POST_THUMBNAIL_SIZES = ["large", "medium", "small"] as const;
 
 export type PostThumbnailSize = (typeof POST_THUMBNAIL_SIZES)[number];
@@ -109,6 +111,7 @@ export interface PostSummary {
   modifiedDate: string;
   revision: string;
   headerImage: PostImage | null;
+  headerImageAlt: string | null;
 }
 
 export interface PostShareImage {

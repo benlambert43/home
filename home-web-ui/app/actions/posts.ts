@@ -99,13 +99,13 @@ export const updatePost = async (
 
   if (!validatedFields.success) {
     const { errors, properties } = treeifyFormError(validatedFields.error);
-    const { title, content, ...submitted } = properties ?? {};
+    const { title, content, headerImageAlt, ...submitted } = properties ?? {};
     const invalidRequest = Object.keys(submitted).length > 0;
 
     return {
       values,
       errors: invalidRequest ? [...errors, INVALID_REQUEST_MESSAGE] : errors,
-      properties: { title, content },
+      properties: { title, content, headerImageAlt },
     };
   }
 

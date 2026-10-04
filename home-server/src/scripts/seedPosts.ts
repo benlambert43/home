@@ -203,6 +203,7 @@ const publishPost = async (author: UserNoPassword, post: SeedPost) => {
   const body = createPostBodySchema.parse({
     title: post.title,
     content: post.content,
+    headerImageAlt: post.headerImageAlt,
     uploadId,
   });
 
@@ -219,6 +220,7 @@ const editPost = async (current: Post, edit: SeedPostEdit) => {
     content: edit.content ?? current.content,
     revision: current.revision,
     headerImage: edit.headerImage === null ? null : undefined,
+    headerImageAlt: edit.headerImageAlt,
     removeInlineImages: edit.removeInlineImages,
     uploadId,
   });

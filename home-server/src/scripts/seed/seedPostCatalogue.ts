@@ -36,6 +36,7 @@ export interface SeedPostEdit {
   title?: string;
   content?: string;
   headerImage?: SeedImage | null;
+  headerImageAlt?: string;
   inlineImages?: SeedImage[];
   removeInlineImages?: string[];
 }
@@ -44,6 +45,7 @@ export interface SeedPost {
   title: string;
   content: string;
   headerImage?: SeedImage;
+  headerImageAlt?: string;
   inlineImages?: SeedImage[];
   edits?: SeedPostEdit[];
 }
@@ -73,6 +75,8 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "A tour of everything a post can hold",
     content: markdown("everything"),
     headerImage: picture("ridge-at-dusk.jpg", 2400, 1350, DUSK),
+    headerImageAlt:
+      "A pale sun over two mountain ridges, under a sky that fades from indigo to pink.",
     inlineImages: [
       picture("layout-diagram.png", 1600, 900, SLATE),
       picture("harbour.webp", 1400, 933, DAWN),
@@ -84,6 +88,7 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "Every image format in one post",
     content: markdown("image-formats"),
     headerImage: picture("formats-header.avif", 1600, 900, VIOLET),
+    headerImageAlt: "A pale sun over two mountain ridges, under a violet sky.",
     inlineImages: [
       picture("format.png", 240, 150, DUSK),
       picture("format.jpg", 240, 150, DAWN),
@@ -99,6 +104,8 @@ const SHOWCASE_POSTS: SeedPost[] = [
     headerImage: picture("animated-header.gif", 640, 360, DAWN, {
       frames: ANIMATION_FRAMES,
     }),
+    headerImageAlt:
+      "An animation of a pale sun crossing the sky above two mountain ridges.",
     inlineImages: [
       picture("sunrise.gif", 480, 300, EMBER, { frames: ANIMATION_FRAMES }),
       picture("sunrise.webp", 480, 300, DUSK, { frames: ANIMATION_FRAMES }),
@@ -109,6 +116,8 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "Portraits, panoramas, squares, and a tiny icon",
     content: markdown("shapes-and-sizes"),
     headerImage: picture("panorama-header.jpg", 3200, 800, FOREST),
+    headerImageAlt:
+      "A very wide panorama of a pale sun over two green mountain ridges.",
     inlineImages: [
       picture("portrait.jpg", 900, 1600, DUSK),
       picture("panorama.webp", 3200, 800, DAWN),
@@ -122,6 +131,8 @@ const SHOWCASE_POSTS: SeedPost[] = [
     headerImage: picture("sideways-header.jpg", 1200, 1600, EMBER, {
       sideways: true,
     }),
+    headerImageAlt:
+      "A tall photo of a pale sun over two orange mountain ridges.",
     inlineImages: [
       picture("stored-sideways.jpg", 900, 1200, DAWN, { sideways: true }),
     ],
@@ -132,6 +143,8 @@ const SHOWCASE_POSTS: SeedPost[] = [
     headerImage: picture("large-header.jpg", 3600, 2400, DUSK, {
       noisy: true,
     }),
+    headerImageAlt:
+      "A grainy photograph of a pale sun over two mountain ridges at dusk.",
     inlineImages: [
       picture("large-second.jpg", 3000, 2000, FOREST, { noisy: true }),
     ],
@@ -140,6 +153,7 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "A header image and nothing else",
     content: markdown("header-only"),
     headerImage: picture("lone-header.webp", 1600, 900, SLATE),
+    headerImageAlt: "A pale sun over two grey mountain ridges.",
   },
   {
     title: "Pictures in the text, but no header",
@@ -153,6 +167,7 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "The header image, used again in the text",
     content: markdown("header-in-text"),
     headerImage: picture("valley.jpg", 1800, 1200, FOREST),
+    headerImageAlt: "A pale sun over a green valley between two ridges.",
   },
   {
     title: "One image, used three times",
@@ -174,6 +189,7 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "Ünïcödé, 日本語, العربية, and emoji 🏔️ in a title",
     content: markdown("unicode"),
     headerImage: picture("unicode-header.png", 1600, 900, VIOLET),
+    headerImageAlt: "A pale sun over two mountain ridges: 山, جبل, and 🏔️.",
   },
   {
     title: LONG_TITLE,
@@ -184,6 +200,7 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "A long read",
     content: longRead(),
     headerImage: picture("long-read-header.jpg", 2000, 1125, DAWN),
+    headerImageAlt: "A pale sun over two mountain ridges at dawn.",
   },
   {
     title: "Hi",
@@ -203,10 +220,12 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "Edited: a new header image",
     content: markdown("replaced-header.first"),
     headerImage: picture("placeholder-header.jpg", 1600, 900, SLATE),
+    headerImageAlt: "A grey placeholder picture of a sun over mountain ridges.",
     edits: [
       {
         content: markdown("replaced-header.edited"),
         headerImage: picture("final-header.jpg", 1600, 900, FOREST),
+        headerImageAlt: "A pale sun over two green mountain ridges.",
       },
     ],
   },
@@ -214,6 +233,7 @@ const SHOWCASE_POSTS: SeedPost[] = [
     title: "Edited: the header and a picture removed",
     content: markdown("trimmed.first"),
     headerImage: picture("removed-header.png", 1600, 900, EMBER),
+    headerImageAlt: "A pale sun over two orange mountain ridges.",
     inlineImages: [
       picture("stays.webp", 1200, 800, FOREST),
       picture("goes.webp", 1200, 800, DUSK),

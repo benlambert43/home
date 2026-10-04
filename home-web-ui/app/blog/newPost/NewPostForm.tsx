@@ -135,6 +135,7 @@ const NewPostForm = ({ page }: { page: number }) => {
 
       <PostImagePicker
         images={images}
+        headerImageAltErrors={errors?.properties?.headerImageAlt?.errors}
         problems={problems}
         progress={progress}
         errors={uploadErrors}

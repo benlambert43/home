@@ -163,6 +163,8 @@ const EditPostForm = ({
 
       <PostImagePicker
         images={images}
+        headerImageAlt={post.headerImageAlt}
+        headerImageAltErrors={errors?.properties?.headerImageAlt?.errors}
         problems={problems}
         progress={progress}
         errors={uploadErrors}

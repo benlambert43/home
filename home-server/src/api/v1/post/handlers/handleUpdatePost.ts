@@ -62,6 +62,12 @@ const resolveHeaderImage = (
   return { ok: true, value: uploaded ?? stored };
 };
 
+const resolveHeaderImageAlt = (
+  requested: string | undefined,
+  uploaded: StoredPostImage | undefined,
+  stored: string | undefined,
+) => requested ?? (uploaded ? undefined : stored);
+
 const resolveInlineImages = (
   stored: StoredPostImage[],
   uploaded: StoredPostImage[],
@@ -144,6 +150,11 @@ const updatePost = async (
   const revision = await writePostRevision(post.fingerprint, {
     content: body.content,
     headerImage: headerImage.value,
+    headerImageAlt: resolveHeaderImageAlt(
+      body.headerImageAlt,
+      uploaded.headerImage,
+      previous?.headerImageAlt,
+    ),
     inlineImages: inlineImages.value,
   });
 

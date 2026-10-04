@@ -50,6 +50,7 @@ interface PostFileContent {
 interface PostRevisionContent {
   content: string;
   headerImage?: StoredPostImage;
+  headerImageAlt?: string;
   inlineImages: StoredPostImage[];
 }
 
@@ -155,7 +156,7 @@ export const deletePostRevision = (post: string, revision: string) =>
 
 export const writePostRevision = async (
   post: string,
-  { content, headerImage, inlineImages }: PostRevisionContent,
+  { content, headerImage, headerImageAlt, inlineImages }: PostRevisionContent,
 ): Promise<StoredPostRevision> => {
   const createdDate = new Date();
   const revision = fingerprint(post, createdDate.toISOString(), randomUUID());
@@ -171,6 +172,10 @@ export const writePostRevision = async (
       headerImage: headerImage
         ? await storeImage(fullSizeImages, headerImage)
         : undefined,
+      headerImageAlt:
+        headerImage === undefined || headerImageAlt === ""
+          ? undefined
+          : headerImageAlt,
       inlineImages: await Promise.all(
         inlineImages.map((image) => storeImage(fullSizeImages, image)),
       ),

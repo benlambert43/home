@@ -32,6 +32,7 @@ export interface StoredPostRevision<Timestamp = Date> {
   content: StoredPostFile;
   excerpt?: string;
   headerImage?: StoredPostImage;
+  headerImageAlt?: string;
   inlineImages: StoredPostImage[];
 }
 

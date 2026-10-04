@@ -3,6 +3,7 @@ import { disallowedPostMarkdown, normalizePostContent } from "./markdown";
 import {
   DEFAULT_POST_PAGE_SIZE,
   MAX_POST_CONTENT_CHARACTERS,
+  MAX_POST_HEADER_IMAGE_ALT_CHARACTERS,
   MAX_POST_IMAGE_NAME_CHARACTERS,
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
@@ -117,7 +118,7 @@ export const resetPasswordFormSchema = resetPasswordBodySchema
     path: ["confirmNewPassword"],
   });
 
-const DISALLOWED_TITLE_CHARACTERS = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
+const DISALLOWED_LINE_CHARACTERS = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
 
 const hasDisallowedContentCharacters = (content: string) =>
   /\p{Cc}/u.test(content.replace(/[\n\t]/g, ""));
@@ -131,8 +132,18 @@ const postTitleField = z
   .refine((title) => [...title].length <= MAX_POST_TITLE_CHARACTERS, {
     message: `Post title must be ${MAX_POST_TITLE_CHARACTERS} characters or fewer.`,
   })
-  .refine((title) => !DISALLOWED_TITLE_CHARACTERS.test(title), {
+  .refine((title) => !DISALLOWED_LINE_CHARACTERS.test(title), {
     message: "Post title contains characters that are not allowed.",
+  });
+
+const postHeaderImageAltField = z
+  .string()
+  .transform((alt) => alt.normalize("NFC").trim())
+  .refine((alt) => [...alt].length <= MAX_POST_HEADER_IMAGE_ALT_CHARACTERS, {
+    message: `Header image alt text must be ${MAX_POST_HEADER_IMAGE_ALT_CHARACTERS} characters or fewer.`,
+  })
+  .refine((alt) => !DISALLOWED_LINE_CHARACTERS.test(alt), {
+    message: "Header image alt text contains characters that are not allowed.",
   });
 
 const postContentField = z
@@ -209,12 +220,14 @@ export const postUploadImageParamsSchema = postUploadParamsSchema.extend({
 export const createPostBodySchema = z.object({
   title: postTitleField,
   content: postContentField,
+  headerImageAlt: postHeaderImageAltField.optional(),
   uploadId: postUploadIdField.optional(),
 });
 
 export const createPostFormSchema = createPostBodySchema.pick({
   title: true,
   content: true,
+  headerImageAlt: true,
 });
 
 export const updatePostBodySchema = z.object({
@@ -222,6 +235,7 @@ export const updatePostBodySchema = z.object({
   content: postContentField,
   revision: postRevisionField,
   headerImage: z.null().optional(),
+  headerImageAlt: postHeaderImageAltField.optional(),
   uploadId: postUploadIdField.optional(),
   removeInlineImages: z.array(postImageNameSchema).optional(),
 });
@@ -229,6 +243,7 @@ export const updatePostBodySchema = z.object({
 export const updatePostFormSchema = updatePostBodySchema.pick({
   title: true,
   content: true,
+  headerImageAlt: true,
 });
 
 export const postIdParamsSchema = z.object({

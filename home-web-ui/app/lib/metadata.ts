@@ -91,13 +91,14 @@ const postShareImages = ({
   slug,
   title,
   headerImage,
+  headerImageAlt,
   shareImage,
 }: Post): ShareImages =>
   headerImage
     ? [
         {
           url: postShareImageHref(slug, headerImage.name),
-          alt: title,
+          alt: headerImageAlt ?? title,
           ...shareImage,
         },
       ]

@@ -87,6 +87,7 @@ export const serializePostSummary = (
     headerImage: revision.headerImage
       ? serializePostImage(post.slug, revision.headerImage)
       : null,
+    headerImageAlt: revision.headerImageAlt ?? null,
   };
 };
 

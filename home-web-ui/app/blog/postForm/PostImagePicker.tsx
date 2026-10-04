@@ -1,5 +1,6 @@
 "use client";
 
+import { POST_FORM_FIELDS } from "@/app/blog/postForm/postFormFields";
 import {
   PostFormImage,
   PostFormImages,
@@ -11,7 +12,9 @@ import {
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import { FIELD_WIDTHS } from "@/app/ui/fieldStyles";
+import TextField from "@/app/ui/TextField";
 import { PhotoIcon } from "@heroicons/react/16/solid";
+import { MAX_POST_HEADER_IMAGE_ALT_CHARACTERS } from "@home/shared";
 import Image from "next/image";
 import { ReactNode, useRef } from "react";
 
@@ -155,6 +158,8 @@ const PostImageRow = ({
 
 const PostImagePicker = ({
   images: { headerImage, inlineImages },
+  headerImageAlt,
+  headerImageAltErrors,
   problems,
   progress,
   errors,
@@ -165,6 +170,8 @@ const PostImagePicker = ({
   onRemoveImage,
 }: {
   images: PostFormImages;
+  headerImageAlt?: string | null;
+  headerImageAltErrors?: string[];
   problems: string[];
   progress: Record<string, number>;
   errors: Record<string, string>;
@@ -199,6 +206,24 @@ const PostImagePicker = ({
       >
         {headerImage && <ul className="flex flex-col">{row(headerImage)}</ul>}
       </PostImageField>
+
+      {headerImage && (
+        <>
+          <TextField
+            key={headerImage.name}
+            name={POST_FORM_FIELDS.headerImageAlt}
+            label="Header image alt text"
+            type="text"
+            placeholder="Describe the header image"
+            maxLength={MAX_POST_HEADER_IMAGE_ALT_CHARACTERS}
+            disabled={disabled}
+            defaultValue={
+              headerImage.stored ? (headerImageAlt ?? undefined) : undefined
+            }
+          />
+          <FieldError errors={headerImageAltErrors} />
+        </>
+      )}
 
       <PostImageField
         input={INLINE_IMAGES_INPUT}

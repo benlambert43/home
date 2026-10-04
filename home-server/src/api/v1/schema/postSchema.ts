@@ -25,6 +25,7 @@ const postRevisionSchema = new mongoose.Schema(
     content: { type: postFileSchema, required: true },
     excerpt: { type: String, required: false },
     headerImage: { type: postImageSchema, required: false },
+    headerImageAlt: { type: String, required: false },
     inlineImages: { type: [postImageSchema], required: true },
   },
   { _id: false },

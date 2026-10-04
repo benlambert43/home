@@ -4,6 +4,7 @@ import { createPostFormSchema, updatePostFormSchema } from "@home/shared";
 export const POST_FORM_FIELDS = {
   title: "title",
   content: "content",
+  headerImageAlt: "headerImageAlt",
 } as const satisfies FieldNames<typeof createPostFormSchema> &
   FieldNames<typeof updatePostFormSchema>;
 

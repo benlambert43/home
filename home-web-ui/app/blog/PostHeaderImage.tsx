@@ -6,17 +6,18 @@ import Image from "next/image";
 
 const PostHeaderImage = ({ post }: { post: PostSummary }) => {
   const image = post.headerImage;
+  const alt = post.headerImageAlt ?? "";
 
   if (!image) return null;
 
   return (
     <PostFullSizeImageLink
       href={postFullSizeImageHref(post.slug, image.name)}
-      alt=""
+      alt={alt}
     >
       <Image
         src={postImageHref(post.slug, image.name)}
-        alt=""
+        alt={alt}
         width={image.width}
         height={image.height}
         sizes={POST_IMAGE_SIZES}

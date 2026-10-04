@@ -4,11 +4,16 @@ import {
   PostFormImages,
 } from "@/app/blog/postForm/postFormImages";
 import { readFormValues } from "@/app/lib/forms";
+import { Post } from "@home/shared";
 import { RefObject, useEffect } from "react";
 
-export type SavedPostFields = Record<keyof typeof POST_FORM_FIELDS, string>;
+export type SavedPostFields = Pick<Post, keyof typeof POST_FORM_FIELDS>;
 
-export const EMPTY_POST_FIELDS: SavedPostFields = { title: "", content: "" };
+export const EMPTY_POST_FIELDS: SavedPostFields = {
+  title: "",
+  content: "",
+  headerImageAlt: null,
+};
 
 const hasUnsavedFields = (
   form: HTMLFormElement | null,
@@ -18,7 +23,11 @@ const hasUnsavedFields = (
 
   const current = readFormValues(new FormData(form), POST_FORM_FIELDS);
 
-  return current.title !== saved.title || current.content !== saved.content;
+  return (
+    current.title !== saved.title ||
+    current.content !== saved.content ||
+    current.headerImageAlt !== (saved.headerImageAlt ?? "")
+  );
 };
 
 export const useUnsavedPostChanges = (

@@ -47,6 +47,7 @@ const savePost = async (
       revisions: [
         await writePostRevision(postFingerprint, {
           content: body.content,
+          headerImageAlt: body.headerImageAlt,
           ...images,
         }),
       ],

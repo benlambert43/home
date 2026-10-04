@@ -365,6 +365,7 @@ export const postSummaryResponse = (
   modifiedDate: post.modifiedDate.toISOString(),
   revision: currentRevision(post).fingerprint,
   headerImage: headerImageResponse(),
+  headerImageAlt: null,
   ...overrides,
 });
 
