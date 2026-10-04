@@ -6,6 +6,7 @@ import {
 import PostAdminActions from "@/app/blog/PostAdminActions";
 import PostByline from "@/app/blog/PostByline";
 import PostHeaderImage from "@/app/blog/PostHeaderImage";
+import PostJsonLd from "@/app/blog/PostJsonLd";
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
@@ -51,6 +52,7 @@ const Post = async ({
 
   return (
     <div className="flex max-w-160 flex-col gap-4 p-5">
+      <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts page={page} postId={post._id} appearance="arrow" />
         <Suspense fallback={null}>

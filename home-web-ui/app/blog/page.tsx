@@ -1,3 +1,4 @@
+import BlogJsonLd from "@/app/blog/BlogJsonLd";
 import { requestedPage } from "@/app/blog/links";
 import NewPostButton from "@/app/blog/NewPostButton";
 import Posts from "@/app/blog/Posts";
@@ -31,6 +32,7 @@ export const instant = false;
 
 const Blog = ({ searchParams }: BlogProps) => (
   <div className="flex flex-col gap-4 p-5">
+    <BlogJsonLd />
     <div className="flex flex-row flex-wrap items-center gap-4">
       <h1 className="text-4xl font-bold">Blog</h1>
       <Suspense fallback={null}>

@@ -2,7 +2,7 @@ import { GITHUB_REPOSITORY_URL } from "@/app/about/links";
 import RecentPosts from "@/app/blog/RecentPosts";
 import Content from "@/app/components/Content";
 import Hero from "@/app/components/Hero";
-import PersonJsonLd from "@/app/components/PersonJsonLd";
+import WebSiteJsonLd from "@/app/components/WebSiteJsonLd";
 import { homeMetadata } from "@/app/lib/metadata";
 import { ReactNode } from "react";
 
@@ -45,7 +45,7 @@ const Highlights = () => (
 
 const Home = () => (
   <div>
-    <PersonJsonLd />
+    <WebSiteJsonLd />
     <Hero />
     <Content>
       <RecentPosts />

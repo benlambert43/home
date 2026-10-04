@@ -8,12 +8,12 @@ import {
 } from "@home/shared";
 import type { Metadata, ResolvingMetadata, Viewport } from "next";
 
-export const SITE_NAME = "ben lambert";
-const SITE_DESCRIPTION = "ben lambert's personal website 🧑‍💻";
+export const SITE_NAME = "benlambert.tech";
+const SITE_DESCRIPTION = "my personal website, with a blog and projects 🧑‍💻";
 
 export const siteMetadata: Metadata = {
   metadataBase: new URL(BASE_SITE_URL),
-  title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
+  title: SITE_NAME,
   description: SITE_DESCRIPTION,
   openGraph: { type: "website", siteName: SITE_NAME },
 };
@@ -22,8 +22,7 @@ export const siteViewport: Viewport = {
   themeColor: "#1d293d",
 };
 
-const HOME_DESCRIPTION =
-  "home page of ben lambert's personal website. A place to share my projects and experiences.";
+const HOME_DESCRIPTION = "A place to share my projects and experiences.";
 
 export const homeMetadata: Metadata = {
   title: SITE_NAME,
@@ -65,8 +64,9 @@ const openGraphPage = (
 
 const BLOG_TITLE = "blog";
 
-const BLOG_DESCRIPTION =
-  "the blog on ben lambert's personal website, where I post about my projects and experiences.";
+export const BLOG_NAME = `${SITE_NAME} blog`;
+
+export const BLOG_DESCRIPTION = "blog posts about my projects and experiences.";
 
 export const blogMetadata = (
   page: number,
