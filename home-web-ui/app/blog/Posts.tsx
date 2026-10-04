@@ -40,7 +40,8 @@ const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
   <li
     id={postAnchor(post.slug)}
     className="box-content flex min-h-30 scroll-mt-28 flex-row items-center
-      gap-4 py-4 first:pt-0 last:pb-0 sm:scroll-mt-20 sm:gap-6"
+      gap-4 py-4 first:scroll-mt-[100vh] first:pt-0 last:pb-0 sm:scroll-mt-20
+      sm:gap-6"
   >
     <PostRowThumbnail post={post} page={page} />
     <div className="flex min-w-0 flex-col gap-1">
