@@ -1,3 +1,4 @@
+import PageColumn from "@/app/components/PageColumn";
 import Button from "@/app/ui/Button";
 
 const VerificationProblem = ({
@@ -9,7 +10,7 @@ const VerificationProblem = ({
   detail?: string;
   showRequestNewLink?: boolean;
 }) => (
-  <div className="p-5">
+  <PageColumn>
     <div className="py-5">
       <p>{headline}</p>
       {detail ? <p>{detail}</p> : null}
@@ -27,7 +28,7 @@ const VerificationProblem = ({
         </Button>
       </div>
     ) : null}
-  </div>
+  </PageColumn>
 );
 
 export default VerificationProblem;

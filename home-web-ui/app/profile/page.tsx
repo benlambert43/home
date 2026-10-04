@@ -1,5 +1,6 @@
 import { logOut } from "@/app/actions/session";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
 import DeleteAccountButton from "@/app/profile/DeleteAccountButton";
 import ProfileBanner from "@/app/profile/ProfileBanner";
@@ -13,7 +14,7 @@ const Profile = async () => {
   const user = await requireBffSessionUser();
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Profile</h1>
       <div>
         <ProfileBanner user={user} />
@@ -64,7 +65,7 @@ const Profile = async () => {
           </Button>
         </form>
       </div>
-    </div>
+    </PageColumn>
   );
 };
 

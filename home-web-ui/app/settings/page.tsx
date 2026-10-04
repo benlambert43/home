@@ -1,4 +1,5 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
 import Button from "@/app/ui/Button";
 
@@ -10,7 +11,7 @@ const Settings = async () => {
   const user = await requireBffSessionUser();
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Settings</h1>
 
       <div className="flex flex-col gap-2">
@@ -28,7 +29,7 @@ const Settings = async () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageColumn>
   );
 };
 

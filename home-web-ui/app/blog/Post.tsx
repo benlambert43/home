@@ -11,6 +11,7 @@ import PostJsonLd from "@/app/blog/PostJsonLd";
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
+import PageColumn from "@/app/components/PageColumn";
 import { getPost } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
 import { postHeadingIds } from "@home/shared";
@@ -53,7 +54,7 @@ const Post = async ({
   }));
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-4 p-5 lg:w-2/3">
+    <PageColumn className="flex flex-col gap-4">
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts
@@ -87,7 +88,7 @@ const Post = async ({
       <div className="mt-6 flex justify-center">
         <ReturnToBlogPosts page={page} postSlug={post.slug} appearance="text" />
       </div>
-    </div>
+    </PageColumn>
   );
 };
 

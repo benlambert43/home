@@ -1,5 +1,6 @@
 import { checkPasswordResetLink } from "@/app/actions/auth";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import PageColumn from "@/app/components/PageColumn";
 import { errorMessage } from "@/app/lib/api";
 import { pageMetadata } from "@/app/lib/metadata";
 import { paramFilled, SearchParams } from "@/app/lib/searchParams";
@@ -31,13 +32,13 @@ const ResetPassword = async ({ code }: { code: string }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Choose a New Password</h1>
       <div>Pick a new password, then sign in with it.</div>
       <div>
         <ResetPasswordForm code={code} />
       </div>
-    </div>
+    </PageColumn>
   );
 };
 
@@ -53,13 +54,13 @@ const ChangePassword = async ({
   await requireBffSessionUser();
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Change Password</h1>
       <div>Enter your current password, then choose a new one.</div>
       <div>
         <ChangePasswordForm />
       </div>
-    </div>
+    </PageColumn>
   );
 };
 

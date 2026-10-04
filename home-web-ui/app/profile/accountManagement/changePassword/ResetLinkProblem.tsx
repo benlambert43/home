@@ -1,3 +1,4 @@
+import PageColumn from "@/app/components/PageColumn";
 import Button from "@/app/ui/Button";
 
 const ResetLinkProblem = ({
@@ -7,7 +8,7 @@ const ResetLinkProblem = ({
   headline: string;
   detail?: string;
 }) => (
-  <div className="p-5">
+  <PageColumn>
     <div className="py-5">
       <p>{headline}</p>
       {detail ? <p>{detail}</p> : null}
@@ -17,7 +18,7 @@ const ResetLinkProblem = ({
         Request a New Link
       </Button>
     </div>
-  </div>
+  </PageColumn>
 );
 
 export default ResetLinkProblem;

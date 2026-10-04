@@ -1,12 +1,13 @@
 import { NOTICES } from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
+import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
 export const metadata = pageMetadata("about");
 
 const About = () => (
-  <div className="flex max-w-160 flex-col gap-4 p-5">
+  <PageColumn className="flex flex-col gap-4">
     <h1 className="text-4xl font-bold">About</h1>
     <section className="flex flex-col gap-4">
       <h2 className="text-2xl font-semibold">Notices</h2>
@@ -32,7 +33,7 @@ const About = () => (
         at <ContactEmail />.
       </p>
     </section>
-  </div>
+  </PageColumn>
 );
 
 export default About;

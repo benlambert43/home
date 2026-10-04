@@ -1,4 +1,5 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
 import OpenGmailButton from "@/app/ui/OpenGmailButton";
 
@@ -10,7 +11,7 @@ const RequestNewEmailVerificationLinkSuccess = async () => {
   await requireBffSessionUser();
 
   return (
-    <div className="mx-4 flex flex-col gap-2 py-8">
+    <PageColumn className="flex flex-col gap-2">
       <div>
         A new verification email has been sent! Be sure to check your junk or
         spam folders.
@@ -18,7 +19,7 @@ const RequestNewEmailVerificationLinkSuccess = async () => {
       <div>
         <OpenGmailButton centerText={true} />
       </div>
-    </div>
+    </PageColumn>
   );
 };
 

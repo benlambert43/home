@@ -4,6 +4,7 @@ import {
   completeEmailVerification,
   CompleteEmailVerificationResult,
 } from "@/app/actions/auth";
+import PageColumn from "@/app/components/PageColumn";
 import VerificationProblem from "@/app/profile/accountManagement/verifyEmail/VerificationProblem";
 import { startTransition, useActionState, useEffect, useRef } from "react";
 
@@ -39,7 +40,7 @@ const VerificationComplete = ({ code }: { code: string }) => {
     );
   }
 
-  return <div className="p-5 py-5">Verifying your email...</div>;
+  return <PageColumn>Verifying your email...</PageColumn>;
 };
 
 export default VerificationComplete;

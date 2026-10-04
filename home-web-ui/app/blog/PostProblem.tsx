@@ -1,4 +1,5 @@
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
+import PageColumn from "@/app/components/PageColumn";
 
 const PostProblem = ({
   headline,
@@ -9,13 +10,13 @@ const PostProblem = ({
   detail: string;
   page?: number;
 }) => (
-  <div className="mx-auto flex w-full flex-col gap-4 p-5 lg:w-2/3">
+  <PageColumn className="flex flex-col gap-4">
     <h1 className="text-4xl font-bold">{headline}</h1>
     <p>{detail}</p>
     <div>
       <ReturnToBlogPosts page={page} />
     </div>
-  </div>
+  </PageColumn>
 );
 
 export default PostProblem;

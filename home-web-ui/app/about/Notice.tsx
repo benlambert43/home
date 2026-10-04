@@ -1,4 +1,5 @@
 import { NO_WARRANTY_HREF, TERMS_OF_USE } from "@/app/about/notices";
+import PageColumn from "@/app/components/PageColumn";
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -18,7 +19,7 @@ const Notice = ({
   updated: string;
   children: ReactNode;
 }) => (
-  <div className="flex max-w-160 flex-col gap-4 p-5">
+  <PageColumn className="flex flex-col gap-4">
     <Link
       href="/about"
       className="flex items-center gap-1 self-start text-sm text-slate-400
@@ -48,7 +49,7 @@ const Notice = ({
     >
       {children}
     </div>
-  </div>
+  </PageColumn>
 );
 
 export default Notice;

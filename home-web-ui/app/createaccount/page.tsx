@@ -1,4 +1,5 @@
 import { redirectSignedInUser } from "@/app/auth/redirectSignedInUser";
+import PageColumn from "@/app/components/PageColumn";
 import { CreateAccountForm } from "@/app/createaccount/CreateAccountForm";
 import { pageMetadata } from "@/app/lib/metadata";
 
@@ -10,10 +11,10 @@ const CreateAccount = async () => {
   await redirectSignedInUser();
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Create Account</h1>
       <CreateAccountForm />
-    </div>
+    </PageColumn>
   );
 };
 

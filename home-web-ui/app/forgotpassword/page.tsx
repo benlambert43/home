@@ -1,5 +1,6 @@
 import { ForgotPasswordForm } from "@/app/forgotpassword/ForgotPasswordForm";
 import { redirectSignedInUser } from "@/app/auth/redirectSignedInUser";
+import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
@@ -11,7 +12,7 @@ const ForgotPassword = async () => {
   await redirectSignedInUser();
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Forgot Password</h1>
       <div>
         Enter the email address on your account and we will send you a link to
@@ -25,7 +26,7 @@ const ForgotPassword = async () => {
           Back to Sign In
         </Link>
       </div>
-    </div>
+    </PageColumn>
   );
 };
 
