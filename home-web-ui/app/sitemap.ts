@@ -37,7 +37,11 @@ const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
   cacheTag(POSTS_TAG);
 
   const posts = await getAllPosts();
-  if (posts === undefined) cacheLife("seconds");
+  if (posts === undefined) {
+    cacheLife("seconds");
+  } else {
+    cacheLife("days");
+  }
 
   return [
     ...PAGE_PATHS.map((path) => ({ url: siteUrl(path) })),
