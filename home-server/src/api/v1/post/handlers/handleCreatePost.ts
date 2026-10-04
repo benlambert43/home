@@ -19,6 +19,7 @@ import {
   discardPostUpload,
   PostUploadImages,
 } from "../postUploads";
+import { uniquePostSlug } from "../postSlugs";
 import { PostWrite, refusedPostWrite } from "../postThumbnails";
 import { deleteUnsavedStorage } from "../unsavedStorage";
 
@@ -37,6 +38,7 @@ const savePost = async (
   try {
     return await new PostModel({
       _id,
+      slug: await uniquePostSlug(body.title),
       title: body.title,
       fingerprint: postFingerprint,
       authorUserId: new Types.ObjectId(author._id),

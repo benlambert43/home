@@ -30,6 +30,8 @@ const LONG_READ_PARAGRAPHS = [
 const LONG_TITLE =
   "A deliberately long title that keeps going well past the point of good taste, to show how the blog list, the post page, and the browser tab cope with an author who will not stop typing until the limit";
 
+const SHARED_TITLE = "The same title, twice";
+
 export interface SeedPostEdit {
   title?: string;
   content?: string;
@@ -186,6 +188,16 @@ const SHOWCASE_POSTS: SeedPost[] = [
   {
     title: "Hi",
     content: "Hi.",
+  },
+  {
+    title: SHARED_TITLE,
+    content:
+      "Another post has exactly this title. Titles do not have to be unique, but addresses do, so this post has the plain address.",
+  },
+  {
+    title: SHARED_TITLE,
+    content:
+      "Another post has exactly this title. Titles do not have to be unique, but addresses do, so the address of this post ends in -2.",
   },
   {
     title: "Edited: a new header image",

@@ -46,7 +46,7 @@ const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
   return [
     ...PAGE_PATHS.map((path) => ({ url: siteUrl(path) })),
     ...(posts ?? []).map((post) => ({
-      url: siteUrl(postHref(post._id)),
+      url: siteUrl(postHref(post.slug)),
       lastModified: post.modifiedDate,
     })),
   ];

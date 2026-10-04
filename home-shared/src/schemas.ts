@@ -6,11 +6,13 @@ import {
   MAX_POST_IMAGE_NAME_CHARACTERS,
   MAX_POST_INLINE_IMAGES,
   MAX_POST_PAGE_SIZE,
+  MAX_POST_SLUG_CHARACTERS,
   MAX_POST_TITLE_CHARACTERS,
   POST_IMAGE_EXTENSION_CONTENT_TYPES,
   POST_THUMBNAIL_SIZES,
   postUploadImageNames,
 } from "./post";
+import { POST_SLUG_PATTERN } from "./postSlug";
 import { MAX_USERNAME_CHARACTERS } from "./user";
 
 const nameField = (label: string) =>
@@ -236,7 +238,14 @@ export const postIdParamsSchema = z.object({
     .transform((id) => id.toLowerCase()),
 });
 
-export const postImageParamsSchema = postIdParamsSchema.extend({
+export const postSlugParamsSchema = z.object({
+  slug: z
+    .string()
+    .max(MAX_POST_SLUG_CHARACTERS)
+    .regex(POST_SLUG_PATTERN, { message: "Invalid post slug." }),
+});
+
+export const postImageParamsSchema = postSlugParamsSchema.extend({
   name: postImageNameSchema,
 });
 

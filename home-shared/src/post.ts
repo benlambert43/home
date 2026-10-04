@@ -13,6 +13,8 @@ export const MAX_POST_INLINE_IMAGES = 100;
 
 export const MAX_POST_IMAGE_NAME_CHARACTERS = 64;
 
+export const MAX_POST_SLUG_CHARACTERS = 80;
+
 export const POST_THUMBNAIL_SIZES = ["large", "medium", "small"] as const;
 
 export type PostThumbnailSize = (typeof POST_THUMBNAIL_SIZES)[number];
@@ -98,6 +100,7 @@ export interface PostImage extends UploadedPostImage {
 
 export interface PostSummary {
   _id: string;
+  slug: string;
   title: string;
   authorUserId: string;
   authorUsername: string | null;
@@ -126,20 +129,20 @@ export interface PostPagination {
   hasMore: boolean;
 }
 
-export const postImagePath = (postId: string, name: string) =>
-  `posts/${postId}/images/${name}`;
+export const postImagePath = (slug: string, name: string) =>
+  `posts/${slug}/images/${name}`;
 
-export const postFullSizeImagePath = (postId: string, name: string) =>
-  `${postImagePath(postId, name)}/${POST_FULL_SIZE_SEGMENT}`;
+export const postFullSizeImagePath = (slug: string, name: string) =>
+  `${postImagePath(slug, name)}/${POST_FULL_SIZE_SEGMENT}`;
 
-export const postShareImagePath = (postId: string, name: string) =>
-  `${postImagePath(postId, name)}/${POST_SHARE_IMAGE_SEGMENT}`;
+export const postShareImagePath = (slug: string, name: string) =>
+  `${postImagePath(slug, name)}/${POST_SHARE_IMAGE_SEGMENT}`;
 
 export const postThumbnailPath = (
-  postId: string,
+  slug: string,
   name: string,
   size: PostThumbnailSize,
-) => `${postImagePath(postId, name)}/${size}`;
+) => `${postImagePath(slug, name)}/${size}`;
 
 export const POST_UPLOADS_PATH = "posts/uploads";
 

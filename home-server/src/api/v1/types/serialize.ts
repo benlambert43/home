@@ -55,7 +55,7 @@ export const serializeNotification = (
 type SerializablePost = StoredPost<MaybeId, MaybeDate>;
 
 const serializePostImage = (
-  postId: string,
+  slug: string,
   file: StoredPostImage,
 ): PostImage => ({
   name: file.name,
@@ -63,7 +63,7 @@ const serializePostImage = (
   byteSize: file.byteSize,
   width: file.width,
   height: file.height,
-  path: postImagePath(postId, file.name),
+  path: postImagePath(slug, file.name),
   reference: postImageReference(file.name),
 });
 
@@ -76,6 +76,7 @@ export const serializePostSummary = (
 
   return {
     _id,
+    slug: post.slug,
     title: post.title,
     authorUserId: toId(post.authorUserId),
     authorUsername,
@@ -83,7 +84,7 @@ export const serializePostSummary = (
     modifiedDate: toIsoDate(post.modifiedDate),
     revision: revision.fingerprint,
     headerImage: revision.headerImage
-      ? serializePostImage(_id, revision.headerImage)
+      ? serializePostImage(post.slug, revision.headerImage)
       : null,
   };
 };
@@ -100,7 +101,7 @@ export const serializePost = (
     ...summary,
     content,
     inlineImages: requireLatestRevision(post).inlineImages.map((image) =>
-      serializePostImage(summary._id, image),
+      serializePostImage(summary.slug, image),
     ),
     shareImage,
   };

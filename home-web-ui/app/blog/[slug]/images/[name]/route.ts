@@ -1,6 +1,6 @@
 import { proxyPostImage } from "@/app/lib/postImages";
 
-type ImageParams = Promise<{ id: string; name: string }>;
+type ImageParams = Promise<{ slug: string; name: string }>;
 
 export const GET = async (
   _request: Request,

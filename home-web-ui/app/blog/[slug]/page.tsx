@@ -16,8 +16,8 @@ export const generateMetadata = async (
   { params }: PostProps,
   parent: ResolvingMetadata,
 ) => {
-  const { id } = await params;
-  const result = await getPost(id);
+  const { slug } = await params;
+  const result = await getPost(slug);
 
   if (result.error) return unavailableBlogMetadata;
 

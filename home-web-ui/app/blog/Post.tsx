@@ -14,7 +14,7 @@ import { getPost } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
 import { Suspense } from "react";
 
-export type PostParams = Promise<{ id: string }>;
+export type PostParams = Promise<{ slug: string }>;
 
 const Post = async ({
   params,
@@ -24,7 +24,7 @@ const Post = async ({
   searchParams: SearchParams;
 }) => {
   const page = requestedPage((await searchParams).page);
-  const result = await getPost((await params).id);
+  const result = await getPost((await params).slug);
 
   if (result.error) {
     return (
@@ -44,8 +44,8 @@ const Post = async ({
 
   const images = postImages.map((image) => ({
     reference: image.reference,
-    src: postImageHref(post._id, image.name),
-    fullSizeHref: postFullSizeImageHref(post._id, image.name),
+    src: postImageHref(post.slug, image.name),
+    fullSizeHref: postFullSizeImageHref(post.slug, image.name),
     width: image.width,
     height: image.height,
   }));
@@ -54,9 +54,13 @@ const Post = async ({
     <div className="flex max-w-160 flex-col gap-4 p-5">
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
-        <ReturnToBlogPosts page={page} postId={post._id} appearance="arrow" />
+        <ReturnToBlogPosts
+          page={page}
+          postSlug={post.slug}
+          appearance="arrow"
+        />
         <Suspense fallback={null}>
-          <PostAdminActions postId={post._id} page={page} />
+          <PostAdminActions postId={post._id} slug={post.slug} page={page} />
         </Suspense>
       </div>
       <h1
@@ -70,7 +74,7 @@ const Post = async ({
       <PostHeaderImage post={post} />
       <PostMarkdown content={post.content} images={images} />
       <div>
-        <ReturnToBlogPosts page={page} postId={post._id} />
+        <ReturnToBlogPosts page={page} postSlug={post.slug} />
       </div>
     </div>
   );

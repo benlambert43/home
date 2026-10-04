@@ -47,11 +47,15 @@ export const HEADER_IMAGE_NAME = "cover.png";
 
 export const TITLE = "Building the blog";
 
+export const SLUG = "building-the-blog";
+
 export const CONTENT = "# Building the blog\n\nA first post about the API.\n";
 
 export const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 export const MISSING_POST_ID = new Types.ObjectId().toHexString();
+
+export const MISSING_POST_SLUG = "missing-post";
 
 export const MISSING_UPLOAD_ID = "0".repeat(32);
 
@@ -99,15 +103,24 @@ const stubSave = () =>
     return Promise.resolve(this);
   });
 
-export const stubPostLookup = (post: PostDocument | null) =>
+const stubSlugLookup = () =>
   vi
-    .spyOn(PostModel, "findById")
+    .spyOn(PostModel, "exists")
     .mockImplementation(
       () =>
-        Promise.resolve(post) as unknown as ReturnType<
-          typeof PostModel.findById
-        >,
+        Promise.resolve(null) as unknown as ReturnType<typeof PostModel.exists>,
     );
+
+export const stubPostLookup = (post: PostDocument | null) => {
+  vi.spyOn(PostModel, "findById").mockImplementation(
+    () =>
+      Promise.resolve(post) as unknown as ReturnType<typeof PostModel.findById>,
+  );
+  vi.spyOn(PostModel, "findOne").mockImplementation(
+    () =>
+      Promise.resolve(post) as unknown as ReturnType<typeof PostModel.findOne>,
+  );
+};
 
 export const stubPostList = (posts: PostDocument[]) => {
   vi.spyOn(PostModel, "countDocuments").mockImplementation(
@@ -257,11 +270,13 @@ export const updatePost = (post: PostDocument, request: PostRequest) =>
 
 export const postPath = (post: PostDocument) => `/${post._id.toString()}`;
 
+export const postSlugPath = (post: PostDocument) => `/${post.slug}`;
+
 export const imagePath = (
   post: PostDocument,
   name: string,
   size: "" | "/fullSize" = "",
-) => `${postPath(post)}/images/${name}${size}`;
+) => `${postSlugPath(post)}/images/${name}${size}`;
 
 export const publishPost = async (
   request: PostRequest = postWithHeaderImage(),
@@ -301,7 +316,6 @@ export const currentRevision = (post: PostDocument) =>
   post.revisions[post.revisions.length - 1];
 
 export const imageResponse = (
-  postId: string,
   name: string,
   data: Buffer,
   contentType: string,
@@ -311,31 +325,26 @@ export const imageResponse = (
   contentType,
   byteSize: data.byteLength,
   ...size,
-  path: postImagePath(postId, name),
+  path: postImagePath(SLUG, name),
   reference: postImageReference(name),
 });
 
-export const headerImageResponse = (postId: string) =>
-  imageResponse(
-    postId,
-    HEADER_IMAGE_NAME,
-    PNG_IMAGE,
-    "image/png",
-    PNG_IMAGE_SIZE,
-  );
+export const headerImageResponse = () =>
+  imageResponse(HEADER_IMAGE_NAME, PNG_IMAGE, "image/png", PNG_IMAGE_SIZE);
 
 export const postSummaryResponse = (
   post: PostDocument,
   overrides: Partial<PostSummary> = {},
 ): PostSummary => ({
   _id: post._id.toString(),
+  slug: SLUG,
   title: TITLE,
   authorUserId: admin._id,
   authorUsername: admin.username,
   createdDate: post.createdDate.toISOString(),
   modifiedDate: post.modifiedDate.toISOString(),
   revision: currentRevision(post).fingerprint,
-  headerImage: headerImageResponse(post._id.toString()),
+  headerImage: headerImageResponse(),
   ...overrides,
 });
 
@@ -366,6 +375,7 @@ export const beforeEachPostTest = () => {
   vi.stubEnv("API_SESSION_SECRET", "test-api-session-secret");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   stubUserLookup(admin);
+  stubSlugLookup();
   stubSave();
 };
 

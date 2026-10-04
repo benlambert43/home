@@ -286,16 +286,20 @@ const seedPosts = async () => {
     const author = await seedTestAccount(ADMIN_TEST_ACCOUNT);
     await seedTestAccount(USER_TEST_ACCOUNT);
     const seeded = await findSeededTitles(posts.map(seededTitle));
+    let existed = 0;
 
     for (const [position, post] of posts.entries()) {
-      if (seeded.has(seededTitle(post))) continue;
+      if (seeded.has(seededTitle(post))) {
+        existed += 1;
+        continue;
+      }
 
       await seedPost(author, post, position, now);
       console.log(`Seeded ${seededTitle(post)}.`);
     }
 
     console.log(
-      `Seeded ${posts.length - seeded.size} post(s), ${seeded.size} already existed.`,
+      `Seeded ${posts.length - existed} post(s), ${existed} already existed.`,
     );
   } finally {
     await mongoose.disconnect();

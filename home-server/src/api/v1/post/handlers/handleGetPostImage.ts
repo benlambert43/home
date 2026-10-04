@@ -22,10 +22,10 @@ interface CurrentImage {
 const SHARE_IMAGE_FALLBACK_SIZE: PostThumbnailSize = "large";
 
 const findCurrentImage = async (
-  postId: string,
+  slug: string,
   name: string,
 ): Promise<CurrentImage | undefined> => {
-  const post = await PostModel.findById(postId, CURRENT_REVISION_ONLY);
+  const post = await PostModel.findOne({ slug }, CURRENT_REVISION_ONLY);
   const revision = post ? latestRevision(post.revisions) : undefined;
   const image = revision
     ? revisionImages(revision).find((candidate) => candidate.name === name)
@@ -45,10 +45,10 @@ const fullSizeImage = async (
 });
 
 export const findPostImage = async (
-  postId: string,
+  slug: string,
   name: string,
 ): Promise<PostImageFile | undefined> => {
-  const found = await findCurrentImage(postId, name);
+  const found = await findCurrentImage(slug, name);
 
   return found && fullSizeImage(found.image);
 };
@@ -68,20 +68,20 @@ const thumbnailOf = async (
 };
 
 export const findPostThumbnail = async (
-  postId: string,
+  slug: string,
   name: string,
   size: PostThumbnailSize,
 ): Promise<PostImageFile | undefined> => {
-  const found = await findCurrentImage(postId, name);
+  const found = await findCurrentImage(slug, name);
 
   return found && thumbnailOf(found, size);
 };
 
 export const findPostShareImage = async (
-  postId: string,
+  slug: string,
   name: string,
 ): Promise<PostImageFile | undefined> => {
-  const found = await findCurrentImage(postId, name);
+  const found = await findCurrentImage(slug, name);
   if (!found) return undefined;
 
   const shareImage = await findStoredShareImage(

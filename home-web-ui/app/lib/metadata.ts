@@ -89,7 +89,7 @@ export const unavailableBlogMetadata: Metadata = {
 };
 
 const postShareImages = ({
-  _id,
+  slug,
   title,
   headerImage,
   shareImage,
@@ -97,7 +97,7 @@ const postShareImages = ({
   headerImage
     ? [
         {
-          url: postShareImageHref(_id, headerImage.name),
+          url: postShareImageHref(slug, headerImage.name),
           alt: title,
           ...shareImage,
         },
@@ -105,7 +105,7 @@ const postShareImages = ({
     : undefined;
 
 export const postMetadata = (post: Post, siteImages: ShareImages): Metadata => {
-  const canonicalPath = postHref(post._id);
+  const canonicalPath = postHref(post.slug);
   const description = getPostExcerpt(post.content) ?? SITE_DESCRIPTION;
   const authors =
     post.authorUsername === null ? undefined : [post.authorUsername];

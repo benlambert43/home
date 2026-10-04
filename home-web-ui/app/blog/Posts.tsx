@@ -22,7 +22,7 @@ const PostRowThumbnail = ({
   post: PostSummary;
   page: number;
 }) => (
-  <Link href={postHref(post._id, page)} className="shrink-0">
+  <Link href={postHref(post.slug, page)} className="shrink-0">
     <PostThumbnail
       post={post}
       pixels={THUMBNAIL_PIXELS}
@@ -33,14 +33,14 @@ const PostRowThumbnail = ({
 
 const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
   <li
-    id={postAnchor(post._id)}
+    id={postAnchor(post.slug)}
     className="box-content flex h-30 scroll-mt-4 flex-row items-center gap-4
       py-4 first:pt-0 last:pb-0 sm:gap-6"
   >
     <PostRowThumbnail post={post} page={page} />
     <div className="flex min-w-0 flex-col gap-1">
       <Link
-        href={postHref(post._id, page)}
+        href={postHref(post.slug, page)}
         className="line-clamp-4 text-lg leading-6 font-semibold hover:underline
           lg:line-clamp-3 lg:text-xl lg:leading-7"
       >

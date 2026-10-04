@@ -4,14 +4,14 @@ import { ArrowLeftIcon } from "@heroicons/react/16/solid";
 
 const ReturnToBlogPosts = ({
   page = 1,
-  postId,
+  postSlug,
   appearance = "filled",
 }: {
   page?: number;
-  postId?: string;
+  postSlug?: string;
   appearance?: "filled" | "outlined" | "arrow";
 }) => {
-  const linkProps = { href: blogHref(page, postId) };
+  const linkProps = { href: blogHref(page, postSlug) };
 
   if (appearance === "arrow") {
     return (

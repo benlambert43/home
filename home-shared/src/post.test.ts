@@ -8,8 +8,8 @@ import {
 
 describe("postImagePath", () => {
   it("points at an image of a post on the api", () => {
-    expect(postImagePath("0123456789abcdef01234567", "cover.png")).toBe(
-      "posts/0123456789abcdef01234567/images/cover.png",
+    expect(postImagePath("building-the-blog", "cover.png")).toBe(
+      "posts/building-the-blog/images/cover.png",
     );
   });
 });

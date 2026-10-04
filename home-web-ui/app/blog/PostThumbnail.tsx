@@ -96,7 +96,7 @@ const PostThumbnail = ({
 
   return (
     <Image
-      src={postImageHref(post._id, image.name)}
+      src={postImageHref(post.slug, image.name)}
       alt=""
       width={pixels}
       height={pixels}

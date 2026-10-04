@@ -12,8 +12,10 @@ import {
   headerImageFile,
   MARKDOWN_CONTENT_TYPE,
   MISSING_POST_ID,
+  MISSING_POST_SLUG,
   postPath,
   postResponse,
+  postSlugPath,
   postSummaryResponse,
   postWithoutHeaderImage,
   publishPost,
@@ -126,11 +128,11 @@ describe("the blog post api", () => {
     });
   });
 
-  describe("GET /api/v1/posts/:id", () => {
+  describe("GET /api/v1/posts/:slug", () => {
     it("returns the post with its title and content", async () => {
       const post = await publishPost(postWithoutHeaderImage());
 
-      const response = await apiCall("get", postPath(post));
+      const response = await apiCall("get", postSlugPath(post));
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -143,7 +145,7 @@ describe("the blog post api", () => {
       stubPostLookup(null);
 
       expectFailure(
-        await apiCall("get", `/${MISSING_POST_ID}`),
+        await apiCall("get", `/${MISSING_POST_SLUG}`),
         404,
         ApiMessage.POST_NOT_FOUND,
       );

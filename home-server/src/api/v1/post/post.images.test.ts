@@ -67,7 +67,6 @@ describe("images on a blog post", () => {
       const response = await createPost(postWithHeaderDiagramAndChart());
 
       const post = savedPosts[0];
-      const postId = post._id.toString();
       const revision = currentRevision(post);
 
       expect(response.status).toBe(200);
@@ -76,20 +75,8 @@ describe("images on a blog post", () => {
         message: ApiMessage.POST_CREATED,
         post: postResponse(post, {
           inlineImages: [
-            imageResponse(
-              postId,
-              DIAGRAM,
-              PNG_IMAGE,
-              "image/png",
-              PNG_IMAGE_SIZE,
-            ),
-            imageResponse(
-              postId,
-              CHART,
-              JPEG_IMAGE,
-              "image/jpeg",
-              JPEG_IMAGE_SIZE,
-            ),
+            imageResponse(DIAGRAM, PNG_IMAGE, "image/png", PNG_IMAGE_SIZE),
+            imageResponse(CHART, JPEG_IMAGE, "image/jpeg", JPEG_IMAGE_SIZE),
           ],
         }),
       });
@@ -115,9 +102,7 @@ describe("images on a blog post", () => {
       });
 
       expect(response.status).toBe(200);
-      expect(responsePost(response).headerImage).toEqual(
-        headerImageResponse(post._id.toString()),
-      );
+      expect(responsePost(response).headerImage).toEqual(headerImageResponse());
 
       await expect(
         storedFile(headerImageFile(currentRevision(post))),

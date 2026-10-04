@@ -11,11 +11,11 @@ const PostHeaderImage = ({ post }: { post: PostSummary }) => {
 
   return (
     <PostFullSizeImageLink
-      href={postFullSizeImageHref(post._id, image.name)}
+      href={postFullSizeImageHref(post.slug, image.name)}
       alt=""
     >
       <Image
-        src={postImageHref(post._id, image.name)}
+        src={postImageHref(post.slug, image.name)}
         alt=""
         width={image.width}
         height={image.height}

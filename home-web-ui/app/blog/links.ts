@@ -5,34 +5,34 @@ export const requestedPage = (value: string | string[] | undefined) => {
   return Number.isInteger(page) && page > 0 ? page : 1;
 };
 
-export const postAnchor = (id: string) => `post-${id}`;
+export const postAnchor = (slug: string) => `post-${slug}`;
 
-export const blogHref = (page: number, postId?: string) => {
+export const blogHref = (page: number, postSlug?: string) => {
   const href = page > 1 ? `/blog?page=${page}` : "/blog";
-  return postId ? `${href}#${postAnchor(postId)}` : href;
+  return postSlug ? `${href}#${postAnchor(postSlug)}` : href;
 };
 
 export const newPostHref = (page = 1) =>
   page > 1 ? `/blog/newPost?page=${page}` : "/blog/newPost";
 
-const postPath = (id: string) => `/blog/${id}`;
+const postPath = (slug: string) => `/blog/${slug}`;
 
-export const postHref = (id: string, page = 1) =>
-  page > 1 ? `${postPath(id)}?page=${page}` : postPath(id);
+export const postHref = (slug: string, page = 1) =>
+  page > 1 ? `${postPath(slug)}?page=${page}` : postPath(slug);
 
-const editPostPath = (id: string) => `${postPath(id)}/edit`;
+const editPostPath = (slug: string) => `${postPath(slug)}/edit`;
 
-export const editPostHref = (id: string, page = 1) =>
-  page > 1 ? `${editPostPath(id)}?page=${page}` : editPostPath(id);
+export const editPostHref = (slug: string, page = 1) =>
+  page > 1 ? `${editPostPath(slug)}?page=${page}` : editPostPath(slug);
 
-export const postImageHref = (id: string, name: string) =>
-  `${postPath(id)}/images/${encodeURIComponent(name)}`;
+export const postImageHref = (slug: string, name: string) =>
+  `${postPath(slug)}/images/${encodeURIComponent(name)}`;
 
-export const postFullSizeImageHref = (id: string, name: string) =>
-  `${postImageHref(id, name)}/${POST_FULL_SIZE_SEGMENT}`;
+export const postFullSizeImageHref = (slug: string, name: string) =>
+  `${postImageHref(slug, name)}/${POST_FULL_SIZE_SEGMENT}`;
 
-export const postShareImageHref = (id: string, name: string) =>
-  `${postImageHref(id, name)}/${POST_SHARE_IMAGE_SEGMENT}`;
+export const postShareImageHref = (slug: string, name: string) =>
+  `${postImageHref(slug, name)}/${POST_SHARE_IMAGE_SEGMENT}`;
 
 export const postUploadImageHref = (uploadId: string, name: string) =>
   `/blog/uploads/${uploadId}/images/${encodeURIComponent(name)}`;

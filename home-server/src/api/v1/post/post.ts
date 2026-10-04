@@ -14,6 +14,7 @@ import {
   postIdParamsSchema,
   postImageParamsSchema,
   postListQuerySchema,
+  postSlugParamsSchema,
   postThumbnailParamsSchema,
   PostThumbnailSize,
   postUploadImageNames,
@@ -166,12 +167,12 @@ postRouter.post(
 );
 
 postRouter.get(
-  "/:id",
+  "/:slug",
   route(async (req, res) => {
-    const params = parseRequest(postIdParamsSchema, req.params, res);
+    const params = parseRequest(postSlugParamsSchema, req.params, res);
     if (!params) return;
 
-    const post = await handleGetPost(params.id);
+    const post = await handleGetPost(params.slug);
     if (!post) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     sendSuccess<GetPostResponse>(res, { post });
@@ -233,13 +234,13 @@ postRouter.delete(
 );
 
 postRouter.get(
-  "/:id/images/:name",
+  "/:slug/images/:name",
   route(async (req, res) => {
     const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;
 
     const image = await findPostThumbnail(
-      params.id,
+      params.slug,
       params.name,
       DEFAULT_IMAGE_SIZE,
     );
@@ -250,12 +251,12 @@ postRouter.get(
 );
 
 postRouter.get(
-  `/:id/images/:name/${POST_FULL_SIZE_SEGMENT}`,
+  `/:slug/images/:name/${POST_FULL_SIZE_SEGMENT}`,
   route(async (req, res) => {
     const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;
 
-    const image = await findPostImage(params.id, params.name);
+    const image = await findPostImage(params.slug, params.name);
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     await sendImage(res, image);
@@ -263,12 +264,12 @@ postRouter.get(
 );
 
 postRouter.get(
-  `/:id/images/:name/${POST_SHARE_IMAGE_SEGMENT}`,
+  `/:slug/images/:name/${POST_SHARE_IMAGE_SEGMENT}`,
   route(async (req, res) => {
     const params = parseRequest(postImageParamsSchema, req.params, res);
     if (!params) return;
 
-    const image = await findPostShareImage(params.id, params.name);
+    const image = await findPostShareImage(params.slug, params.name);
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     await sendImage(res, image);
@@ -276,12 +277,16 @@ postRouter.get(
 );
 
 postRouter.get(
-  "/:id/images/:name/:size",
+  "/:slug/images/:name/:size",
   route(async (req, res) => {
     const params = parseRequest(postThumbnailParamsSchema, req.params, res);
     if (!params) return;
 
-    const image = await findPostThumbnail(params.id, params.name, params.size);
+    const image = await findPostThumbnail(
+      params.slug,
+      params.name,
+      params.size,
+    );
     if (!image) return sendNotFound(res, ApiMessage.POST_NOT_FOUND);
 
     await sendImage(res, image);

@@ -18,7 +18,7 @@ import {
   UpdatePostFormState,
 } from "@/app/lib/forms";
 import { INVALID_REQUEST_MESSAGE } from "@/app/lib/messages";
-import { POSTS_TAG, POSTS_URL, postTag } from "@/app/lib/posts";
+import { POSTS_TAG, POSTS_URL, postSlugTag, postTag } from "@/app/lib/posts";
 import {
   createPostBodySchema,
   CreatePostRequestBody,
@@ -60,17 +60,24 @@ export const createPost = async (
     };
   }
 
+  let slug: string;
+
   try {
-    await apiFetch<CreatePostResponse, CreatePostRequestBody>(POSTS_URL, {
-      method: "POST",
-      authorization: await getApiSessionToken(),
-      body: validatedFields.data,
-    });
+    const { post } = await apiFetch<CreatePostResponse, CreatePostRequestBody>(
+      POSTS_URL,
+      {
+        method: "POST",
+        authorization: await getApiSessionToken(),
+        body: validatedFields.data,
+      },
+    );
+    slug = post.slug;
   } catch (error) {
     return { values, errors: [errorMessage(error)] };
   }
 
   updateTag(POSTS_TAG);
+  updateTag(postSlugTag(slug));
   revalidatePath("/blog");
   redirect("/blog");
 };
@@ -102,8 +109,10 @@ export const updatePost = async (
     };
   }
 
+  let slug: string;
+
   try {
-    await apiFetch<UpdatePostResponse, UpdatePostRequestBody>(
+    const { post } = await apiFetch<UpdatePostResponse, UpdatePostRequestBody>(
       `${POSTS_URL}/${encodeURIComponent(id)}`,
       {
         method: "PATCH",
@@ -111,15 +120,16 @@ export const updatePost = async (
         body: validatedFields.data,
       },
     );
+    slug = post.slug;
   } catch (error) {
     return { values, errors: [errorMessage(error)] };
   }
 
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
-  revalidatePath(postHref(id));
+  revalidatePath(postHref(slug));
   revalidatePath("/blog");
-  redirect(postHref(id, page));
+  redirect(postHref(slug, page));
 };
 
 export const deletePost = async (

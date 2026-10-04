@@ -5,9 +5,11 @@ import Button from "@/app/ui/Button";
 
 const PostAdminActions = async ({
   postId,
+  slug,
   page,
 }: {
   postId: string;
+  slug: string;
   page: number;
 }) => {
   const user = await getBffSessionUser();
@@ -18,7 +20,7 @@ const PostAdminActions = async ({
     <>
       <Button
         type="link"
-        linkProps={{ href: editPostHref(postId, page) }}
+        linkProps={{ href: editPostHref(slug, page) }}
         size="small"
       >
         Edit

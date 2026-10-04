@@ -176,7 +176,7 @@ const EditPostForm = ({
       <div className="mt-4 flex flex-row items-start justify-start gap-2">
         <Button
           type="link"
-          linkProps={{ href: postHref(post._id, page) }}
+          linkProps={{ href: postHref(post.slug, page) }}
           size="large"
           emphasis="secondary"
         >

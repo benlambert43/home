@@ -10,11 +10,11 @@ import { getPostExcerpt } from "@/app/lib/posts";
 import { siteUrl } from "@/app/lib/siteUrl";
 import { Post } from "@home/shared";
 
-const postImages = ({ _id, headerImage }: Post) =>
+const postImages = ({ slug, headerImage }: Post) =>
   headerImage
     ? [
-        postImageHref(_id, headerImage.name),
-        postShareImageHref(_id, headerImage.name),
+        postImageHref(slug, headerImage.name),
+        postShareImageHref(slug, headerImage.name),
       ].map((path) => siteUrl(path))
     : undefined;
 
@@ -24,7 +24,7 @@ const postAuthor = ({ authorUsername }: Post) =>
     : { "@type": "Person", name: authorUsername };
 
 const PostJsonLd = ({ post }: { post: Post }) => {
-  const path = postHref(post._id);
+  const path = postHref(post.slug);
   const url = siteUrl(path);
 
   return (

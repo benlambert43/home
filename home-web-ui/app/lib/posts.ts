@@ -14,6 +14,7 @@ import {
   GetPostsResponse,
   postExcerpt,
   postIdParamsSchema,
+  postSlugParamsSchema,
 } from "@home/shared";
 import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
@@ -24,6 +25,8 @@ export const POSTS_URL = `${BASE_API_URL}/posts`;
 export const POSTS_TAG = "posts";
 
 export const postTag = (id: string) => `post:${id}`;
+
+export const postSlugTag = (slug: string) => `post-slug:${slug}`;
 
 export const postAuthorTag = (userId: string) => `post-author:${userId}`;
 
@@ -36,7 +39,14 @@ const requirePostId = (id: string) => {
   return params.data.id;
 };
 
-const postUrl = (id: string) => `${POSTS_URL}/${id}`;
+const requirePostSlug = (slug: string) => {
+  const params = postSlugParamsSchema.safeParse({ slug });
+  if (!params.success) notFound();
+
+  return params.data.slug;
+};
+
+const postUrl = (key: string) => `${POSTS_URL}/${key}`;
 
 export const getPosts = async (
   page: number,
@@ -79,12 +89,12 @@ export const getCachedPosts = (
   pageSize = DEFAULT_POST_PAGE_SIZE,
 ) => getCachedPostsPage(page, pageSize);
 
-export const getCachedPost = async (id: string): Promise<PostLookup> => {
+export const getCachedPost = async (slug: string): Promise<PostLookup> => {
   "use cache";
-  cacheTag(postTag(id));
+  cacheTag(postSlugTag(slug));
 
   try {
-    const result = await apiFetch<GetPostResponse>(postUrl(id));
+    const result = await apiFetch<GetPostResponse>(postUrl(slug));
     const { post } = result;
 
     if (post.headerImage && !post.shareImage) {
@@ -93,7 +103,7 @@ export const getCachedPost = async (id: string): Promise<PostLookup> => {
       cacheLife("days");
     }
 
-    cacheTag(postAuthorTag(post.authorUserId));
+    cacheTag(postTag(post._id), postAuthorTag(post.authorUserId));
 
     return result;
   } catch (error) {
@@ -109,8 +119,8 @@ export const getCachedPost = async (id: string): Promise<PostLookup> => {
 
 export const getPostExcerpt = cache(postExcerpt);
 
-export const getPost = async (id: string): Promise<GetPostResponse> => {
-  const result = await getCachedPost(requirePostId(id));
+export const getPost = async (slug: string): Promise<GetPostResponse> => {
+  const result = await getCachedPost(requirePostSlug(slug));
 
   if (result.error) return result;
   if (result.post === null) notFound();

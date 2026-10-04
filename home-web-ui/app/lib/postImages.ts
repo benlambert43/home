@@ -21,14 +21,14 @@ const RETURNED_HEADERS = [
   "x-content-type-options",
 ];
 
-type ImagePath = (postId: string, name: string) => string;
+type ImagePath = (slug: string, name: string) => string;
 
 const proxyImage = (imagePath: ImagePath) => async (params: unknown) => {
   const parsed = postImageParamsSchema.safeParse(params);
   if (!parsed.success) return new Response(null, { status: NOT_FOUND_STATUS });
 
-  const { id, name } = parsed.data;
-  const url = `${BASE_API_URL}/${imagePath(id, name)}`;
+  const { slug, name } = parsed.data;
+  const url = `${BASE_API_URL}/${imagePath(slug, name)}`;
 
   let response: Response;
 

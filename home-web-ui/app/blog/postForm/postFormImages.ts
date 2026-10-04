@@ -103,26 +103,26 @@ export const readImageFiles = async (files: File[]) => {
 };
 
 const storedImage = (
-  postId: string,
+  slug: string,
   { name, byteSize, width, height }: PostImage,
 ): StoredPostImage => ({
   stored: true,
   name,
-  src: postImageHref(postId, name),
+  src: postImageHref(slug, name),
   byteSize,
   width,
   height,
 });
 
 export const storedPostImages = ({
-  post: { _id, headerImage, inlineImages },
+  post: { slug, headerImage, inlineImages },
   usedImageNames,
 }: {
   post: Post;
   usedImageNames: string[];
 }): PostFormImages => ({
-  headerImage: headerImage ? storedImage(_id, headerImage) : undefined,
-  inlineImages: inlineImages.map((image) => storedImage(_id, image)),
+  headerImage: headerImage ? storedImage(slug, headerImage) : undefined,
+  inlineImages: inlineImages.map((image) => storedImage(slug, image)),
   usedImageNames,
   removedStoredImages: { inlineImages: [] },
 });

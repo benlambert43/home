@@ -36,6 +36,7 @@ export interface StoredPostRevision<Timestamp = Date> {
 
 export interface StoredPost<Id = Types.ObjectId, Timestamp = Date> {
   _id: Id;
+  slug: string;
   title: string;
   fingerprint: string;
   authorUserId: Id;

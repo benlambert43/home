@@ -17,7 +17,7 @@ const skeletonTitleWidth = (index: number) =>
 const RecentPostRow = ({ post }: { post: PostSummary }) => (
   <li>
     <Link
-      href={postHref(post._id)}
+      href={postHref(post.slug)}
       className="group flex flex-row items-center gap-3"
     >
       <PostThumbnail
