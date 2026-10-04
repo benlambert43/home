@@ -7,6 +7,7 @@ import {
   Post,
   updatePostBodySchema,
   UserNoPassword,
+  UserRole,
 } from "@home/shared";
 import { incomingPostUploadPath } from "../api/v1/fileOperations/uploadStorage";
 import { PostModel } from "../api/v1/model/postModel";
@@ -38,12 +39,31 @@ const HOURS_BETWEEN_POSTS = 53;
 
 const HOURS_BETWEEN_REVISIONS = 12;
 
-const TEST_ACCOUNT = {
+interface SeedAccount {
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+const ADMIN_TEST_ACCOUNT: SeedAccount = {
   firstname: "Test",
   lastname: "Account",
   username: "test-account",
   email: "test@example.com",
   password: "testtest123",
+  role: "admin",
+};
+
+const USER_TEST_ACCOUNT: SeedAccount = {
+  firstname: "Test",
+  lastname: "User",
+  username: "test-user",
+  email: "user@example.com",
+  password: "testtest123",
+  role: "user",
 };
 
 const LOCAL_DATABASE_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
@@ -83,33 +103,34 @@ const requestedPostCount = () => {
   return count;
 };
 
-const seedTestAccount = async (): Promise<UserNoPassword> => {
-  const existing = await UserModel.findOne({ email: TEST_ACCOUNT.email });
+const seedTestAccount = async (
+  account: SeedAccount,
+): Promise<UserNoPassword> => {
+  const existing = await UserModel.findOne({ email: account.email });
 
-  if (existing?.role === "admin") {
-    console.log(`Test account ${TEST_ACCOUNT.email} already existed.`);
+  if (existing?.role === account.role) {
+    console.log(`Test account ${account.email} already existed.`);
     return serializeUser(existing);
   }
 
   if (existing) {
-    existing.role = "admin";
+    existing.role = account.role;
     existing.modifiedDate = new Date();
     await existing.save();
-    console.log(`Made test account ${TEST_ACCOUNT.email} an admin.`);
+    console.log(`Gave test account ${account.email} the ${account.role} role.`);
     return serializeUser(existing);
   }
 
-  const account = await new UserModel({
-    ...TEST_ACCOUNT,
+  const created = await new UserModel({
+    ...account,
     confirmedEmail: true,
     userBanned: false,
-    password: await hashPassword(TEST_ACCOUNT.password),
+    password: await hashPassword(account.password),
     createdDate: new Date(),
     modifiedDate: new Date(),
-    role: "admin",
   }).save();
-  console.log(`Seeded test account ${TEST_ACCOUNT.email}.`);
-  return serializeUser(account);
+  console.log(`Seeded test account ${account.email}.`);
+  return serializeUser(created);
 };
 
 const findSeededTitles = async (titles: string[]) => {
@@ -262,7 +283,8 @@ const seedPosts = async () => {
   await mongoose.set("strictQuery", false).connect(uri);
 
   try {
-    const author = await seedTestAccount();
+    const author = await seedTestAccount(ADMIN_TEST_ACCOUNT);
+    await seedTestAccount(USER_TEST_ACCOUNT);
     const seeded = await findSeededTitles(posts.map(seededTitle));
 
     for (const [position, post] of posts.entries()) {

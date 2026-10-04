@@ -86,7 +86,7 @@ const createBackupTransporter = () =>
     },
   });
 
-const NEVER_EMAILED_ADDRESS = "test@example.com";
+const NEVER_EMAILED_ADDRESSES = ["test@example.com", "user@example.com"];
 
 const REDACTED_RECIPIENT = "[recipient]";
 
@@ -136,8 +136,8 @@ export const sendMail = async ({
   subject: string;
   text: string;
 }) => {
-  if (to.toLowerCase() === NEVER_EMAILED_ADDRESS) {
-    return { ok: true, response: "Skipped sending to the test account." };
+  if (NEVER_EMAILED_ADDRESSES.includes(to.toLowerCase())) {
+    return { ok: true, response: "Skipped sending to a test account." };
   }
 
   const safeMailOptions: Mail.Options = { to, subject, text };

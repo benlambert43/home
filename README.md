@@ -17,10 +17,14 @@ npm run dev
 
 npm run dev:server
 
-## Test account:
+## Test accounts
 
-test@example.com
-testtest123
+`npm run seed` creates these accounts and sample blog posts in the local database. The server never sends email to either address.
+
+| Role      | Email              | Password      |
+| --------- | ------------------ | ------------- |
+| Admin     | `test@example.com` | `testtest123` |
+| Non-admin | `user@example.com` | `testtest123` |
 
 ## home-shared
 
