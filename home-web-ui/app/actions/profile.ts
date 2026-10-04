@@ -1,6 +1,7 @@
 "use server";
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { clearSession, createSession } from "@/app/auth/sessionCookies";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
@@ -11,6 +12,7 @@ import {
   readFormValues,
   treeifyFormError,
 } from "@/app/lib/forms";
+import { postAuthorTag } from "@/app/lib/posts";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
   changePasswordFormSchema,
@@ -21,6 +23,7 @@ import {
   ChangeUsernameResponse,
   DeleteAccountResponse,
 } from "@home/shared";
+import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 const CHANGE_USERNAME_URL = `${BASE_API_URL}/accountManagement/changeUsername`;
@@ -59,6 +62,7 @@ export const changeUsername = async (
     });
 
     await createSession(jwt, user);
+    updateTag(postAuthorTag(user._id));
   } catch (error) {
     return { values, errors: [errorMessage(error)] };
   }
@@ -100,6 +104,8 @@ export const changePassword = async (
 export const deleteAccount = async (): Promise<
   DeleteAccountState | undefined
 > => {
+  const user = await getBffSessionUser();
+
   try {
     await apiFetch<DeleteAccountResponse>(DELETE_ACCOUNT_URL, {
       method: "POST",
@@ -109,6 +115,7 @@ export const deleteAccount = async (): Promise<
     return { errors: [errorMessage(error)] };
   }
 
+  if (user) updateTag(postAuthorTag(user._id));
   await clearSession();
   redirect("/signin");
 };

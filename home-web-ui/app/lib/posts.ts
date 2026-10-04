@@ -22,6 +22,8 @@ export const POSTS_TAG = "posts";
 
 export const postTag = (id: string) => `post:${id}`;
 
+export const postAuthorTag = (userId: string) => `post-author:${userId}`;
+
 export type PostLookup = GetPostResponse | { error: false; post: null };
 
 const requirePostId = (id: string) => {
@@ -53,10 +55,18 @@ export const getCachedPosts = async (
 ): Promise<GetPostsResponse> => {
   "use cache";
   cacheTag(POSTS_TAG);
-  cacheLife("days");
 
   const result = await getPosts(page, pageSize);
-  if (result.error) cacheLife("seconds");
+
+  if (result.error) {
+    cacheLife("seconds");
+    return result;
+  }
+
+  cacheLife("days");
+  cacheTag(
+    ...new Set(result.posts.map((post) => postAuthorTag(post.authorUserId))),
+  );
 
   return result;
 };
@@ -64,10 +74,14 @@ export const getCachedPosts = async (
 export const getCachedPost = async (id: string): Promise<PostLookup> => {
   "use cache";
   cacheTag(postTag(id));
-  cacheLife("days");
 
   try {
-    return await apiFetch<GetPostResponse>(postUrl(id));
+    const result = await apiFetch<GetPostResponse>(postUrl(id));
+
+    cacheLife("days");
+    cacheTag(postAuthorTag(result.post.authorUserId));
+
+    return result;
   } catch (error) {
     cacheLife("seconds");
 

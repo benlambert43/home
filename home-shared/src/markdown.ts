@@ -116,7 +116,7 @@ const truncatedAtWord = (text: string, maxCharacters: number) => {
   const head = characters.slice(0, maxCharacters).join("");
   const wordEnd = head.lastIndexOf(" ");
   const kept =
-    wordEnd > 0
+    wordEnd >= head.length / 2
       ? head.slice(0, wordEnd)
       : characters.slice(0, maxCharacters - 1).join("");
 
