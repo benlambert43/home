@@ -1,0 +1,1 @@
+The header image of this post is an icon, only 64 pixels wide. It should sit in the middle of the page at that size, small and sharp, and not be stretched to fill the space a larger header would take.

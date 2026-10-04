@@ -126,6 +126,34 @@ const SHOWCASE_POSTS: SeedPost[] = [
     ],
   },
   {
+    title: "Small pictures that keep their own size",
+    content: markdown("small-pictures"),
+    headerImage: picture("small-header.png", 480, 270, SLATE),
+    headerImageAlt:
+      "A small picture of a pale sun over two grey mountain ridges.",
+    inlineImages: [
+      picture("small-landscape.jpg", 240, 150, DAWN),
+      picture("small-portrait.webp", 240, 400, DUSK),
+      picture("small-strip.png", 600, 120, FOREST),
+    ],
+  },
+  {
+    title: "Pictures between the two height limits",
+    content: markdown("between-limits"),
+    headerImage: picture("between-header.jpg", 720, 480, EMBER),
+    headerImageAlt: "A pale sun over two orange mountain ridges.",
+    inlineImages: [
+      picture("between-portrait.png", 360, 500, VIOLET),
+      picture("between-square.webp", 500, 500, DAWN),
+    ],
+  },
+  {
+    title: "A header image the size of an icon",
+    content: markdown("icon-header"),
+    headerImage: picture("icon-header.png", 64, 64, VIOLET),
+    headerImageAlt: "A tiny icon of a pale sun over two mountain ridges.",
+  },
+  {
     title: "A phone photo that was stored sideways",
     content: markdown("sideways-photo"),
     headerImage: picture("sideways-header.jpg", 1200, 1600, EMBER, {

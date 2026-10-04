@@ -1,5 +1,5 @@
 import PostFullSizeImageLink from "@/app/blog/PostFullSizeImageLink";
-import { POST_IMAGE_SIZES } from "@/app/blog/postImageSizes";
+import { postImageSizing } from "@/app/blog/postImageSizes";
 import { isExternalPostLink, postImageNameFromReference } from "@home/shared";
 import Markdown, { ReactRenderer } from "marked-react";
 import Image from "next/image";
@@ -88,7 +88,7 @@ const renderer = (images: PostMarkdownImage[], headingIds: string[]) => ({
         title={title ?? undefined}
         width={image.width}
         height={image.height}
-        sizes={POST_IMAGE_SIZES}
+        {...postImageSizing(image)}
       />
     );
 
