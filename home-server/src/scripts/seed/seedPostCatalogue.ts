@@ -62,7 +62,7 @@ const picture = (
 const longRead = () =>
   Array.from({ length: LONG_READ_PARTS }, (_, part) =>
     [
-      `## Part ${part + 1}`,
+      `# Part ${part + 1}`,
       LONG_READ_PARAGRAPHS[part % LONG_READ_PARAGRAPHS.length],
       LONG_READ_PARAGRAPHS[(part + 1) % LONG_READ_PARAGRAPHS.length],
     ].join("\n\n"),

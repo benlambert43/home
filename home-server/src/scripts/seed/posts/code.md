@@ -1,6 +1,6 @@
 A post about code, to show how fenced blocks and `inline code` are laid out.
 
-## TypeScript
+# TypeScript
 
 ```ts
 type Result<Value> =
@@ -15,7 +15,7 @@ const parsePort = (input: string): Result<number> => {
 };
 ```
 
-## Shell
+# Shell
 
 ```sh
 docker compose up -d
@@ -23,7 +23,7 @@ npm run dev:server
 npm run seed -- 40
 ```
 
-## JSON
+# JSON
 
 ```json
 {
@@ -33,7 +33,7 @@ npm run seed -- 40
 }
 ```
 
-## A very long line
+# A very long line
 
 Code is never wrapped, so a long line scrolls sideways inside its block:
 
@@ -41,7 +41,7 @@ Code is never wrapped, so a long line scrolls sideways inside its block:
 GET /api/v1/posts?page=1&pageSize=10 -> 200 OK { "error": false, "posts": [ ... ], "pagination": { "page": 1, "pageSize": 10, "totalPosts": 30, "totalPages": 3, "hasMore": true } }
 ```
 
-## HTML and Markdown, quoted rather than used
+# HTML and Markdown, quoted rather than used
 
 Raw HTML is not allowed in a post, but it is fine inside a code block, where it is only text:
 

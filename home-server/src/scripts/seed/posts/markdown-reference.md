@@ -12,11 +12,11 @@ This post has no images at all. It walks through the Markdown a post can use.
 
 ###### A sixth level heading
 
-## Emphasis
+# Emphasis
 
 Text can be **bold**, _italic_, **_bold and italic_**, or ~~struck through~~. It can hold `inline code`, and inline code can hold a backtick if it is fenced with two: ``a `backtick` inside``.
 
-## Links
+# Links
 
 - An [internal link](/blog) stays in the same tab.
 - An [external link](https://example.com) opens a new one.
@@ -25,12 +25,12 @@ Text can be **bold**, _italic_, **_bold and italic_**, or ~~struck through~~. It
 - A bare address, https://example.com/bare, is linked on its own.
 - So is one in angle brackets: <https://example.com/angle>.
 
-## Line breaks
+# Line breaks
 
 A backslash at the end of a line\
 breaks it.
 
-## Lists
+# Lists
 
 - An unordered item
 - Another unordered item
@@ -49,7 +49,7 @@ An ordered list does not have to start at one:
 7. This list starts at seven
 8. And carries on from there
 
-## Quotes
+# Quotes
 
 > A block quotation, for when someone else said it better.
 >
@@ -60,7 +60,7 @@ An ordered list does not have to start at one:
 >
 > > It can even hold another quotation.
 
-## Tables
+# Tables
 
 | Left aligned | Centred | Right aligned |
 | :----------- | :-----: | ------------: |
@@ -68,7 +68,7 @@ An ordered list does not have to start at one:
 | bananas      | yellow  |          0.45 |
 | `code`       | **yes** |        _also_ |
 
-## Escapes
+# Escapes
 
 Characters that would mean something can be escaped: \*not italic\*, \_not italic\_, \`not code\`, \# not a heading, and 1\. not a list.
 

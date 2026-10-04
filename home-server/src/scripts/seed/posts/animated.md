@@ -1,10 +1,10 @@
 GIF and WebP images can be animated, and their thumbnails keep moving.
 
-## An animated GIF
+# An animated GIF
 
 ![The sun crossing the sky, as a GIF](./images/sunrise.gif)
 
-## An animated WebP
+# An animated WebP
 
 ![The sun crossing the sky, as a WebP](./images/sunrise.webp)
 

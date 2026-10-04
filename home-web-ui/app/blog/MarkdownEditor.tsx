@@ -190,7 +190,7 @@ const TOOLBAR: {
     edit: insertLineBreak,
     shortcut: { key: "Enter", shift: true },
   },
-  { label: "H", title: "Heading", edit: prefixLines(() => "## ") },
+  { label: "H", title: "Heading", edit: prefixLines(() => "# ") },
   {
     label: "Quote",
     title: "Quote",

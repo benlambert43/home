@@ -20,6 +20,12 @@ const EXTERNAL_IMAGE_MESSAGE =
 const LINK_MESSAGE =
   "Links in post content must start with https://, http://, mailto:, or /.";
 
+const FIRST_HEADING_MESSAGE =
+  "Post content must start its headings at the top level. Please use a single # for the first heading.";
+
+const SKIPPED_HEADING_MESSAGE =
+  "Post content may not skip a heading level. Please go one level deeper at a time, such as ## after #.";
+
 const MAX_POST_EXCERPT_CHARACTERS = 160;
 
 const markdown = new Marked();
@@ -63,13 +69,33 @@ const tokenProblem = (token: MarkedToken) => {
   return ALLOWED_LINK.test(token.href) ? undefined : LINK_MESSAGE;
 };
 
+const headingProblem = (tokens: MarkedToken[]) => {
+  let previousDepth = 0;
+
+  for (const token of tokens) {
+    if (token.type !== "heading") continue;
+
+    if (token.depth > previousDepth + 1) {
+      return previousDepth === 0
+        ? FIRST_HEADING_MESSAGE
+        : SKIPPED_HEADING_MESSAGE;
+    }
+
+    previousDepth = token.depth;
+  }
+
+  return undefined;
+};
+
 export const disallowedPostMarkdown = (content: string) => {
-  for (const token of flattenTokens(markdown.lexer(content))) {
+  const tokens = flattenTokens(markdown.lexer(content));
+
+  for (const token of tokens) {
     const problem = tokenProblem(token);
     if (problem !== undefined) return problem;
   }
 
-  return undefined;
+  return headingProblem(tokens);
 };
 
 export const postImageReferences = (content: string) => [
