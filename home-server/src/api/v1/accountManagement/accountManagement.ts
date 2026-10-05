@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  changeEmailConsentBodySchema,
   changePasswordBodySchema,
   changeUsernameBodySchema,
   CreateAccountResponse,
@@ -33,6 +34,7 @@ import { authenticateApiToken } from "../auth/authenticateApiToken";
 import { handleRequestNewEmailVerificationLink } from "./handlers/handleRequestNewEmailVerificationLink";
 import { createNewNotification } from "../notification/handlers/createNewNotification";
 import { handleChangeUsername } from "./handlers/handleChangeUsername";
+import { handleChangeEmailConsent } from "./handlers/handleChangeEmailConsent";
 import { handleChangePassword } from "./handlers/handleChangePassword";
 import { handleRequestPasswordReset } from "./handlers/handleRequestPasswordReset";
 import { handleCheckPasswordResetLink } from "./handlers/handleCheckPasswordResetLink";
@@ -146,6 +148,19 @@ accountManagementRouter.post(
     if (!available) return sendFailure(res, accountAlreadyExists("username"));
 
     sendResult(res, await handleChangeUsername(token, body.newUsername));
+  }),
+);
+
+accountManagementRouter.post(
+  "/changeEmailConsent",
+  route(async (req, res) => {
+    const token = authenticateApiToken(req.headers?.authorization);
+    if (!token) return sendUnauthenticated(res);
+
+    const body = parseRequest(changeEmailConsentBodySchema, req.body, res);
+    if (!body) return;
+
+    sendResult(res, await handleChangeEmailConsent(token, body));
   }),
 );
 

@@ -50,6 +50,8 @@ export type CreatePostFormState = FormState<typeof createPostFormSchema>;
 
 export type UpdatePostFormState = FormState<typeof updatePostFormSchema>;
 
+export type ChangeEmailConsentState = { errors: string[] };
+
 export type DeleteAccountState = { errors: string[] };
 
 export type DeletePostState = { errors: string[] };

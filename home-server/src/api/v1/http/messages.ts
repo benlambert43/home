@@ -25,6 +25,7 @@ export const ApiMessage = {
   USERNAME_CHANGED: "Username updated.",
   USERNAME_NOT_ALLOWED:
     "That username isn't allowed. Please choose a different one.",
+  EMAIL_CONSENT_CHANGED: "Email choices updated.",
   ACCOUNT_DELETED: "Your account has been deleted.",
   PASSWORD_CHANGED: "Your password has been changed.",
   CURRENT_PASSWORD_INCORRECT:

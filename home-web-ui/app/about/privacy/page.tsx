@@ -15,7 +15,7 @@ const CLOUD_DATA_PROCESSING_ADDENDUM_URL =
   "https://cloud.google.com/terms/data-processing-addendum";
 
 const PrivacyNotice = () => (
-  <Notice title="Privacy Notice" updated="2026-10-04">
+  <Notice title="Privacy Notice" updated="2026-10-05">
     <p>
       benlambert.tech is my personal website. This notice explains what
       information the site collects, why it collects it, who else handles it,
@@ -93,8 +93,8 @@ const PrivacyNotice = () => (
       on your account: I may email you when one of the site&apos;s notices,
       including this one, has been updated, or when something urgent affects
       your account, such as a security problem. Newsletter emails and product
-      and marketing emails are optional: the site sends them only if you agreed
-      to receive them when you created your account. The{" "}
+      and marketing emails are optional: the site sends them only while you have
+      agreed to receive them. The{" "}
       <Link href={ACCOUNTS_AND_EMAIL.href}>{ACCOUNTS_AND_EMAIL.title}</Link>{" "}
       notice describes each message.
     </p>
@@ -183,11 +183,11 @@ const PrivacyNotice = () => (
         <Link href="/settings">settings</Link> pages.
       </li>
       <li>
-        You can change your username on the settings page and your password on
-        your profile page. To correct your name or email address, contact me.
+        You can change your username and your password from the settings page.
+        To correct your name or email address, contact me.
       </li>
       <li>
-        You can delete your account from your profile page. Deletion is
+        You can delete your account from your settings page. Deletion is
         immediate and permanent, and is designed to remove everything the site
         holds that identifies you. If you think something was missed, contact me
         to have it removed.
@@ -206,8 +206,8 @@ const PrivacyNotice = () => (
       </li>
       <li>
         Newsletter emails and product and marketing emails are sent only with
-        your consent. Those choices cannot be changed on the site yet, so to
-        withdraw your consent to either, or to give it later, contact me.
+        your consent. You can give or withdraw that consent to either one at any
+        time on the settings page.
       </li>
     </ul>
     <p>

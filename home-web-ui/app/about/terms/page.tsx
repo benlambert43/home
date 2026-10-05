@@ -15,7 +15,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("terms of use");
 
 const TermsOfUse = () => (
-  <Notice title="Terms of Use" updated="2026-10-04">
+  <Notice title="Terms of Use" updated="2026-10-05">
     <p>
       benlambert.tech is my personal website. I, Ben Lambert, build and run it
       alone, as an individual and not a company. These terms apply to everyone
@@ -68,7 +68,7 @@ const TermsOfUse = () => (
       <li>
         I may suspend or delete an account that breaks these terms or that
         appears to be abusive or automated. You may delete your own account at
-        any time from your <Link href="/profile">profile</Link> page.
+        any time from your <Link href="/settings">settings</Link> page.
       </li>
     </ul>
 
@@ -100,8 +100,9 @@ const TermsOfUse = () => (
       These emails are part of having an account and are not marketing, so there
       is no way to unsubscribe from them while you have one. Deleting your
       account stops them. Newsletter emails and product and marketing emails are
-      separate and optional: the site sends them only if you agreed to receive
-      them when you created your account.
+      separate and optional: the site sends them only while you have agreed to
+      receive them, and you can change that choice at any time on your{" "}
+      <Link href="/settings">settings</Link> page.
     </p>
 
     <h2>Content and copyright</h2>

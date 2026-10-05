@@ -104,6 +104,11 @@ export const changeUsernameBodySchema = z.object({
   newUsername: usernameField,
 });
 
+export const changeEmailConsentBodySchema = z.object({
+  newsletterConsent: z.boolean(),
+  marketingConsent: z.boolean(),
+});
+
 export const changePasswordBodySchema = z.object({
   currentPassword: currentPasswordField,
   newPassword: passwordField,

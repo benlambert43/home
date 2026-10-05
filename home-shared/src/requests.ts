@@ -1,5 +1,6 @@
 import * as z from "zod";
 import {
+  changeEmailConsentBodySchema,
   changePasswordBodySchema,
   changeUsernameBodySchema,
   createAccountBodySchema,
@@ -23,6 +24,10 @@ export type RequestNewEmailVerificationLinkRequestBody = z.infer<
 
 export type ChangeUsernameRequestBody = z.infer<
   typeof changeUsernameBodySchema
+>;
+
+export type ChangeEmailConsentRequestBody = z.infer<
+  typeof changeEmailConsentBodySchema
 >;
 
 export type ChangePasswordRequestBody = z.infer<

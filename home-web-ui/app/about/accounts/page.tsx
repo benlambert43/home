@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("accounts and email");
 
 const AccountsAndEmail = () => (
-  <Notice title="Accounts and Email" updated="2026-10-04">
+  <Notice title="Accounts and Email" updated="2026-10-05">
     <p>
       This page explains what happens when you create an account on
       benlambert.tech, which emails the site sends, and how to change or delete
@@ -98,8 +98,9 @@ const AccountsAndEmail = () => (
     </p>
     <p>
       Newsletter emails and product and marketing emails are optional. The site
-      sends them only if you ticked their checkboxes when you created your
-      account.
+      sends them only while their checkboxes are ticked on your{" "}
+      <Link href="/settings">settings</Link> page, which start out as you left
+      them when you created your account.
     </p>
     <p>
       No email from this site asks you for your password or any other details,
@@ -115,31 +116,30 @@ const AccountsAndEmail = () => (
     </p>
     <p>
       Signing in keeps you signed in on that browser for 7 days, after which you
-      sign in again. Changing your username or password on that browser starts
-      the 7 days over. Logging out from your profile page ends the session on
-      that browser straight away.
+      sign in again. Changing your username, password, or optional email choices
+      on that browser starts the 7 days over. Logging out from your profile page
+      ends the session on that browser straight away.
     </p>
 
     <h2>Changing your details</h2>
     <ul>
       <li>Username: the settings page.</li>
       <li>
-        Password: the profile page, which asks for your current password first.
+        Password: the settings page, which asks for your current password first.
       </li>
       <li>
         First name, last name, and email address: these cannot be changed on the
         site yet. Email me at <ContactEmail /> to have them corrected.
       </li>
       <li>
-        Newsletter emails and product and marketing emails: these choices cannot
-        be changed on the site yet. Email me at <ContactEmail /> to change
-        either one.
+        Newsletter emails and product and marketing emails: the settings page.
+        Tick or untick either checkbox, then choose Save.
       </li>
     </ul>
 
     <h2>Deleting your account</h2>
     <p>
-      Open your profile page, choose Delete Account, and confirm. Deletion
+      Open your settings page, choose Delete Account, and confirm. Deletion
       happens immediately and cannot be undone. It is designed to remove your
       name, email address, username, password, notifications, and any count of
       recent sign-in attempts, and to scrub your email address out of the

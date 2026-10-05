@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("cookie notice");
 
 const CookieNotice = () => (
-  <Notice title="Cookie Notice" updated="2026-10-04">
+  <Notice title="Cookie Notice" updated="2026-10-05">
     <p>
       Cookies are small pieces of text that a website asks your browser to keep
       and send back on later visits. This site uses cookies only to keep you
@@ -25,8 +25,8 @@ const CookieNotice = () => (
       <li>
         <code>apisession</code> keeps you signed in to the site&apos;s API. It
         is set when you sign in, create an account, verify your email address,
-        or change your username or password, and lasts 7 days from the last time
-        it was set, or until you log out.
+        or change your username, password, or optional email choices, and lasts
+        7 days from the last time it was set, or until you log out.
       </li>
       <li>
         <code>bffsession</code> keeps you signed in to the site itself and tells
@@ -43,13 +43,12 @@ const CookieNotice = () => (
       The two session cookies each hold a token containing your account details:
       your account ID, name, email address, and username, when the account was
       created and last changed, whether your email address is verified, whether
-      it is an administrator account, whether it has been suspended, and the
-      answers you gave to the consent checkboxes when you created it. The token
-      is signed so that it cannot be altered, but it is not encrypted. The
-      cookies are marked so that only the site&apos;s server can read them, not
-      scripts running in the page, and they are sent only over HTTPS. Logging
-      out deletes both. The animation preference cookie holds the word true or
-      false and nothing else.
+      it is an administrator account, whether it has been suspended, and your
+      current answers to the consent checkboxes. The token is signed so that it
+      cannot be altered, but it is not encrypted. The cookies are marked so that
+      only the site&apos;s server can read them, not scripts running in the
+      page, and they are sent only over HTTPS. Logging out deletes both. The
+      animation preference cookie holds the word true or false and nothing else.
     </p>
 
     <h2>Cookies set by Google reCAPTCHA</h2>

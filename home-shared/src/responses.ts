@@ -35,6 +35,8 @@ export type SignInResponse = SessionResponse;
 
 export type ChangeUsernameResponse = SessionResponse;
 
+export type ChangeEmailConsentResponse = SessionResponse;
+
 export type VerifyEmailResponse = SessionResponse;
 
 export type RequestNewEmailVerificationLinkResponse = ApiResponse;

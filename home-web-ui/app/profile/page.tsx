@@ -2,7 +2,6 @@ import { logOut } from "@/app/actions/session";
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
-import DeleteAccountButton from "@/app/profile/DeleteAccountButton";
 import ProfileBanner from "@/app/profile/ProfileBanner";
 import Button from "@/app/ui/Button";
 
@@ -42,22 +41,6 @@ const Profile = async () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-col gap-2">
-        <b>Account Options:</b>
-        <div>
-          <DeleteAccountButton />
-        </div>
-        <div>
-          <Button
-            type="link"
-            linkProps={{ href: "/profile/accountManagement/changePassword" }}
-            size="small"
-          >
-            Change Password
-          </Button>
-        </div>
-      </div>
-
       <div className="py-5">
         <form action={logOut}>
           <Button type="submit" size="large">

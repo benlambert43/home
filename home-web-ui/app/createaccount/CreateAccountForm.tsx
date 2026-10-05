@@ -6,6 +6,10 @@ import {
   TERMS_OF_USE,
 } from "@/app/about/notices";
 import { createAccount } from "@/app/actions/auth";
+import {
+  MARKETING_CONSENT_LABEL,
+  NEWSLETTER_CONSENT_LABEL,
+} from "@/app/lib/emailConsent";
 import Button from "@/app/ui/Button";
 import Captcha from "@/app/ui/Captcha";
 import Checkbox from "@/app/ui/Checkbox";
@@ -112,7 +116,7 @@ export const CreateAccountForm = () => {
             state?.values?.newsletterConsent === CHECKBOX_CHECKED_VALUE
           }
         >
-          I consent to receive newsletter emails.
+          {NEWSLETTER_CONSENT_LABEL}
         </Checkbox>
         <Checkbox
           name="marketingConsent"
@@ -121,7 +125,7 @@ export const CreateAccountForm = () => {
             state?.values?.marketingConsent === CHECKBOX_CHECKED_VALUE
           }
         >
-          I consent to receive product and marketing emails.
+          {MARKETING_CONSENT_LABEL}
         </Checkbox>
       </fieldset>
       <div className="flex flex-col items-start justify-center gap-2 py-6">

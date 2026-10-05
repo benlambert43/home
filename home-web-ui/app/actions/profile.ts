@@ -5,6 +5,7 @@ import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
 import { clearSession, createSession } from "@/app/auth/sessionCookies";
 import { apiFetch, errorMessage } from "@/app/lib/api";
 import {
+  ChangeEmailConsentState,
   ChangePasswordFormState,
   ChangeUsernameFormState,
   DeleteAccountState,
@@ -12,9 +13,13 @@ import {
   readFormValues,
   treeifyFormError,
 } from "@/app/lib/forms";
+import { INVALID_REQUEST_MESSAGE } from "@/app/lib/messages";
 import { postAuthorTag } from "@/app/lib/posts";
 import { BASE_API_URL } from "@/app/lib/serverEnv";
 import {
+  changeEmailConsentBodySchema,
+  ChangeEmailConsentRequestBody,
+  ChangeEmailConsentResponse,
   changePasswordFormSchema,
   ChangePasswordRequestBody,
   ChangePasswordResponse,
@@ -27,6 +32,7 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 const CHANGE_USERNAME_URL = `${BASE_API_URL}/accountManagement/changeUsername`;
+const CHANGE_EMAIL_CONSENT_URL = `${BASE_API_URL}/accountManagement/changeEmailConsent`;
 const CHANGE_PASSWORD_URL = `${BASE_API_URL}/accountManagement/changePassword`;
 const DELETE_ACCOUNT_URL = `${BASE_API_URL}/accountManagement/deleteAccount`;
 
@@ -70,6 +76,33 @@ export const changeUsername = async (
   redirect("/settings");
 };
 
+export const changeEmailConsent = async (
+  consent: ChangeEmailConsentRequestBody,
+): Promise<ChangeEmailConsentState | undefined> => {
+  const validatedConsent = changeEmailConsentBodySchema.safeParse(consent);
+
+  if (!validatedConsent.success) {
+    return { errors: [INVALID_REQUEST_MESSAGE] };
+  }
+
+  try {
+    const { jwt, user } = await apiFetch<
+      ChangeEmailConsentResponse,
+      ChangeEmailConsentRequestBody
+    >(CHANGE_EMAIL_CONSENT_URL, {
+      method: "POST",
+      authorization: await getApiSessionToken(),
+      body: validatedConsent.data,
+    });
+
+    await createSession(jwt, user);
+  } catch (error) {
+    return { errors: [errorMessage(error)] };
+  }
+
+  return undefined;
+};
+
 export const changePassword = async (
   state: ChangePasswordFormState,
   formData: FormData,
@@ -98,7 +131,7 @@ export const changePassword = async (
     return { errors: [errorMessage(error)] };
   }
 
-  redirect("/profile");
+  redirect("/settings");
 };
 
 export const deleteAccount = async (): Promise<
