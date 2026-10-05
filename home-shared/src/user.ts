@@ -13,6 +13,9 @@ export interface UserFields<Id = string, Timestamp = string> {
   createdDate: Timestamp;
   modifiedDate: Timestamp;
   role: UserRole;
+  termsConsent: boolean;
+  newsletterConsent: boolean;
+  marketingConsent: boolean;
 }
 
 export type UserNoPassword = UserFields;

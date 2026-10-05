@@ -49,6 +49,9 @@ const CREATE_ACCOUNT_FIELDS = {
   email: "email",
   password: "password",
   confirmPassword: "confirmPassword",
+  termsConsent: "termsConsent",
+  newsletterConsent: "newsletterConsent",
+  marketingConsent: "marketingConsent",
   grecaptcharesponse: "g-recaptcha-response",
 } as const satisfies FieldNames<typeof createAccountFormSchema>;
 

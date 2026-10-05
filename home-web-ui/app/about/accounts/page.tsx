@@ -1,5 +1,5 @@
 import Notice from "@/app/about/Notice";
-import { PRIVACY_NOTICE } from "@/app/about/notices";
+import { NOTICES, PRIVACY_NOTICE, TERMS_OF_USE } from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
@@ -21,9 +21,13 @@ const AccountsAndEmail = () => (
     <p>
       The <Link href="/createaccount">create account</Link> page asks for your
       first name, last name, email address, and a password of at least 8
-      characters, and asks you to complete a reCAPTCHA. Each email address can
-      have one account. The site then gives you a random username and signs you
-      in.
+      characters, and asks you to complete a reCAPTCHA. It also has three
+      checkboxes. Agreeing to the{" "}
+      <Link href={TERMS_OF_USE.href}>{TERMS_OF_USE.title}</Link> is required.
+      Receiving newsletter emails and receiving product and marketing emails are
+      both optional, and you can create an account without ticking either. Each
+      email address can have one account. The site then gives you a random
+      username and signs you in.
     </p>
     <p>
       You can change your username on the <Link href="/settings">settings</Link>{" "}
@@ -61,14 +65,45 @@ const AccountsAndEmail = () => (
 
     <h2>The emails this site sends</h2>
     <p>
-      The site is designed to send only the two emails described above: an email
-      verification link and a password reset link. Both are plain text, come
-      from a Gmail address, and have a subject line that starts with{" "}
-      <em>benlambert dot tech</em>. Neither asks you for your password or any
-      other details, so treat any email that does as suspicious. The site is not
-      meant to email you on its own; each message is the result of creating an
-      account or asking for a link. There are no newsletters, announcements, or
-      marketing emails, so there is nothing to unsubscribe from.
+      The site is designed to send two emails automatically, both described
+      above: an email verification link and a password reset link. Each is the
+      result of creating an account or asking for a link. Both are plain text,
+      come from a Gmail address, and have a subject line that starts with{" "}
+      <em>benlambert dot tech</em>.
+    </p>
+    <p>
+      By creating an account, you also agree to receive essential notices at the
+      email address on your account. I may send you one:
+    </p>
+    <ul>
+      <li>
+        when one of the site&apos;s notices has been updated:
+        <ul>
+          {NOTICES.map(({ href, title }) => (
+            <li key={href}>
+              <Link href={href}>{title}</Link>
+            </li>
+          ))}
+        </ul>
+      </li>
+      <li>
+        when something urgent affects your account, such as a security problem
+        or a suspension.
+      </li>
+    </ul>
+    <p>
+      These notices are part of having an account, so there is no way to
+      unsubscribe from them while you have one. Deleting your account stops
+      them.
+    </p>
+    <p>
+      Newsletter emails and product and marketing emails are optional. The site
+      sends them only if you ticked their checkboxes when you created your
+      account.
+    </p>
+    <p>
+      No email from this site asks you for your password or any other details,
+      so treat any email that does as suspicious.
     </p>
 
     <h2>Signing in and staying signed in</h2>
@@ -94,6 +129,11 @@ const AccountsAndEmail = () => (
       <li>
         First name, last name, and email address: these cannot be changed on the
         site yet. Email me at <ContactEmail /> to have them corrected.
+      </li>
+      <li>
+        Newsletter emails and product and marketing emails: these choices cannot
+        be changed on the site yet. Email me at <ContactEmail /> to change
+        either one.
       </li>
     </ul>
 

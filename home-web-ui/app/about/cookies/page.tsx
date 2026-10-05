@@ -43,8 +43,9 @@ const CookieNotice = () => (
       The two session cookies each hold a token containing your account details:
       your account ID, name, email address, and username, when the account was
       created and last changed, whether your email address is verified, whether
-      it is an administrator account, and whether it has been suspended. The
-      token is signed so that it cannot be altered, but it is not encrypted. The
+      it is an administrator account, whether it has been suspended, and the
+      answers you gave to the consent checkboxes when you created it. The token
+      is signed so that it cannot be altered, but it is not encrypted. The
       cookies are marked so that only the site&apos;s server can read them, not
       scripts running in the page, and they are sent only over HTTPS. Logging
       out deletes both. The animation preference cookie holds the word true or

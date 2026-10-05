@@ -1,8 +1,10 @@
 import { GITHUB_REPOSITORY_URL, LICENSE_URL } from "@/app/about/links";
 import Notice from "@/app/about/Notice";
 import {
+  ACCOUNTS_AND_EMAIL,
   COOKIE_NOTICE,
   NO_WARRANTY_ID,
+  NOTICES,
   PRIVACY_NOTICE,
   SOURCE_AND_LICENSES,
 } from "@/app/about/notices";
@@ -69,6 +71,38 @@ const TermsOfUse = () => (
         any time from your <Link href="/profile">profile</Link> page.
       </li>
     </ul>
+
+    <h2>Email from the site</h2>
+    <p>
+      By creating an account, you agree to receive essential email from the site
+      at the email address on your account. As well as the verification and
+      password reset links described in{" "}
+      <Link href={ACCOUNTS_AND_EMAIL.href}>{ACCOUNTS_AND_EMAIL.title}</Link>, I
+      may email you:
+    </p>
+    <ul>
+      <li>
+        to tell you that one of the site&apos;s notices has been updated:
+        <ul>
+          {NOTICES.map(({ href, title }) => (
+            <li key={href}>
+              <Link href={href}>{title}</Link>
+            </li>
+          ))}
+        </ul>
+      </li>
+      <li>
+        with an urgent notice about your account, such as a security problem
+        that affects it, or its suspension.
+      </li>
+    </ul>
+    <p>
+      These emails are part of having an account and are not marketing, so there
+      is no way to unsubscribe from them while you have one. Deleting your
+      account stops them. Newsletter emails and product and marketing emails are
+      separate and optional: the site sends them only if you agreed to receive
+      them when you created your account.
+    </p>
 
     <h2>Content and copyright</h2>
     <p>
@@ -157,7 +191,8 @@ const TermsOfUse = () => (
     <h2>Changes</h2>
     <p>
       These terms may change. The date at the top shows when they last did, and
-      using the site after a change means you accept the new terms.
+      using the site after a change means you accept the new terms. If you have
+      an account, I may also email you about a change.
     </p>
 
     <h2>Governing law</h2>

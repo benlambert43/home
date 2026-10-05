@@ -128,6 +128,9 @@ const seedTestAccount = async (
     password: await hashPassword(account.password),
     createdDate: new Date(),
     modifiedDate: new Date(),
+    termsConsent: true,
+    newsletterConsent: false,
+    marketingConsent: false,
   }).save();
   console.log(`Seeded test account ${account.email}.`);
   return serializeUser(created);

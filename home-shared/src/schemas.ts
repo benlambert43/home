@@ -53,16 +53,35 @@ const verificationCodeField = emailedCodeField("Invalid verification code.");
 
 const passwordResetCodeField = emailedCodeField("Invalid password reset link.");
 
+export const CHECKBOX_CHECKED_VALUE = "on";
+
+const checkboxField = z.stringbool({
+  truthy: [CHECKBOX_CHECKED_VALUE],
+  falsy: [""],
+});
+
+const termsConsentField = z.literal(true, {
+  message: "Please agree to the Terms of Use to create an account.",
+});
+
 export const createAccountBodySchema = z.object({
   firstname: nameField("First name"),
   lastname: nameField("Last name"),
   email: emailField,
   password: passwordField,
+  termsConsent: termsConsentField,
+  newsletterConsent: z.boolean(),
+  marketingConsent: z.boolean(),
   grecaptcharesponse: captchaField,
 });
 
 export const createAccountFormSchema = createAccountBodySchema
-  .extend({ confirmPassword: passwordField })
+  .extend({
+    confirmPassword: passwordField,
+    termsConsent: checkboxField.pipe(termsConsentField),
+    newsletterConsent: checkboxField,
+    marketingConsent: checkboxField,
+  })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
     path: ["confirmPassword"],

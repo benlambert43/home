@@ -16,6 +16,9 @@ interface NewAccount {
   username: string;
   email: string;
   password: string;
+  termsConsent: boolean;
+  newsletterConsent: boolean;
+  marketingConsent: boolean;
 }
 
 const shouldCreateAdminAccount = (email: string, password: string) => {
@@ -46,6 +49,9 @@ const handleCreateUser = async ({
   username,
   email,
   password,
+  termsConsent,
+  newsletterConsent,
+  marketingConsent,
 }: NewAccount) => {
   const newUser = new UserModel({
     firstname,
@@ -58,6 +64,9 @@ const handleCreateUser = async ({
     createdDate: new Date(),
     modifiedDate: new Date(),
     role: shouldCreateAdminAccount(email, password) ? "admin" : "user",
+    termsConsent,
+    newsletterConsent,
+    marketingConsent,
   });
 
   return (await rejectDuplicateAccount(newUser.save())) as UserDocument;

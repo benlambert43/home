@@ -36,6 +36,9 @@ export const serializeUser = (user: SerializableUser): UserNoPassword => ({
   createdDate: toIsoDate(user.createdDate),
   modifiedDate: toIsoDate(user.modifiedDate),
   role: user.role,
+  termsConsent: user.termsConsent,
+  newsletterConsent: user.newsletterConsent,
+  marketingConsent: user.marketingConsent,
 });
 
 export const serializeNotification = (
