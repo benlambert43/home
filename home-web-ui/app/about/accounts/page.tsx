@@ -57,10 +57,12 @@ const AccountsAndEmail = () => (
       <Link href="/forgotpassword">forgot password</Link> page asks for your
       email address and a reCAPTCHA, and emails you a link to choose a new
       password. The link works for 15 minutes, and only one link is active at a
-      time. The page shows the same message whether or not an account exists for
-      the address, so that it does not reveal who has an account. If you did not
-      ask for a reset, ignore the email: your password does not change unless
-      the link is used.
+      time: if you ask again while your last link still works, no new email is
+      sent, so look for the first one or wait for it to expire. No link is sent
+      for a suspended account. The page shows the same message in every case,
+      including when no account exists for the address, so that it does not
+      reveal who has an account. If you did not ask for a reset, ignore the
+      email: your password does not change unless the link is used.
     </p>
 
     <h2>The emails this site sends</h2>
@@ -116,9 +118,13 @@ const AccountsAndEmail = () => (
     </p>
     <p>
       Signing in keeps you signed in on that browser for 7 days, after which you
-      sign in again. Changing your username, password, or optional email choices
-      on that browser starts the 7 days over. Logging out from your profile page
-      ends the session on that browser straight away.
+      sign in again. Creating an account signs you in the same way, and so does
+      opening an email verification link, on the browser where you open it.
+      Changing your username, password, or optional email choices on that
+      browser starts the 7 days over. Logging out from your profile page ends
+      the session on that browser straight away. It does not sign you out of
+      other browsers, and neither does changing or resetting your password, so a
+      session elsewhere lasts until you log out there or its 7 days run out.
     </p>
 
     <h2>Changing your details</h2>
@@ -144,7 +150,10 @@ const AccountsAndEmail = () => (
       name, email address, username, password, notifications, and any count of
       recent sign-in attempts, and to scrub your email address out of the site's
       records of the emails it sent you, so that nothing that identifies you is
-      left behind. If you think something was missed, email me at{" "}
+      left behind. It signs you out of the browser you delete from, but not
+      other browsers: until you log out there or their 7 days run out, they may
+      still show your name and email address from their session cookies, though
+      the account itself is gone. If you think something was missed, email me at{" "}
       <ContactEmail /> to have it removed.
     </p>
   </Notice>

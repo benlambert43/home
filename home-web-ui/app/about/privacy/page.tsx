@@ -40,10 +40,12 @@ const PrivacyNotice = () => (
       Using the control that pauses animations sets one cookie, which records
       only that choice and is described in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The site's
-      own server logs are designed to record errors, such as which request
-      failed and why, and not who made the request. The infrastructure that
-      hosts the site may keep standard, short-lived technical logs, such as IP
-      addresses and request times, for security and reliability.
+      own server logs record errors, such as which request failed and why. They
+      are designed not to record your IP address, your email address, or
+      anything else about who made a request, although an error involving your
+      account may include its account ID. The infrastructure that hosts the site
+      may keep standard, short-lived technical logs, such as IP addresses and
+      request times, for security and reliability.
     </p>
 
     <h2>Creating an account</h2>
@@ -81,9 +83,9 @@ const PrivacyNotice = () => (
       attempts for each email address entered on the{" "}
       <Link href="/signin">sign in</Link> page, whether or not an account exists
       for it. After 5 attempts in 15 minutes, it asks you to wait before trying
-      again. The site keeps the email address and the count for 15 minutes from
-      the first attempt, or less if you sign in, reset your password, or delete
-      your account, and uses them for nothing else.
+      again. The site keeps the email address and the count for about 15 minutes
+      from the first attempt, or less if you sign in, reset your password, or
+      delete your account, and uses them for nothing else.
     </p>
 
     <h2>Email</h2>
@@ -104,10 +106,11 @@ const PrivacyNotice = () => (
       Email is sent through Gmail, a Google service, so Google handles your
       email address and the contents of each message as the mail provider. The
       site also keeps a record of each verification and password reset email it
-      sends: your email address, when it was sent, a hashed copy of the code in
-      the link, whether the link was used, and the delivery result reported by
-      the mail provider. These records exist to troubleshoot email delivery and
-      contain nothing that can be used to sign in.
+      sends: which account it was for, your email address, when it was sent and
+      when its link expires, a hashed copy of the code in the link, whether the
+      link was used, and the delivery result reported by the mail provider.
+      These records exist to troubleshoot email delivery and contain nothing
+      that can be used to sign in.
     </p>
 
     <h2>reCAPTCHA</h2>
@@ -160,26 +163,30 @@ const PrivacyNotice = () => (
 
     <h2>How long information is kept</h2>
     <p>
-      Your account details and notifications are kept until you delete your
-      account. Deleting your account is designed to remove them straight away,
-      and to scrub your email address out of the site's records of the
-      verification and password reset emails it sent you, including the delivery
-      reports from the mail provider, replacing it with a random placeholder.
-      Those records are kept to troubleshoot email delivery, but once your
-      account is gone they are meant to show only when each email was sent and
-      whether it was delivered, and nothing that connects them to you. Sign-in
-      attempt counts are deleted within 15 minutes of the first attempt, whether
-      or not you have an account. The cookies the site sets, and how long each
-      lasts, are listed in the{" "}
+      Your account details, your notifications, and the site's records of the
+      verification and password reset emails it sent you are kept until you
+      delete your account. Deleting your account is designed to remove your
+      account details and notifications straight away, and to scrub your email
+      address out of those email records, including the delivery reports from
+      the mail provider, replacing it with a random placeholder. The scrubbed
+      records are kept to troubleshoot email delivery and have no set expiry,
+      but once your account is gone they are meant to show only when each email
+      was sent and whether it was delivered, and nothing that connects them to
+      you. Sign-in attempt counts are deleted about 15 minutes after the first
+      attempt, whether or not you have an account. The cookies the site sets,
+      and how long each lasts, are listed in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
     </p>
 
     <h2>Your choices and rights</h2>
     <ul>
       <li>
-        You can see the information on your account on your{" "}
-        <Link href="/profile">profile</Link> and{" "}
-        <Link href="/settings">settings</Link> pages.
+        Your <Link href="/profile">profile</Link> and{" "}
+        <Link href="/settings">settings</Link> pages show your name, your email
+        address and whether it has been verified, your username, and your
+        current choices about newsletter emails and product and marketing
+        emails. To see everything else the site holds about you, ask for a copy
+        as described below.
       </li>
       <li>
         You can change your username and your password from the settings page.
@@ -198,10 +205,11 @@ const PrivacyNotice = () => (
         by contacting me.
       </li>
       <li>
-        reCAPTCHA loads only with your consent. You can withdraw that consent by
-        leaving or reloading the page, which stops Google's script, and by
-        deleting its cookie in your browser. It is not loaded again unless you
-        choose it.
+        reCAPTCHA loads only with your consent. You can withdraw that consent
+        when you reload the page, close the tab, or leave the site, which stops
+        Google's script, and by deleting its cookie in your browser. Moving to
+        another page of this site does not stop the script by itself. The site
+        asks again before showing reCAPTCHA on another form.
       </li>
       <li>
         Newsletter emails and product and marketing emails are sent only with

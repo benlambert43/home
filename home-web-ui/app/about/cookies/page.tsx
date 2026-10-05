@@ -13,7 +13,8 @@ const CookieNotice = () => (
       and send back on later visits. This site uses cookies only to keep you
       signed in and to remember one preference. It does not use cookies for
       analytics, advertising, or tracking, and it is designed to set nothing
-      until you sign in, change that preference, or choose to load reCAPTCHA.
+      until you sign in, create an account, open an email verification link,
+      change that preference, or choose to load reCAPTCHA.
     </p>
 
     <h2>Cookies this site sets</h2>
@@ -26,7 +27,9 @@ const CookieNotice = () => (
         <code>apisession</code> keeps you signed in to the site's API. It is set
         when you sign in, create an account, verify your email address, or
         change your username, password, or optional email choices, and lasts 7
-        days from the last time it was set, or until you log out.
+        days from the last time it was set, or until you log out. Opening an
+        email verification link sets it on the browser where you open the link,
+        even if you were not signed in there.
       </li>
       <li>
         <code>bffsession</code> keeps you signed in to the site itself and tells
@@ -48,8 +51,10 @@ const CookieNotice = () => (
       each one. The token is signed so that it cannot be altered, but it is not
       encrypted. The cookies are marked so that only the site's server can read
       them, not scripts running in the page, and they are sent only over HTTPS.
-      Logging out deletes both. The animation preference cookie holds the word
-      true or false and nothing else.
+      Logging out or deleting your account deletes both from the browser you do
+      it on. Session cookies in other browsers are not deleted, and last until
+      you log out there or they expire. The animation preference cookie holds
+      the word true or false and nothing else.
     </p>
 
     <h2>Cookies set by Google reCAPTCHA</h2>
@@ -60,8 +65,11 @@ const CookieNotice = () => (
       reCAPTCHA on one of those pages. It then sets its own cookie,{" "}
       <code>_GRECAPTCHA</code>, on Google's domain, for its risk analysis, and
       it may also keep information in your browser's local and session storage.
-      Your choice lasts only until you leave or reload the page. This site does
-      not read that cookie or that storage. Google describes the cookie in its{" "}
+      Once loaded, Google's script keeps running until you reload the page,
+      close the tab, or leave the site. Moving to another page of this site does
+      not stop it by itself. The site asks again before showing reCAPTCHA on
+      another form. This site does not read that cookie or that storage. Google
+      describes the cookie in its{" "}
       <a href={RECAPTCHA_FAQ_URL} target="_blank" rel="noopener noreferrer">
         reCAPTCHA questions and answers
       </a>
