@@ -14,8 +14,9 @@ Serves on [localhost:3000](http://localhost:3000).
 
 Post images always come from the API's `large` thumbnail, which the site treats
 as the full size original, and `next/image` resizes from there. The upload
-itself is only a link target: clicking a post image opens it in a new tab. See
-"Post images" in the root README before asking the API for any other size.
+itself is only a link target: clicking a post image opens it in a new tab. The
+API's `medium` and `small` thumbnails are for other clients, so let `next/image`
+make every smaller size instead of asking the API for them.
 
 Builds with `output: "standalone"`.
 Next preserves the repo structure on deployment: the entrypoint is .next/standalone/home-web-ui/server.js, not .next/standalone/server.js.

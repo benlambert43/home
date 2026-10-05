@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("accounts and email");
 
 const AccountsAndEmail = () => (
-  <Notice title="Accounts and Email" updated="2026-10-01">
+  <Notice title="Accounts and Email" updated="2026-10-04">
     <p>
       This page explains what happens when you create an account on
       benlambert.tech, which emails the site sends, and how to change or delete
@@ -71,11 +71,18 @@ const AccountsAndEmail = () => (
       marketing emails, so there is nothing to unsubscribe from.
     </p>
 
-    <h2>Staying signed in</h2>
+    <h2>Signing in and staying signed in</h2>
+    <p>
+      The <Link href="/signin">sign in</Link> page allows 5 attempts for an
+      email address in 15 minutes, then asks you to wait before trying again. A
+      successful sign-in clears the count, and so does resetting your password,
+      which also ends the wait.
+    </p>
     <p>
       Signing in keeps you signed in on that browser for 7 days, after which you
-      sign in again. Logging out from your profile page ends the session on that
-      browser straight away.
+      sign in again. Changing your username or password on that browser starts
+      the 7 days over. Logging out from your profile page ends the session on
+      that browser straight away.
     </p>
 
     <h2>Changing your details</h2>
@@ -94,10 +101,11 @@ const AccountsAndEmail = () => (
     <p>
       Open your profile page, choose Delete Account, and confirm. Deletion
       happens immediately and cannot be undone. It is designed to remove your
-      name, email address, username, password, and notifications, and to scrub
-      your email address out of the site&apos;s records of the emails it sent
-      you, so that nothing that identifies you is left behind. If you think
-      something was missed, email me at <ContactEmail /> to have it removed.
+      name, email address, username, password, notifications, and any count of
+      recent sign-in attempts, and to scrub your email address out of the
+      site&apos;s records of the emails it sent you, so that nothing that
+      identifies you is left behind. If you think something was missed, email me
+      at <ContactEmail /> to have it removed.
     </p>
   </Notice>
 );

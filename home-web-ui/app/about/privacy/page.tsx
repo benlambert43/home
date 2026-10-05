@@ -11,7 +11,7 @@ const CLOUD_DATA_PROCESSING_ADDENDUM_URL =
   "https://cloud.google.com/terms/data-processing-addendum";
 
 const PrivacyNotice = () => (
-  <Notice title="Privacy Notice" updated="2026-10-02">
+  <Notice title="Privacy Notice" updated="2026-10-04">
     <p>
       benlambert.tech is my personal website. This notice explains what
       information the site collects, why it collects it, who else handles it,
@@ -62,6 +62,17 @@ const PrivacyNotice = () => (
       This information is used to provide your account: to sign you in, to
       verify that the email address is yours, to send you a password reset link
       when you ask for one, and to show you notifications inside the site.
+    </p>
+
+    <h2>Signing in</h2>
+    <p>
+      To slow down anyone trying to guess passwords, the site counts sign-in
+      attempts for each email address entered on the{" "}
+      <Link href="/signin">sign in</Link> page, whether or not an account exists
+      for it. After 5 attempts in 15 minutes, it asks you to wait before trying
+      again. The site keeps the email address and the count for 15 minutes from
+      the first attempt, or less if you sign in, reset your password, or delete
+      your account, and uses them for nothing else.
     </p>
 
     <h2>Email</h2>
@@ -143,8 +154,10 @@ const PrivacyNotice = () => (
       reports from the mail provider, replacing it with a random placeholder.
       Those records are kept to troubleshoot email delivery, but once your
       account is gone they are meant to show only when each email was sent and
-      whether it was delivered, and nothing that connects them to you. The
-      cookies the site sets, and how long each lasts, are listed in the{" "}
+      whether it was delivered, and nothing that connects them to you. Sign-in
+      attempt counts are deleted within 15 minutes of the first attempt, whether
+      or not you have an account. The cookies the site sets, and how long each
+      lasts, are listed in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
     </p>
 

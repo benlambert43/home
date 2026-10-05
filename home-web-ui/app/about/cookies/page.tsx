@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("cookie notice");
 
 const CookieNotice = () => (
-  <Notice title="Cookie Notice" updated="2026-10-02">
+  <Notice title="Cookie Notice" updated="2026-10-04">
     <p>
       Cookies are small pieces of text that a website asks your browser to keep
       and send back on later visits. This site uses cookies only to keep you
@@ -24,8 +24,9 @@ const CookieNotice = () => (
     <ul>
       <li>
         <code>apisession</code> keeps you signed in to the site&apos;s API. It
-        is set when you sign in, create an account, or verify your email
-        address, and lasts 7 days or until you log out.
+        is set when you sign in, create an account, verify your email address,
+        or change your username or password, and lasts 7 days from the last time
+        it was set, or until you log out.
       </li>
       <li>
         <code>bffsession</code> keeps you signed in to the site itself and tells
@@ -40,7 +41,9 @@ const CookieNotice = () => (
     </ul>
     <p>
       The two session cookies each hold a token containing your account details:
-      your name, email address, username, and the status of your account. The
+      your account ID, name, email address, and username, when the account was
+      created and last changed, whether your email address is verified, whether
+      it is an administrator account, and whether it has been suspended. The
       token is signed so that it cannot be altered, but it is not encrypted. The
       cookies are marked so that only the site&apos;s server can read them, not
       scripts running in the page, and they are sent only over HTTPS. Logging

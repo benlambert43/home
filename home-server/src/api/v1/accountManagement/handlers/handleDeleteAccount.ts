@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
 import { DeleteAccountResponse, EncodedAccountJwt } from "@home/shared";
+import { clearSignInAttempts } from "../../auth/signInThrottle";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { NotificationModel } from "../../model/notificationModel";
 import { PasswordResetModel } from "../../model/passwordResetModel";
@@ -59,6 +60,7 @@ export const handleDeleteAccount = async (
 
   await NotificationModel.deleteMany({ recipientUserId: foundUser._id });
   await anonymizeEmailRecords(foundUser);
+  await clearSignInAttempts(foundUser.email);
   await UserModel.findByIdAndDelete(foundUser._id);
 
   return { error: false, message: ApiMessage.ACCOUNT_DELETED };

@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export const metadata = pageMetadata("source and licenses");
 
-const PACKAGE_FILE_URL = `${GITHUB_REPOSITORY_URL}/blob/main/package.json`;
+const PACKAGE_LOCK_URL = `${GITHUB_REPOSITORY_URL}/blob/main/package-lock.json`;
 
 const OPEN_SOURCE_PROJECTS = [
   {
@@ -54,6 +54,12 @@ const OPEN_SOURCE_PROJECTS = [
     href: "https://github.com/sibiraj-s/marked-react/blob/master/LICENSE",
   },
   {
+    name: "html-entities",
+    license: "MIT License",
+    copyright: "Copyright (c) 2021 Dulin Marat.",
+    href: "https://github.com/mdevils/html-entities/blob/master/LICENSE",
+  },
+  {
     name: "Zod",
     license: "MIT License",
     copyright: "Copyright (c) 2025 Colin McDonnell.",
@@ -84,6 +90,12 @@ const OPEN_SOURCE_PROJECTS = [
     href: "https://github.com/mridgway/hoist-non-react-statics/blob/main/LICENSE.md",
   },
   {
+    name: "react-is",
+    license: "MIT License",
+    copyright: "Copyright (c) Facebook, Inc. and its affiliates.",
+    href: "https://github.com/react/react/blob/v16.13.1/LICENSE",
+  },
+  {
     name: "SWC helpers",
     license: "Apache License 2.0",
     copyright: "Copyright 2024 SWC contributors.",
@@ -92,7 +104,7 @@ const OPEN_SOURCE_PROJECTS = [
 ];
 
 const SourceAndLicenses = () => (
-  <Notice title="Source and Licenses" updated="2026-10-01">
+  <Notice title="Source and Licenses" updated="2026-10-04">
     <p>
       benlambert.tech is open source. This page explains how the site&apos;s own
       code is licensed, what the license does not cover, and which open-source
@@ -143,13 +155,14 @@ const SourceAndLicenses = () => (
     </ul>
     <p>
       The site&apos;s server uses further open-source packages that are not sent
-      to your browser. Every dependency is listed in the{" "}
-      <a href={PACKAGE_FILE_URL} target="_blank" rel="noopener noreferrer">
-        package files
+      to your browser. Every dependency, along with the packages each one
+      depends on, is listed in the repository&apos;s{" "}
+      <a href={PACKAGE_LOCK_URL} target="_blank" rel="noopener noreferrer">
+        <code>package-lock.json</code>
       </a>{" "}
-      in the repository. This list is kept up to date on a best-effort basis, so
-      if a project is missing or credited incorrectly, please email me at{" "}
-      <ContactEmail /> so it can be corrected.
+      file. This list is kept up to date on a best-effort basis, so if a project
+      is missing or credited incorrectly, please email me at <ContactEmail /> so
+      it can be corrected.
     </p>
   </Notice>
 );
