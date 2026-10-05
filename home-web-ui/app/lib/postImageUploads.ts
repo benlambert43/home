@@ -1,7 +1,12 @@
 import "server-only";
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
 import { getBffSessionUser } from "@/app/auth/getBffSessionUser";
-import { BAD_GATEWAY_STATUS, streamApiResponse } from "@/app/lib/api";
+import {
+  BAD_GATEWAY_STATUS,
+  failureResponse,
+  FORBIDDEN_STATUS,
+  streamApiResponse,
+} from "@/app/lib/api";
 import {
   FORBIDDEN_MESSAGE,
   INVALID_REQUEST_MESSAGE,
@@ -9,7 +14,6 @@ import {
 } from "@/app/lib/messages";
 import { BASE_API_URL, BASE_SITE_URL } from "@/app/lib/serverEnv";
 import {
-  ApiFailure,
   MAX_POST_IMAGE_BYTES,
   MAX_POST_IMAGE_MEGABYTES,
   postUploadImageParamsSchema,
@@ -17,8 +21,6 @@ import {
 } from "@home/shared";
 
 const BAD_REQUEST_STATUS = 400;
-
-const FORBIDDEN_STATUS = 403;
 
 const CONTENT_TOO_LARGE_STATUS = 413;
 
@@ -37,9 +39,6 @@ const SITE_ORIGIN = new URL(BASE_SITE_URL).origin;
 const RETURNED_HEADERS = ["content-type"];
 
 type StreamedRequestInit = RequestInit & { duplex: "half" };
-
-const failureResponse = (status: number, message: string) =>
-  Response.json({ error: true, message } satisfies ApiFailure, { status });
 
 const streamedUpload = (
   request: Request,

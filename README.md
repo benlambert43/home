@@ -42,6 +42,20 @@ A post's address is `/blog/<slug>`. The slug is made from the title when the pos
 
 `RESERVED_POST_SLUGS` in `home-shared/src/postSlug.ts` lists the slugs that static routes under `/blog` already use. It is maintained by hand. When adding a static route under `home-web-ui/app/blog`, add its name in lowercase to the list, and first check that no post already has that slug: the static route would take over the address and hide the post.
 
+## Static pages after deployment
+
+`next build` runs in CI without access to the API, so it cannot bake the post list into `/`, `/blog` and `/blog/page/2`. Those pages leave the build as static shells that render the post list on every request, and they stay that way until the site is told to regenerate them.
+
+Run this on the home server after every start of the web container, once the API container is up:
+
+```bash
+npm run revalidate -- https://benlambert.tech
+```
+
+The script reads `REVALIDATE_SECRET` from the environment or `home-web-ui/.env`, then calls `POST /revalidate` on the site with the secret in an `x-revalidate-secret` header. The site compares the header with its own `REVALIDATE_SECRET`, checks that the API is reachable (503 if not, and the script keeps retrying), then regenerates `/`, `/blog` and every `/blog/page/<n>`, which are served as fully static pages from then on. The script finishes by fetching `/` and `/blog` so the first regeneration happens before a visitor arrives.
+
+`REVALIDATE_SECRET` is required like the other variables in `home-web-ui/.env.template`; CI needs it set to build. Other pages regenerate on their own: post create, update and delete revalidate the blog pages, and paged URLs that were not in the build are generated on first visit.
+
 ## Linting
 
 Lint rules shared by every workspace live in eslint.config.base.mjs

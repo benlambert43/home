@@ -1,6 +1,5 @@
 import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
-import { Suspense } from "react";
 import { Notifications } from "@/app/components/Notifications";
 import SessionActions from "@/app/components/SessionActions";
 import StickyNav from "@/app/components/StickyNav";
@@ -65,18 +64,16 @@ const Navbar = () => {
         </Link>
       </div>
       <div className="flex min-h-6 flex-1 items-center gap-4 sm:justify-end">
-        <Suspense fallback={null}>
-          <SessionActions
-            signedOut={<SignIn />}
-            signedIn={
-              <>
-                <Notifications />
-                <Settings />
-                <Profile />
-              </>
-            }
-          />
-        </Suspense>
+        <SessionActions
+          signedOut={<SignIn />}
+          signedIn={
+            <>
+              <Notifications />
+              <Settings />
+              <Profile />
+            </>
+          }
+        />
       </div>
     </StickyNav>
   );

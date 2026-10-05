@@ -15,7 +15,7 @@ import {
   postIdParamsSchema,
   postSlugParamsSchema,
 } from "@home/shared";
-import { cacheLife, cacheTag } from "next/cache";
+import { cacheLife, cacheTag, revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 
 export const POSTS_URL = `${BASE_API_URL}/posts`;
@@ -27,6 +27,11 @@ export const postTag = (id: string) => `post:${id}`;
 export const postSlugTag = (slug: string) => `post-slug:${slug}`;
 
 export const postAuthorTag = (userId: string) => `post-author:${userId}`;
+
+export const revalidateBlogPaths = () => {
+  revalidatePath("/blog");
+  revalidatePath("/blog/page/[page]", "page");
+};
 
 export type PostLookup = GetPostResponse | { error: false; post: null };
 

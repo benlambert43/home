@@ -1,17 +1,10 @@
-import {
-  blogHref,
-  postAnchor,
-  postHref,
-  requestedPage,
-} from "@/app/blog/links";
+import { blogHref, postAnchor, postHref } from "@/app/blog/links";
 import PostByline from "@/app/blog/PostByline";
 import PostThumbnail from "@/app/blog/PostThumbnail";
 import { getCachedPosts } from "@/app/lib/posts";
-import { SearchParams } from "@/app/lib/searchParams";
 import Button from "@/app/ui/Button";
 import { PostPagination, PostSummary } from "@home/shared";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 const THUMBNAIL_PIXELS = 120;
 
@@ -82,15 +75,12 @@ const Pagination = ({ page, totalPages, hasMore }: PostPagination) => (
   </div>
 );
 
-const Posts = async ({ searchParams }: { searchParams: SearchParams }) => {
-  const page = requestedPage((await searchParams).page);
+const Posts = async ({ page }: { page: number }) => {
   const result = await getCachedPosts(page);
 
   if (result.error) return <p>{result.message}</p>;
 
   const { posts, pagination } = result;
-
-  if (page > pagination.totalPages) redirect(blogHref(pagination.totalPages));
 
   if (pagination.totalPosts === 0) return <p>No posts yet.</p>;
 

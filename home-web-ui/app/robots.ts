@@ -9,6 +9,7 @@ const robots = (): MetadataRoute.Robots => ({
       "/profile",
       "/settings",
       "/session",
+      "/revalidate",
       "/blog/newPost",
       "/blog/*/edit",
       "/blog/uploads/",

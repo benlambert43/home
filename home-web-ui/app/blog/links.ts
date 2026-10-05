@@ -8,7 +8,7 @@ export const requestedPage = (value: string | string[] | undefined) => {
 export const postAnchor = (slug: string) => `post-${slug}`;
 
 export const blogHref = (page: number, postSlug?: string) => {
-  const href = page > 1 ? `/blog?page=${page}` : "/blog";
+  const href = page > 1 ? `/blog/page/${page}` : "/blog";
   return postSlug ? `${href}#${postAnchor(postSlug)}` : href;
 };
 

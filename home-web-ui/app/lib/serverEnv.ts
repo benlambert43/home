@@ -15,3 +15,8 @@ export const BFF_SESSION_SECRET = requireEnvironmentVariable(
   "BFF_SESSION_SECRET",
   process.env.BFF_SESSION_SECRET,
 );
+
+export const REVALIDATE_SECRET = requireEnvironmentVariable(
+  "REVALIDATE_SECRET",
+  process.env.REVALIDATE_SECRET,
+);

@@ -18,7 +18,13 @@ import {
   UpdatePostFormState,
 } from "@/app/lib/forms";
 import { INVALID_REQUEST_MESSAGE } from "@/app/lib/messages";
-import { POSTS_TAG, POSTS_URL, postSlugTag, postTag } from "@/app/lib/posts";
+import {
+  POSTS_TAG,
+  POSTS_URL,
+  postSlugTag,
+  postTag,
+  revalidateBlogPaths,
+} from "@/app/lib/posts";
 import {
   createPostBodySchema,
   CreatePostRequestBody,
@@ -78,7 +84,7 @@ export const createPost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postSlugTag(slug));
-  revalidatePath("/blog");
+  revalidateBlogPaths();
   redirect("/blog");
 };
 
@@ -128,7 +134,7 @@ export const updatePost = async (
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
   revalidatePath(postHref(slug));
-  revalidatePath("/blog");
+  revalidateBlogPaths();
   redirect(postHref(slug, page));
 };
 
@@ -150,6 +156,6 @@ export const deletePost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
-  revalidatePath("/blog");
+  revalidateBlogPaths();
   redirect(blogHref(page));
 };

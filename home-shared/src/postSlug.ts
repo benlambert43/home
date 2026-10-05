@@ -12,7 +12,7 @@ const SEPARATORS = /[^a-z0-9]+/;
 
 export const POST_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export const RESERVED_POST_SLUGS = ["newpost", "uploads"];
+export const RESERVED_POST_SLUGS = ["newpost", "page", "uploads"];
 
 const slugWords = (title: string) =>
   title

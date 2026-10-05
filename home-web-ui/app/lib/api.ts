@@ -9,9 +9,14 @@ type ApiRequest<Body> = {
   cache?: RequestCache;
 };
 
+export const FORBIDDEN_STATUS = 403;
+
 export const NOT_FOUND_STATUS = 404;
 
 export const BAD_GATEWAY_STATUS = 502;
+
+export const failureResponse = (status: number, message: string) =>
+  Response.json({ error: true, message } satisfies ApiFailure, { status });
 
 export class ApiError extends Error {
   readonly status: number;
