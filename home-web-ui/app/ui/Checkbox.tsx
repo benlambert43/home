@@ -1,10 +1,11 @@
 import { CHECKBOX_CHECKED_VALUE } from "@home/shared";
-import { InputHTMLAttributes, ReactNode } from "react";
+import { InputHTMLAttributes, ReactNode, Ref } from "react";
 
 type CheckboxProps = {
   name: string;
   children: ReactNode;
   requirement: "required" | "optional";
+  ref?: Ref<HTMLInputElement>;
 } & Pick<
   InputHTMLAttributes<HTMLInputElement>,
   "checked" | "defaultChecked" | "onChange"

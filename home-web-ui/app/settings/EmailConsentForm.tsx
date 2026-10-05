@@ -9,7 +9,7 @@ import Button from "@/app/ui/Button";
 import Checkbox from "@/app/ui/Checkbox";
 import FieldError from "@/app/ui/FieldError";
 import { UserNoPassword } from "@home/shared";
-import { useState, useTransition } from "react";
+import { ChangeEvent, useRef, useState, useTransition } from "react";
 
 type EmailConsent = Pick<
   UserNoPassword,
@@ -25,10 +25,18 @@ const EmailConsentForm = ({ saved }: { saved: EmailConsent }) => {
   );
   const [errors, setErrors] = useState<string[]>();
   const [pending, startTransition] = useTransition();
+  const firstCheckbox = useRef<HTMLInputElement>(null);
 
   const changed =
     newsletterConsent !== saved.newsletterConsent ||
     marketingConsent !== saved.marketingConsent;
+
+  const change =
+    (setConsent: (consent: boolean) => void) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setErrors(undefined);
+      setConsent(event.target.checked);
+    };
 
   const save = () => {
     startTransition(async () => {
@@ -37,6 +45,7 @@ const EmailConsentForm = ({ saved }: { saved: EmailConsent }) => {
         marketingConsent,
       });
       setErrors(result?.errors);
+      if (!result) firstCheckbox.current?.focus();
     });
   };
 
@@ -48,7 +57,8 @@ const EmailConsentForm = ({ saved }: { saved: EmailConsent }) => {
           name="newsletterConsent"
           requirement="optional"
           checked={newsletterConsent}
-          onChange={(event) => setNewsletterConsent(event.target.checked)}
+          onChange={change(setNewsletterConsent)}
+          ref={firstCheckbox}
         >
           {NEWSLETTER_CONSENT_LABEL}
         </Checkbox>
@@ -56,7 +66,7 @@ const EmailConsentForm = ({ saved }: { saved: EmailConsent }) => {
           name="marketingConsent"
           requirement="optional"
           checked={marketingConsent}
-          onChange={(event) => setMarketingConsent(event.target.checked)}
+          onChange={change(setMarketingConsent)}
         >
           {MARKETING_CONSENT_LABEL}
         </Checkbox>
