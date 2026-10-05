@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 
 const caseInsensitive = { locale: "en", strength: 2 };
 
+const consentSchema = new mongoose.Schema(
+  {
+    agreed: { type: Boolean, required: true },
+    timestamp: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
 export const userSchema = new mongoose.Schema(
   {
     firstname: { type: String, required: true },
@@ -14,9 +22,9 @@ export const userSchema = new mongoose.Schema(
     createdDate: { type: Date, required: true },
     modifiedDate: { type: Date, required: true },
     role: { type: String, enum: ["user", "admin"], required: true },
-    termsConsent: { type: Boolean, required: true },
-    newsletterConsent: { type: Boolean, required: true },
-    marketingConsent: { type: Boolean, required: true },
+    termsConsent: { type: consentSchema, required: true },
+    newsletterConsent: { type: consentSchema, required: true },
+    marketingConsent: { type: consentSchema, required: true },
   },
   { collation: caseInsensitive },
 );

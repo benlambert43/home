@@ -18,8 +18,8 @@ const Settings = async () => {
 
       <EmailConsentForm
         saved={{
-          newsletterConsent: user.newsletterConsent,
-          marketingConsent: user.marketingConsent,
+          newsletterConsent: user.newsletterConsent.agreed,
+          marketingConsent: user.marketingConsent.agreed,
         }}
       />
 

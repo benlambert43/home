@@ -121,16 +121,18 @@ const seedTestAccount = async (
     return serializeUser(existing);
   }
 
+  const now = new Date();
+
   const created = await new UserModel({
     ...account,
     confirmedEmail: true,
     userBanned: false,
     password: await hashPassword(account.password),
-    createdDate: new Date(),
-    modifiedDate: new Date(),
-    termsConsent: true,
-    newsletterConsent: false,
-    marketingConsent: false,
+    createdDate: now,
+    modifiedDate: now,
+    termsConsent: { agreed: true, timestamp: now },
+    newsletterConsent: { agreed: false, timestamp: now },
+    marketingConsent: { agreed: false, timestamp: now },
   }).save();
   console.log(`Seeded test account ${account.email}.`);
   return serializeUser(created);

@@ -52,8 +52,10 @@ const PrivacyNotice = () => (
       email address, and a password. It asks you to agree to the{" "}
       <Link href={TERMS_OF_USE.href}>{TERMS_OF_USE.title}</Link>, which is
       required, and whether you want to receive newsletter emails and product
-      and marketing emails, which are both optional, and it records each answer.
-      It also gives you a random username, which you can change at any time, and
+      and marketing emails, which are both optional. It records each answer and
+      the date and time you gave it. If you later change an optional answer on
+      the settings page, the new answer and its time replace the old ones. It
+      also gives you a random username, which you can change at any time, and
       records when the account was created and last modified, whether your email
       address has been verified, whether the account is an administrator
       account, and whether it has been suspended.

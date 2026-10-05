@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import {
+  Consent,
   Notification,
   NotificationFields,
   Post,
@@ -25,6 +26,11 @@ export type SerializableUser = UserFields<MaybeId, MaybeDate>;
 
 export type SerializableNotification = NotificationFields<MaybeId, MaybeDate>;
 
+const serializeConsent = (consent: Consent<MaybeDate>): Consent => ({
+  agreed: consent.agreed,
+  timestamp: toIsoDate(consent.timestamp),
+});
+
 export const serializeUser = (user: SerializableUser): UserNoPassword => ({
   _id: toId(user._id),
   firstname: user.firstname,
@@ -36,9 +42,9 @@ export const serializeUser = (user: SerializableUser): UserNoPassword => ({
   createdDate: toIsoDate(user.createdDate),
   modifiedDate: toIsoDate(user.modifiedDate),
   role: user.role,
-  termsConsent: user.termsConsent,
-  newsletterConsent: user.newsletterConsent,
-  marketingConsent: user.marketingConsent,
+  termsConsent: serializeConsent(user.termsConsent),
+  newsletterConsent: serializeConsent(user.newsletterConsent),
+  marketingConsent: serializeConsent(user.marketingConsent),
 });
 
 export const serializeNotification = (

@@ -77,9 +77,9 @@ const admin: UserNoPassword = {
   createdDate: "2026-01-01T00:00:00.000Z",
   modifiedDate: "2026-01-01T00:00:00.000Z",
   role: "admin",
-  termsConsent: true,
-  newsletterConsent: false,
-  marketingConsent: false,
+  termsConsent: { agreed: true, timestamp: "2026-01-01T00:00:00.000Z" },
+  newsletterConsent: { agreed: false, timestamp: "2026-01-01T00:00:00.000Z" },
+  marketingConsent: { agreed: false, timestamp: "2026-01-01T00:00:00.000Z" },
 };
 
 const asQuery = <Result>(result: Result) => ({

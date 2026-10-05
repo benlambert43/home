@@ -44,11 +44,12 @@ const CookieNotice = () => (
       your account ID, name, email address, and username, when the account was
       created and last changed, whether your email address is verified, whether
       it is an administrator account, whether it has been suspended, and your
-      current answers to the consent checkboxes. The token is signed so that it
-      cannot be altered, but it is not encrypted. The cookies are marked so that
-      only the site&apos;s server can read them, not scripts running in the
-      page, and they are sent only over HTTPS. Logging out deletes both. The
-      animation preference cookie holds the word true or false and nothing else.
+      current answers to the consent checkboxes, with the date and time you gave
+      each one. The token is signed so that it cannot be altered, but it is not
+      encrypted. The cookies are marked so that only the site&apos;s server can
+      read them, not scripts running in the page, and they are sent only over
+      HTTPS. Logging out deletes both. The animation preference cookie holds the
+      word true or false and nothing else.
     </p>
 
     <h2>Cookies set by Google reCAPTCHA</h2>

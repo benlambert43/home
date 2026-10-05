@@ -53,6 +53,8 @@ const handleCreateUser = async ({
   newsletterConsent,
   marketingConsent,
 }: NewAccount) => {
+  const now = new Date();
+
   const newUser = new UserModel({
     firstname,
     lastname,
@@ -61,12 +63,12 @@ const handleCreateUser = async ({
     confirmedEmail: false,
     userBanned: false,
     password: await hashPassword(password),
-    createdDate: new Date(),
-    modifiedDate: new Date(),
+    createdDate: now,
+    modifiedDate: now,
     role: shouldCreateAdminAccount(email, password) ? "admin" : "user",
-    termsConsent,
-    newsletterConsent,
-    marketingConsent,
+    termsConsent: { agreed: termsConsent, timestamp: now },
+    newsletterConsent: { agreed: newsletterConsent, timestamp: now },
+    marketingConsent: { agreed: marketingConsent, timestamp: now },
   });
 
   return (await rejectDuplicateAccount(newUser.save())) as UserDocument;

@@ -2,6 +2,11 @@ export const MAX_USERNAME_CHARACTERS = 30;
 
 export type UserRole = "user" | "admin";
 
+export interface Consent<Timestamp = string> {
+  agreed: boolean;
+  timestamp: Timestamp;
+}
+
 export interface UserFields<Id = string, Timestamp = string> {
   _id: Id;
   firstname: string;
@@ -13,9 +18,9 @@ export interface UserFields<Id = string, Timestamp = string> {
   createdDate: Timestamp;
   modifiedDate: Timestamp;
   role: UserRole;
-  termsConsent: boolean;
-  newsletterConsent: boolean;
-  marketingConsent: boolean;
+  termsConsent: Consent<Timestamp>;
+  newsletterConsent: Consent<Timestamp>;
+  marketingConsent: Consent<Timestamp>;
 }
 
 export type UserNoPassword = UserFields;

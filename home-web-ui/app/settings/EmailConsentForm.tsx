@@ -8,15 +8,14 @@ import {
 import Button from "@/app/ui/Button";
 import Checkbox from "@/app/ui/Checkbox";
 import FieldError from "@/app/ui/FieldError";
-import { UserNoPassword } from "@home/shared";
+import { ChangeEmailConsentRequestBody } from "@home/shared";
 import { ChangeEvent, useRef, useState, useTransition } from "react";
 
-type EmailConsent = Pick<
-  UserNoPassword,
-  "newsletterConsent" | "marketingConsent"
->;
-
-const EmailConsentForm = ({ saved }: { saved: EmailConsent }) => {
+const EmailConsentForm = ({
+  saved,
+}: {
+  saved: ChangeEmailConsentRequestBody;
+}) => {
   const [newsletterConsent, setNewsletterConsent] = useState(
     saved.newsletterConsent,
   );
