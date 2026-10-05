@@ -14,4 +14,4 @@ const getSnapshot = () => {
 };
 
 export const useBirdCount = () =>
-  useSyncExternalStore(subscribe, getSnapshot, () => MIN_BIRDS);
+  useSyncExternalStore(subscribe, getSnapshot, () => 0);

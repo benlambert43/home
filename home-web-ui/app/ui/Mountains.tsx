@@ -51,7 +51,7 @@ const LAYERS = [
   },
 ];
 
-const Mountains = ({ animated }: { animated: boolean }) => {
+const Mountains = () => {
   return (
     <svg
       viewBox="0 0 5120 200"
@@ -66,7 +66,7 @@ const Mountains = ({ animated }: { animated: boolean }) => {
           key={fill}
           d={d}
           fill={fill}
-          className={animated ? "motion-safe:animate-mountain-rise" : undefined}
+          className="animated:motion-safe:animate-mountain-rise"
           style={
             {
               "--layer": index,

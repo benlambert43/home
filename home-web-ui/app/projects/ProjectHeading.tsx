@@ -1,22 +1,15 @@
+import AnimationsPauseButton from "@/app/components/AnimationsPauseButton";
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
-import { ReactNode } from "react";
 
 const ProjectHeading = ({
   title,
   backLink,
-  animated = false,
-  children,
 }: {
   title: string;
   backLink: boolean;
-  animated?: boolean;
-  children: ReactNode;
 }) => (
-  <div
-    data-animated={animated || undefined}
-    className="flex flex-col items-start gap-3"
-  >
+  <div className="flex flex-col items-start gap-3">
     {backLink && (
       <Link
         href="/projects"
@@ -28,7 +21,9 @@ const ProjectHeading = ({
       </Link>
     )}
     <h1 className="text-4xl font-bold">{title}</h1>
-    <div className="-ml-1">{children}</div>
+    <div className="-ml-1">
+      <AnimationsPauseButton />
+    </div>
   </div>
 );
 

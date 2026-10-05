@@ -1,4 +1,4 @@
-@custom-variant animated (&:where(:has(> [data-animated]) *));
+@custom-variant animated (&:where(:not([data-animations-paused] *)));
 
 @theme inline {
   --animate-mountain-rise: mountain-rise 1.8s cubic-bezier(0.1, 1, 0.2, 1)

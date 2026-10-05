@@ -1,14 +1,6 @@
 import Image from "next/image";
-import { Suspense } from "react";
-import HeroMountains, {
-  HeroMountainsPlaceholder,
-} from "@/app/components/HeroMountains";
-import { getAnimationsPaused } from "@/app/lib/animationsPaused";
+import HeroMountains from "@/app/components/HeroMountains";
 import { PERSON_PORTRAIT_PATH } from "@/app/lib/person";
-
-const CookieHeroMountains = async () => (
-  <HeroMountains initialPaused={await getAnimationsPaused()} />
-);
 
 const Hero = () => (
   <div className="relative flex flex-col items-center justify-center pt-8">
@@ -41,9 +33,7 @@ const Hero = () => (
         </div>
       </div>
     </div>
-    <Suspense fallback={<HeroMountainsPlaceholder />}>
-      <CookieHeroMountains />
-    </Suspense>
+    <HeroMountains />
   </div>
 );
 
