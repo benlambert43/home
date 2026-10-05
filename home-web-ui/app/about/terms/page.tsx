@@ -1,6 +1,7 @@
 import { GITHUB_REPOSITORY_URL, LICENSE_URL } from "@/app/about/links";
 import Notice from "@/app/about/Notice";
 import {
+  COOKIE_NOTICE,
   NO_WARRANTY_ID,
   PRIVACY_NOTICE,
   SOURCE_AND_LICENSES,
@@ -12,7 +13,7 @@ import Link from "next/link";
 export const metadata = pageMetadata("terms of use");
 
 const TermsOfUse = () => (
-  <Notice title="Terms of Use" updated="2026-10-01">
+  <Notice title="Terms of Use" updated="2026-10-04">
     <p>
       benlambert.tech is my personal website. I, Ben Lambert, build and run it
       alone, as an individual and not a company. These terms apply to everyone
@@ -98,6 +99,28 @@ const TermsOfUse = () => (
       what it collects. The site links to other websites, such as GitHub. Those
       sites have their own terms and privacy practices, and this site is not
       responsible for them.
+    </p>
+
+    <h2>Paying for the site</h2>
+    <p>
+      Today the site is free to use, shows no advertising, and sells nothing,
+      and I pay for its hosting myself. To help cover that cost, I may in the
+      future do any of the following, all of them, or none of them:
+    </p>
+    <ul>
+      <li>show advertising;</li>
+      <li>publish sponsored posts, each prominently labeled as sponsored;</li>
+      <li>offer products or services for sale;</li>
+      <li>add a part of the site that only paying members can use.</li>
+    </ul>
+    <p>
+      Before any of these begins, these terms will be updated to describe it,
+      and so will the{" "}
+      <Link href={PRIVACY_NOTICE.href}>{PRIVACY_NOTICE.title}</Link> and{" "}
+      <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link> if it changes
+      how the site handles your information or which cookies it sets. Anything
+      that costs money will show its price and its terms before you pay, and
+      having an account will not, by itself, commit you to paying for anything.
     </p>
 
     <h2 id={NO_WARRANTY_ID} className="scroll-mt-28">
