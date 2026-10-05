@@ -77,7 +77,7 @@ const AccountsAndEmail = () => (
     </p>
     <ul>
       <li>
-        when one of the site&apos;s notices has been updated:
+        when one of the site's notices has been updated:
         <ul>
           {NOTICES.map(({ href, title }) => (
             <li key={href}>
@@ -142,10 +142,10 @@ const AccountsAndEmail = () => (
       Open your settings page, choose Delete Account, and confirm. Deletion
       happens immediately and cannot be undone. It is designed to remove your
       name, email address, username, password, notifications, and any count of
-      recent sign-in attempts, and to scrub your email address out of the
-      site&apos;s records of the emails it sent you, so that nothing that
-      identifies you is left behind. If you think something was missed, email me
-      at <ContactEmail /> to have it removed.
+      recent sign-in attempts, and to scrub your email address out of the site's
+      records of the emails it sent you, so that nothing that identifies you is
+      left behind. If you think something was missed, email me at{" "}
+      <ContactEmail /> to have it removed.
     </p>
   </Notice>
 );

@@ -18,15 +18,15 @@ const CookieNotice = () => (
 
     <h2>Cookies this site sets</h2>
     <p>
-      To the best of my knowledge, these are all the cookies the site&apos;s own
-      code sets:
+      To the best of my knowledge, these are all the cookies the site's own code
+      sets:
     </p>
     <ul>
       <li>
-        <code>apisession</code> keeps you signed in to the site&apos;s API. It
-        is set when you sign in, create an account, verify your email address,
-        or change your username, password, or optional email choices, and lasts
-        7 days from the last time it was set, or until you log out.
+        <code>apisession</code> keeps you signed in to the site's API. It is set
+        when you sign in, create an account, verify your email address, or
+        change your username, password, or optional email choices, and lasts 7
+        days from the last time it was set, or until you log out.
       </li>
       <li>
         <code>bffsession</code> keeps you signed in to the site itself and tells
@@ -35,8 +35,8 @@ const CookieNotice = () => (
       </li>
       <li>
         <code>animationsPaused</code> remembers whether you have paused the
-        site&apos;s animations. It is set when you use the pause or play
-        control, and lasts 400 days after you last use it.
+        site's animations. It is set when you use the pause or play control, and
+        lasts 400 days after you last use it.
       </li>
     </ul>
     <p>
@@ -46,23 +46,22 @@ const CookieNotice = () => (
       it is an administrator account, whether it has been suspended, and your
       current answers to the consent checkboxes, with the date and time you gave
       each one. The token is signed so that it cannot be altered, but it is not
-      encrypted. The cookies are marked so that only the site&apos;s server can
-      read them, not scripts running in the page, and they are sent only over
-      HTTPS. Logging out deletes both. The animation preference cookie holds the
-      word true or false and nothing else.
+      encrypted. The cookies are marked so that only the site's server can read
+      them, not scripts running in the page, and they are sent only over HTTPS.
+      Logging out deletes both. The animation preference cookie holds the word
+      true or false and nothing else.
     </p>
 
     <h2>Cookies set by Google reCAPTCHA</h2>
     <p>
       The create account, forgot password, and request new verification link
-      pages include Google reCAPTCHA, which protects the site&apos;s forms from
-      automated programs. Google&apos;s script loads only after you choose to
-      load reCAPTCHA on one of those pages. It then sets its own cookie,{" "}
-      <code>_GRECAPTCHA</code>, on Google&apos;s domain, for its risk analysis,
-      and it may also keep information in your browser&apos;s local and session
-      storage. Your choice lasts only until you leave or reload the page. This
-      site does not read that cookie or that storage. Google describes the
-      cookie in its{" "}
+      pages include Google reCAPTCHA, which protects the site's forms from
+      automated programs. Google's script loads only after you choose to load
+      reCAPTCHA on one of those pages. It then sets its own cookie,{" "}
+      <code>_GRECAPTCHA</code>, on Google's domain, for its risk analysis, and
+      it may also keep information in your browser's local and session storage.
+      Your choice lasts only until you leave or reload the page. This site does
+      not read that cookie or that storage. Google describes the cookie in its{" "}
       <a href={RECAPTCHA_FAQ_URL} target="_blank" rel="noopener noreferrer">
         reCAPTCHA questions and answers
       </a>
@@ -72,12 +71,12 @@ const CookieNotice = () => (
 
     <h2>Controlling cookies</h2>
     <p>
-      You can delete or block cookies in your browser&apos;s settings; each
-      browser&apos;s help pages explain how. If you block the session cookies
-      you will not be able to stay signed in, and if you block the preference
-      cookie, animations will play on each visit. The site&apos;s own code does
-      not use local storage or any other way of keeping information in your
-      browser; only reCAPTCHA, once you choose to load it, may.
+      You can delete or block cookies in your browser's settings; each browser's
+      help pages explain how. If you block the session cookies you will not be
+      able to stay signed in, and if you block the preference cookie, animations
+      will play on each visit. The site's own code does not use local storage or
+      any other way of keeping information in your browser; only reCAPTCHA, once
+      you choose to load it, may.
     </p>
   </Notice>
 );

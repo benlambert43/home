@@ -8,6 +8,11 @@ const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
   ...typeChecked(import.meta.dirname),
+  {
+    rules: {
+      "react/no-unescaped-entities": ["error", { forbid: [">", "}"] }],
+    },
+  },
 ];
 
 export default eslintConfig;

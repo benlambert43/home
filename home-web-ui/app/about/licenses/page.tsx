@@ -106,12 +106,12 @@ const OPEN_SOURCE_PROJECTS = [
 const SourceAndLicenses = () => (
   <Notice title="Source and Licenses" updated="2026-10-04">
     <p>
-      benlambert.tech is open source. This page explains how the site&apos;s own
-      code is licensed, what the license does not cover, and which open-source
+      benlambert.tech is open source. This page explains how the site's own code
+      is licensed, what the license does not cover, and which open-source
       software the site is built with.
     </p>
 
-    <h2>This site&apos;s source code</h2>
+    <h2>This site's source code</h2>
     <p>
       The source code is published on{" "}
       <a href={GITHUB_REPOSITORY_URL} target="_blank" rel="noopener noreferrer">
@@ -129,7 +129,7 @@ const SourceAndLicenses = () => (
 
     <h2>What the license does not cover</h2>
     <p>
-      The license covers the code, not the site&apos;s content. The writing,
+      The license covers the code, not the site's content. The writing,
       photographs, and other images on this site, including the image files kept
       in the repository, belong to me and are not licensed under it. The{" "}
       <Link href={TERMS_OF_USE.href}>{TERMS_OF_USE.title}</Link> explain how
@@ -140,8 +140,7 @@ const SourceAndLicenses = () => (
     <p>
       The pages this site sends to your browser are built with the open-source
       projects below, used under their own licenses. Each name links to that
-      project&apos;s license, which holds its full copyright and permission
-      notice.
+      project's license, which holds its full copyright and permission notice.
     </p>
     <ul>
       {OPEN_SOURCE_PROJECTS.map(({ name, license, copyright, href }) => (
@@ -154,9 +153,9 @@ const SourceAndLicenses = () => (
       ))}
     </ul>
     <p>
-      The site&apos;s server uses further open-source packages that are not sent
-      to your browser. Every dependency, along with the packages each one
-      depends on, is listed in the repository&apos;s{" "}
+      The site's server uses further open-source packages that are not sent to
+      your browser. Every dependency, along with the packages each one depends
+      on, is listed in the repository's{" "}
       <a href={PACKAGE_LOCK_URL} target="_blank" rel="noopener noreferrer">
         <code>package-lock.json</code>
       </a>{" "}

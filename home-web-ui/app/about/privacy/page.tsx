@@ -39,11 +39,11 @@ const PrivacyNotice = () => (
       does not use analytics, advertising, or tracking scripts of any kind.
       Using the control that pauses animations sets one cookie, which records
       only that choice and is described in the{" "}
-      <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The
-      site&apos;s own server logs are designed to record errors, such as which
-      request failed and why, and not who made the request. The infrastructure
-      that hosts the site may keep standard, short-lived technical logs, such as
-      IP addresses and request times, for security and reliability.
+      <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The site's
+      own server logs are designed to record errors, such as which request
+      failed and why, and not who made the request. The infrastructure that
+      hosts the site may keep standard, short-lived technical logs, such as IP
+      addresses and request times, for security and reliability.
     </p>
 
     <h2>Creating an account</h2>
@@ -92,11 +92,11 @@ const PrivacyNotice = () => (
       needed: a link to verify your email address after you create an account,
       and a link to choose a new password when you request one. By creating an
       account, you also agree to receive essential notices at the email address
-      on your account: I may email you when one of the site&apos;s notices,
-      including this one, has been updated, or when something urgent affects
-      your account, such as a security problem. Newsletter emails and product
-      and marketing emails are optional: the site sends them only while you have
-      agreed to receive them. The{" "}
+      on your account: I may email you when one of the site's notices, including
+      this one, has been updated, or when something urgent affects your account,
+      such as a security problem. Newsletter emails and product and marketing
+      emails are optional: the site sends them only while you have agreed to
+      receive them. The{" "}
       <Link href={ACCOUNTS_AND_EMAIL.href}>{ACCOUNTS_AND_EMAIL.title}</Link>{" "}
       notice describes each message.
     </p>
@@ -114,18 +114,18 @@ const PrivacyNotice = () => (
     <p>
       To keep automated programs from creating accounts and requesting email,
       the create account, forgot password, and request new verification link
-      pages include Google reCAPTCHA. Google&apos;s script is loaded only when
-      you choose to load it on one of those pages, and that choice is your
-      consent to it. It may collect information about your browser and device,
-      your IP address, and how you interact with the page, and it sets a cookie,
-      in order to decide whether you are a person. When you submit one of those
+      pages include Google reCAPTCHA. Google's script is loaded only when you
+      choose to load it on one of those pages, and that choice is your consent
+      to it. It may collect information about your browser and device, your IP
+      address, and how you interact with the page, and it sets a cookie, in
+      order to decide whether you are a person. When you submit one of those
       forms, the site sends your reCAPTCHA response to Google to check it, uses
       the answer only to accept or refuse the form, and does not keep it.
     </p>
     <p>
       Google provides reCAPTCHA to this site as a service provider. I am
       responsible for the information reCAPTCHA collects here, and Google
-      handles it on the site&apos;s behalf under its{" "}
+      handles it on the site's behalf under its{" "}
       <a
         href={CLOUD_DATA_PROCESSING_ADDENDUM_URL}
         target="_blank"
@@ -149,12 +149,9 @@ const PrivacyNotice = () => (
     </p>
     <ul>
       <li>
-        Google, which checks reCAPTCHA responses and delivers the site&apos;s
-        email.
+        Google, which checks reCAPTCHA responses and delivers the site's email.
       </li>
-      <li>
-        The hosting providers that run the site&apos;s servers and database.
-      </li>
+      <li>The hosting providers that run the site's servers and database.</li>
     </ul>
     <p>
       Information may also be disclosed if the law requires it, or to protect
@@ -165,7 +162,7 @@ const PrivacyNotice = () => (
     <p>
       Your account details and notifications are kept until you delete your
       account. Deleting your account is designed to remove them straight away,
-      and to scrub your email address out of the site&apos;s records of the
+      and to scrub your email address out of the site's records of the
       verification and password reset emails it sent you, including the delivery
       reports from the mail provider, replacing it with a random placeholder.
       Those records are kept to troubleshoot email delivery, but once your
@@ -202,7 +199,7 @@ const PrivacyNotice = () => (
       </li>
       <li>
         reCAPTCHA loads only with your consent. You can withdraw that consent by
-        leaving or reloading the page, which stops Google&apos;s script, and by
+        leaving or reloading the page, which stops Google's script, and by
         deleting its cookie in your browser. It is not loaded again unless you
         choose it.
       </li>
@@ -217,11 +214,11 @@ const PrivacyNotice = () => (
       place with data protection law, you also have the right to complain to
       your local data protection authority. In those places, the legal bases for
       handling your information are that it is needed to provide the account you
-      asked for, the site&apos;s legitimate interest in keeping the site secure
-      and working, and your consent for reCAPTCHA, newsletter emails, and
-      product and marketing emails. If you are a California resident, the site
-      does not sell or share your personal information, and you can use the
-      choices above to know, correct, and delete it.
+      asked for, the site's legitimate interest in keeping the site secure and
+      working, and your consent for reCAPTCHA, newsletter emails, and product
+      and marketing emails. If you are a California resident, the site does not
+      sell or share your personal information, and you can use the choices above
+      to know, correct, and delete it.
     </p>
     <p>
       The site does not track visitors, so it has nothing to change in response

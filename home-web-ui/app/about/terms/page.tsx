@@ -26,7 +26,7 @@ const TermsOfUse = () => (
     </p>
 
     <h2>Using the site</h2>
-    <p>The site&apos;s content is there for you to read. Please do not:</p>
+    <p>The site's content is there for you to read. Please do not:</p>
     <ul>
       <li>
         try to gain access to accounts, servers, or data that are not yours;
@@ -82,7 +82,7 @@ const TermsOfUse = () => (
     </p>
     <ul>
       <li>
-        to tell you that one of the site&apos;s notices has been updated:
+        to tell you that one of the site's notices has been updated:
         <ul>
           {NOTICES.map(({ href, title }) => (
             <li key={href}>
@@ -121,15 +121,15 @@ const TermsOfUse = () => (
       , which lets anyone read it, learn from it, change it, and use it for any
       purpose, as long as they share their own changes under the same license
       when they distribute the code or run it as a service. The license covers
-      the code, not the site&apos;s content.{" "}
+      the code, not the site's content.{" "}
       <Link href={SOURCE_AND_LICENSES.href}>{SOURCE_AND_LICENSES.title}</Link>{" "}
       has the details.
     </p>
 
     <h2>Other services and links</h2>
     <p>
-      Google reCAPTCHA protects some of the site&apos;s forms. Google provides
-      it to this site as a service, and the{" "}
+      Google reCAPTCHA protects some of the site's forms. Google provides it to
+      this site as a service, and the{" "}
       <Link href={PRIVACY_NOTICE.href}>{PRIVACY_NOTICE.title}</Link> explains
       what it collects. The site links to other websites, such as GitHub. Those
       sites have their own terms and privacy practices, and this site is not
@@ -168,7 +168,7 @@ const TermsOfUse = () => (
       professional advice.
     </p>
     <p>
-      The site&apos;s notices describe how it is meant to work, and I keep them
+      The site's notices describe how it is meant to work, and I keep them
       accurate on a best-effort basis. Software has bugs, though, and code
       written in error can have consequences nobody intended, so the site may
       not always behave as the notices describe. If you find that it does not,
