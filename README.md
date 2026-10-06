@@ -46,12 +46,18 @@ A post's address is `/blog/<slug>`. The slug is made from the title when the pos
 
 `next build` runs in CI without access to the API, so the build can only fully prerender the pages that show no posts:
 
-| Pages                                    | After the build                                    | Fully static                                     |
-| ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
-| `/projects`, `/about` and their subpages | Static                                             | From the build                                   |
-| `/`, `/blog`, `/blog/page/2`             | Static shell; the post list renders on every visit | After `npm run revalidate`                       |
-| `/blog/<slug>`                           | Not built                                          | After `npm run revalidate`, or their first visit |
-| `/blog/page/<n>` beyond 2                | Not built                                          | After their first visit                          |
+| Pages                                                                                                                    | After the build                                     | Fully static                                     |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------ |
+| `/projects`, `/about` and their subpages, `/forgotpasswordsuccess` and `/profile/accountManagement/resetPasswordSuccess` | Static                                              | From the build                                   |
+| `/`, `/blog`                                                                                                             | Static shell; the post list renders on every visit  | After `npm run revalidate`                       |
+| `/blog/page/2`                                                                                                           | Rendered on every visit                             | After `npm run revalidate`                       |
+| `/blog/<slug>`                                                                                                           | Not built                                           | After `npm run revalidate`, or their first visit |
+| `/blog/page/<n>` beyond 2                                                                                                | Not built                                           | After their first visit                          |
+| `/sitemap.xml`, `/feed.xml`                                                                                              | Rendered on every request from the cached post list | Never                                            |
+
+`/blog/page/2` is in the build but, unlike `/blog`, has no shell: it checks the requested page number against the post count before it renders, outside the list's Suspense boundary, and without the API that check cannot be made at build time. `/sitemap.xml` and `/feed.xml` are route handlers, which have no first-visit save: after a build made without the API they are rendered on every request, from the cached post list, and are never saved as pages. A build made with the API reachable prerenders all of these.
+
+`/signin`, `/createaccount`, `/forgotpassword`, `/profile`, `/settings`, the pages under `/profile/accountManagement` other than `resetPasswordSuccess`, `/blog/newPost` and `/blog/<slug>/edit` are never saved. Each reads the session cookie, or the query string, at the top of the page with no Suspense boundary below the layout, so it has no static shell: every visit renders the whole page, layout included. `export const instant = false` in each of these pages tells `next build` to accept the empty shell. `/session`, `/revalidate` and the image routes under `/blog` are route handlers that run on every request.
 
 The site saves pages in `.next/server/route-cache` inside the web container. A new container starts again from the build output. After a restart of the same container, each page saved before the restart is rendered again on its first visit and saved again, while pages that were never saved keep their build output.
 
@@ -107,9 +113,19 @@ Post image URLs never change what they serve, because a post never reuses an ima
 
 When adding a page or route that shows posts, read them through `getCachedPosts` or `getPost` (or tag the cached function with `POSTS_TAG`) so post changes reach it.
 
+### Page counts
+
+No page stores a page count. `Page N of M`, the Previous and Next links and the redirect from a page beyond the last one all come from the API's pagination, which the server recomputes on every request from the number of posts. Posts are listed by creation date, so editing a post never moves it to another page; only creating or deleting one changes the count. Every list page is expired on each change, so each shows the new count the next time it is visited, and a saved page beyond the new last page becomes a redirect to the last page on its next visit.
+
+Two things can drift. The `?page=` the blog list adds to post links records the page the post was on when the link was made: after posts are added above it, the links back from the post page open that page, where the `#post-<slug>` anchor is no longer found, and a page number beyond the last page redirects to the last page. Changes that bypass the post actions, such as `npm run seed` or edits made directly in the database, expire nothing: a visit more than a day after a list page was saved serves it and renders it again in the background, and `npm run revalidate` refreshes the lists but not the post pages, the sitemap or the feed.
+
 ### Post pages
 
-Post pages (`/blog/<slug>`) are not in the build. Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so the route lists one placeholder slug that is never a post and prerenders as a 404. Each post is rendered the first time it is visited and served as a fully static page from then on, until a post is created, updated or deleted. The `?page=` the blog list adds to post links is read in the browser after hydration, so the same static page serves every list page. `/sitemap.xml` lists every post URL and `/feed.xml` the latest ones; both are cached like the post list.
+Post pages (`/blog/<slug>`) are not in the build. Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so the route lists one placeholder slug that is never a post and prerenders as a 404. With the slug unknown until the visit, the route's shell is empty, and `export const instant = false` tells `next build` to accept that; `/blog/page/<n>` does the same. Each post is rendered the first time it is visited and served as a fully static page from then on, until a post is created, updated or deleted. The `?page=` the blog list adds to post links is read in the browser after hydration, so the same static page serves every list page.
+
+A slug that is not a post renders the Post Not Found page with HTTP status 200, for browsers and for Googlebot alike. Next.js streams a dynamic route's shell first and commits the status with it, so the `notFound()` thrown by the post lookup can only change the body; Next.js adds a `noindex` robots tag to that body, which keeps the page out of search results. Only the placeholder slug answers 404, because its status was fixed at build time. Answering 404 for every missing post would need a proxy that asks the API whether the slug exists before each visit to a post page, adding that round trip to every visit, including visits to pages the site has already saved, so the site accepts the 200.
+
+`/sitemap.xml` lists every post URL and `/feed.xml` the latest ones. Both read the post list through the cached lookups, so a post change reaches them, but their responses are only saved as pages when the build could reach the API: after a CI build they are rendered on every request from the cached list.
 
 ## Linting
 
