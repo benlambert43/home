@@ -5,12 +5,15 @@ import {
   unavailableBlogMetadata,
 } from "@/app/lib/metadata";
 import { getPost } from "@/app/lib/posts";
-import { SearchParams } from "@/app/lib/searchParams";
 import type { ResolvingMetadata } from "next";
 
-type PostProps = { params: PostParams; searchParams: SearchParams };
+type PostProps = { params: PostParams };
+
+const PLACEHOLDER_SLUG = "__placeholder__";
 
 export const instant = false;
+
+export const generateStaticParams = () => [{ slug: PLACEHOLDER_SLUG }];
 
 export const generateMetadata = async (
   { params }: PostProps,
@@ -24,8 +27,6 @@ export const generateMetadata = async (
   return postMetadata(result.post, await siteShareImages(parent));
 };
 
-const BlogPost = ({ params, searchParams }: PostProps) => (
-  <Post params={params} searchParams={searchParams} />
-);
+const BlogPost = ({ params }: PostProps) => <Post params={params} />;
 
 export default BlogPost;

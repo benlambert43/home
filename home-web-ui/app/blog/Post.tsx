@@ -1,9 +1,5 @@
 import AdjacentPosts from "@/app/blog/AdjacentPosts";
-import {
-  postFullSizeImageHref,
-  postImageHref,
-  requestedPage,
-} from "@/app/blog/links";
+import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import PostAdminActions from "@/app/blog/PostAdminActions";
 import PostByline from "@/app/blog/PostByline";
 import PostHeaderImage from "@/app/blog/PostHeaderImage";
@@ -13,30 +9,15 @@ import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import PageColumn from "@/app/components/PageColumn";
 import { getPost } from "@/app/lib/posts";
-import { SearchParams } from "@/app/lib/searchParams";
 import { postHeadingIds } from "@home/shared";
-import { Suspense } from "react";
 
 export type PostParams = Promise<{ slug: string }>;
 
-const Post = async ({
-  params,
-  searchParams,
-}: {
-  params: PostParams;
-  searchParams: SearchParams;
-}) => {
-  const page = requestedPage((await searchParams).page);
+const Post = async ({ params }: { params: PostParams }) => {
   const result = await getPost((await params).slug);
 
   if (result.error) {
-    return (
-      <PostProblem
-        headline="Post Unavailable"
-        detail={result.message}
-        page={page}
-      />
-    );
+    return <PostProblem headline="Post Unavailable" detail={result.message} />;
   }
 
   const { post, previous, next } = result;
@@ -57,14 +38,8 @@ const Post = async ({
     <PageColumn className="flex flex-col gap-4">
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
-        <ReturnToBlogPosts
-          page={page}
-          postSlug={post.slug}
-          appearance="arrow"
-        />
-        <Suspense fallback={null}>
-          <PostAdminActions postId={post._id} slug={post.slug} page={page} />
-        </Suspense>
+        <ReturnToBlogPosts postSlug={post.slug} appearance="arrow" />
+        <PostAdminActions postId={post._id} slug={post.slug} />
       </div>
       <article className="flex flex-col gap-4">
         <header className="flex flex-col gap-4">
@@ -84,9 +59,9 @@ const Post = async ({
           headingIds={postHeadingIds(post.content)}
         />
       </article>
-      <AdjacentPosts previous={previous} next={next} page={page} />
+      <AdjacentPosts previous={previous} next={next} />
       <div className="mt-6 flex justify-center">
-        <ReturnToBlogPosts page={page} postSlug={post.slug} appearance="text" />
+        <ReturnToBlogPosts postSlug={post.slug} appearance="text" />
       </div>
     </PageColumn>
   );

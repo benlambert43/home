@@ -6,10 +6,19 @@ import type { Metadata, ResolvingMetadata, Viewport } from "next";
 export const SITE_NAME = "benlambert.tech";
 const SITE_DESCRIPTION = "my personal website, with a blog and projects 🧑‍💻";
 
+export const BLOG_NAME = `${SITE_NAME} blog`;
+
+export const FEED_PATH = "/feed.xml";
+
+const FEED_ALTERNATE = {
+  types: { "application/rss+xml": [{ url: FEED_PATH, title: BLOG_NAME }] },
+};
+
 export const siteMetadata: Metadata = {
   metadataBase: new URL(BASE_SITE_URL),
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
+  alternates: FEED_ALTERNATE,
   openGraph: { type: "website", siteName: SITE_NAME },
 };
 
@@ -22,7 +31,7 @@ const HOME_DESCRIPTION = "A place to share my projects and experiences.";
 export const homeMetadata: Metadata = {
   title: SITE_NAME,
   description: HOME_DESCRIPTION,
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", ...FEED_ALTERNATE },
   openGraph: {
     type: "website",
     url: "/",
@@ -42,7 +51,7 @@ export const pageMetadata = (
   description,
   ...(canonicalPath === undefined
     ? {}
-    : { alternates: { canonical: canonicalPath } }),
+    : { alternates: { canonical: canonicalPath, ...FEED_ALTERNATE } }),
 });
 
 type ShareImages = NonNullable<Metadata["openGraph"]>["images"];
@@ -58,8 +67,6 @@ const openGraphPage = (
 ) => ({ siteName: SITE_NAME, title, description, url: canonicalPath });
 
 const BLOG_TITLE = "blog";
-
-export const BLOG_NAME = `${SITE_NAME} blog`;
 
 export const BLOG_DESCRIPTION = "blog posts about my projects and experiences.";
 

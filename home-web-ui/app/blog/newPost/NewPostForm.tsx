@@ -42,7 +42,7 @@ import {
   useState,
 } from "react";
 
-const NewPostForm = ({ page }: { page: number }) => {
+const NewPostForm = () => {
   const [state, action, pending] = useActionState(createPost, undefined);
   const [submitted, setSubmitted] = useState<CreatePostFormState>(undefined);
   const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
@@ -147,7 +147,7 @@ const NewPostForm = ({ page }: { page: number }) => {
       />
 
       <div className="mt-4 flex flex-row items-start justify-start gap-2">
-        <ReturnToBlogPosts page={page} appearance="outlined" />
+        <ReturnToBlogPosts appearance="outlined" />
         <Button size="large" disabled={busy} type="submit">
           Create Post
         </Button>

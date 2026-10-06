@@ -1,18 +1,21 @@
+"use client";
+
+import BlogListPage from "@/app/blog/BlogListPage";
 import { blogHref } from "@/app/blog/links";
 import Button from "@/app/ui/Button";
 import SubtleLink from "@/app/ui/SubtleLink";
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
 
-const ReturnToBlogPosts = ({
-  page = 1,
-  postSlug,
-  appearance = "filled",
+type Appearance = "filled" | "outlined" | "arrow" | "text";
+
+const ReturnLink = ({
+  href,
+  appearance,
 }: {
-  page?: number;
-  postSlug?: string;
-  appearance?: "filled" | "outlined" | "arrow" | "text";
+  href: string;
+  appearance: Appearance;
 }) => {
-  const linkProps = { href: blogHref(page, postSlug) };
+  const linkProps = { href };
 
   if (appearance === "arrow") {
     return (
@@ -24,7 +27,7 @@ const ReturnToBlogPosts = ({
 
   if (appearance === "text") {
     return (
-      <SubtleLink href={linkProps.href} textSize="base">
+      <SubtleLink href={href} textSize="base">
         Go Back
       </SubtleLink>
     );
@@ -41,5 +44,19 @@ const ReturnToBlogPosts = ({
     </Button>
   );
 };
+
+const ReturnToBlogPosts = ({
+  postSlug,
+  appearance = "filled",
+}: {
+  postSlug?: string;
+  appearance?: Appearance;
+}) => (
+  <BlogListPage>
+    {(page) => (
+      <ReturnLink href={blogHref(page, postSlug)} appearance={appearance} />
+    )}
+  </BlogListPage>
+);
 
 export default ReturnToBlogPosts;

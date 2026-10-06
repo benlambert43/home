@@ -32,13 +32,7 @@ const EditPost = async ({
   const result = lookup.error ? lookup : await getPostForEdit(lookup.post._id);
 
   if (result.error) {
-    return (
-      <PostProblem
-        headline="Post Unavailable"
-        detail={result.message}
-        page={page}
-      />
-    );
+    return <PostProblem headline="Post Unavailable" detail={result.message} />;
   }
 
   return (

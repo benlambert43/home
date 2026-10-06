@@ -56,6 +56,8 @@ The script reads `REVALIDATE_SECRET` from the environment or `home-web-ui/.env`,
 
 `REVALIDATE_SECRET` is required like the other variables in `home-web-ui/.env.template`; CI needs it set to build. Other pages regenerate on their own: post create, update and delete revalidate the blog pages, and paged URLs that were not in the build are generated on first visit.
 
+Post pages (`/blog/<slug>`) are not in the build either. Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so the route lists one placeholder slug that is never a post and prerenders as a 404. Each post is rendered the first time it is visited after a deployment and served as a fully static page from then on, until the post is created, updated or deleted. The `?page=` the blog list adds to post links is read in the browser after hydration, so the same static page serves every list page. `/sitemap.xml` lists every post URL and `/feed.xml` the latest ones; both are cached like the post list. A script that visits every URL in the sitemap after `npm run revalidate` would warm the post pages before visitors or crawlers arrive.
+
 ## Linting
 
 Lint rules shared by every workspace live in eslint.config.base.mjs

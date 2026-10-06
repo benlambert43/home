@@ -1,3 +1,6 @@
+"use client";
+
+import BlogListPage from "@/app/blog/BlogListPage";
 import { postHref } from "@/app/blog/links";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/16/solid";
 import { AdjacentPost } from "@home/shared";
@@ -33,36 +36,38 @@ const AdjacentPostLink = ({
 const AdjacentPosts = ({
   previous,
   next,
-  page,
 }: {
   previous: AdjacentPost | null;
   next: AdjacentPost | null;
-  page: number;
 }) => {
   if (!previous && !next) return null;
 
   return (
-    <nav
-      aria-label="Previous and next posts"
-      className="grid grid-cols-2 gap-6 border-t border-slate-700 pt-4"
-    >
-      {previous && (
-        <AdjacentPostLink post={previous} page={page}>
-          <ArrowLeftIcon className="size-3.5" />
-          Previous
-        </AdjacentPostLink>
-      )}
-      {next && (
-        <AdjacentPostLink
-          post={next}
-          page={page}
-          className="col-start-2 items-end text-right"
+    <BlogListPage>
+      {(page) => (
+        <nav
+          aria-label="Previous and next posts"
+          className="grid grid-cols-2 gap-6 border-t border-slate-700 pt-4"
         >
-          Next
-          <ArrowRightIcon className="size-3.5" />
-        </AdjacentPostLink>
+          {previous && (
+            <AdjacentPostLink post={previous} page={page}>
+              <ArrowLeftIcon className="size-3.5" />
+              Previous
+            </AdjacentPostLink>
+          )}
+          {next && (
+            <AdjacentPostLink
+              post={next}
+              page={page}
+              className="col-start-2 items-end text-right"
+            >
+              Next
+              <ArrowRightIcon className="size-3.5" />
+            </AdjacentPostLink>
+          )}
+        </nav>
       )}
-    </nav>
+    </BlogListPage>
   );
 };
 
