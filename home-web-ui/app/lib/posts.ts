@@ -28,10 +28,11 @@ export const postSlugTag = (slug: string) => `post-slug:${slug}`;
 
 export const postAuthorTag = (userId: string) => `post-author:${userId}`;
 
-export const revalidatePostLists = () => {
+export const revalidatePostPaths = () => {
   revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath("/blog/page/[page]", "page");
+  revalidatePath("/blog/[slug]", "page");
 };
 
 export type PostLookup = GetPostResponse | { error: false; post: null };

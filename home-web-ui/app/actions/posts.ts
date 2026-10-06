@@ -23,7 +23,7 @@ import {
   POSTS_URL,
   postSlugTag,
   postTag,
-  revalidatePostLists,
+  revalidatePostPaths,
 } from "@/app/lib/posts";
 import {
   createPostBodySchema,
@@ -34,7 +34,7 @@ import {
   UpdatePostRequestBody,
   UpdatePostResponse,
 } from "@home/shared";
-import { revalidatePath, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 const submittedUploadId = (formData: FormData) => {
@@ -84,8 +84,7 @@ export const createPost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postSlugTag(slug));
-  revalidatePath(postHref(slug));
-  revalidatePostLists();
+  revalidatePostPaths();
   redirect("/blog");
 };
 
@@ -134,8 +133,7 @@ export const updatePost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
-  revalidatePath(postHref(slug));
-  revalidatePostLists();
+  revalidatePostPaths();
   redirect(postHref(slug, page));
 };
 
@@ -157,6 +155,6 @@ export const deletePost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
-  revalidatePostLists();
+  revalidatePostPaths();
   redirect(blogHref(page));
 };
