@@ -44,19 +44,72 @@ A post's address is `/blog/<slug>`. The slug is made from the title when the pos
 
 ## Static pages after deployment
 
-`next build` runs in CI without access to the API, so it cannot bake the post list into `/`, `/blog` and `/blog/page/2`. Those pages leave the build as static shells that render the post list on every request, and they stay that way until the site is told to regenerate them.
+`next build` runs in CI without access to the API, so the build can only fully prerender the pages that show no posts:
 
-Run this on the home server after every start of the web container, once the API container is up:
+| Pages                                    | After the build                                    | Fully static                                     |
+| ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| `/projects`, `/about` and their subpages | Static                                             | From the build                                   |
+| `/`, `/blog`, `/blog/page/2`             | Static shell; the post list renders on every visit | After `npm run revalidate`                       |
+| `/blog/<slug>`                           | Not built                                          | After `npm run revalidate`, or their first visit |
+| `/blog/page/<n>` beyond 2                | Not built                                          | After their first visit                          |
+
+The site saves pages in `.next/server/route-cache` inside the web container. A new container starts again from the build output. After a restart of the same container, each page saved before the restart is rendered again on its first visit and saved again, while pages that were never saved keep their build output.
+
+`npm run revalidate` brings the site to the fully static state. It regenerates the post lists, then visits every page in the sitemap so each one is saved before a visitor or crawler arrives.
+
+### When and where to run it
+
+Run it on the home server, from a checkout of this repository, after every start of the web container, once the API container is up:
 
 ```bash
 npm run revalidate -- https://benlambert.tech
 ```
 
-The script reads `REVALIDATE_SECRET` from the environment or `home-web-ui/.env`, then calls `POST /revalidate` on the site with the secret in an `x-revalidate-secret` header. The site compares the header with its own `REVALIDATE_SECRET`, checks that the API is reachable (503 if not, and the script keeps retrying), then regenerates `/`, `/blog` and every `/blog/page/<n>`, which are served as fully static pages from then on. The script finishes by fetching `/` and `/blog` so the first regeneration happens before a visitor arrives.
+It needs `sh` and `curl`, defaults to `http://localhost:3000` when no URL is given, and is safe to run again at any time. It is not needed after post changes: the site updates its saved pages itself (see [Post changes](#post-changes)).
 
-`REVALIDATE_SECRET` is required like the other variables in `home-web-ui/.env.template`; CI needs it set to build. Other pages regenerate on their own: post create, update and delete revalidate the blog pages, and paged URLs that were not in the build are generated on first visit.
+### How it works
 
-Post pages (`/blog/<slug>`) are not in the build either. Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so the route lists one placeholder slug that is never a post and prerenders as a 404. Each post is rendered the first time it is visited after a deployment and served as a fully static page from then on, until the post is created, updated or deleted. The `?page=` the blog list adds to post links is read in the browser after hydration, so the same static page serves every list page. `/sitemap.xml` lists every post URL and `/feed.xml` the latest ones; both are cached like the post list. A script that visits every URL in the sitemap after `npm run revalidate` would warm the post pages before visitors or crawlers arrive.
+The script has two steps.
+
+**Revalidate.** The script reads `REVALIDATE_SECRET` from the environment or `home-web-ui/.env`, then calls `POST /revalidate` on the site with the secret in an `x-revalidate-secret` header. The site compares the header with its own `REVALIDATE_SECRET` (403 if they differ) and checks that the API is reachable (503 if not). On a 503 or no answer the script retries every 2 seconds, 60 times by default (`REVALIDATE_ATTEMPTS` and `REVALIDATE_DELAY_SECONDS` change this), so it can be started before the API is ready. Once the API answers, the site marks `/`, `/blog` and every `/blog/page/<n>` for regeneration.
+
+**Warm.** The script fetches `/sitemap.xml` and requests every URL it lists, one at a time: the home, project and about pages, `/blog`, and every post. It keeps only the path of each URL and requests it from the site URL it was given, so it warms that server even when the sitemap's origin (`BASE_SITE_URL`) is different, for example a test server on another port. Each line shows the path, the HTTP status and what happened, read from the `x-nextjs-cache` response header:
+
+- `saved now` (`MISS`): this request rendered the page and the site saved it.
+- `already saved` (`HIT` or `STALE`): the site served a page it had already saved.
+- `not saved` (no header): the page was rendered for this request only, for example because the API went down.
+
+The script visits every URL even after a failure, then exits with an error if any page answered with a status other than 200 or was not saved. `/blog/page/<n>` pages are not in the sitemap, so it does not visit them; they are saved on their first visit.
+
+`REVALIDATE_SECRET` is required like the other variables in `home-web-ui/.env.template`; CI needs it set to build.
+
+### Post changes
+
+Creating, editing or deleting a post updates every saved page that shows posts, so the next visit to each one renders it again with the change and saves it. No script is needed.
+
+Everything that reads posts goes through the cached lookups in `home-web-ui/app/lib/posts.ts`, which tag their results:
+
+- every post list and post lookup, `/sitemap.xml` and `/feed.xml` carry the `posts` tag
+- a post lookup also carries `post:<id>`, `post-slug:<slug>` and `post-author:<user id>`
+- a post list also carries `post-author:<user id>` for each author in it
+
+Saved pages inherit the tags of the lookups they used. The post actions in `home-web-ui/app/actions/posts.ts` then expire:
+
+| Change | Expires                                                                             |
+| ------ | ----------------------------------------------------------------------------------- |
+| Create | `posts`, `post-slug:<slug>`, the new post's URL, and `/`, `/blog`, `/blog/page/<n>` |
+| Edit   | `posts`, `post:<id>`, the post's URL, and `/`, `/blog`, `/blog/page/<n>`            |
+| Delete | `posts`, `post:<id>`, and `/`, `/blog`, `/blog/page/<n>`                            |
+
+Expiring `posts` reaches the Recent Activity list on `/`, every list page, every post page (each links to its neighbours), the post metadata, the sitemap and the feed. The list paths are expired as well so that a change made before `npm run revalidate` has run still turns them fully static. A new post's URL is expired because a visit before the post existed saves a page for that URL that carries no post tags. A username change or account deletion expires `post-author:<user id>`, which reaches that author's posts and the lists that show them.
+
+Post image URLs never change what they serve, because a post never reuses an image name, so `next/image` and browsers can cache them safely.
+
+When adding a page or route that shows posts, read them through `getCachedPosts` or `getPost` (or tag the cached function with `POSTS_TAG`) so post changes reach it.
+
+### Post pages
+
+Post pages (`/blog/<slug>`) are not in the build. Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so the route lists one placeholder slug that is never a post and prerenders as a 404. Each post is rendered the first time it is visited and served as a fully static page from then on, until a post is created, updated or deleted. The `?page=` the blog list adds to post links is read in the browser after hydration, so the same static page serves every list page. `/sitemap.xml` lists every post URL and `/feed.xml` the latest ones; both are cached like the post list.
 
 ## Linting
 

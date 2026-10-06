@@ -3,11 +3,10 @@ import {
   FORBIDDEN_MESSAGE,
   SERVICE_UNAVAILABLE_MESSAGE,
 } from "@/app/lib/messages";
-import { getCachedPosts, revalidateBlogPaths } from "@/app/lib/posts";
+import { getCachedPosts, revalidatePostLists } from "@/app/lib/posts";
 import { REVALIDATE_SECRET } from "@/app/lib/serverEnv";
 import { ApiSuccess } from "@home/shared";
 import { timingSafeEqual } from "node:crypto";
-import { revalidatePath } from "next/cache";
 
 const REVALIDATE_SECRET_HEADER = "x-revalidate-secret";
 
@@ -39,8 +38,7 @@ export const POST = async (request: Request) => {
     );
   }
 
-  revalidatePath("/");
-  revalidateBlogPaths();
+  revalidatePostLists();
 
   return Response.json({
     error: false,

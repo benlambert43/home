@@ -28,7 +28,8 @@ export const postSlugTag = (slug: string) => `post-slug:${slug}`;
 
 export const postAuthorTag = (userId: string) => `post-author:${userId}`;
 
-export const revalidateBlogPaths = () => {
+export const revalidatePostLists = () => {
+  revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath("/blog/page/[page]", "page");
 };

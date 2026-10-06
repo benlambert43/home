@@ -23,7 +23,7 @@ import {
   POSTS_URL,
   postSlugTag,
   postTag,
-  revalidateBlogPaths,
+  revalidatePostLists,
 } from "@/app/lib/posts";
 import {
   createPostBodySchema,
@@ -84,7 +84,8 @@ export const createPost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postSlugTag(slug));
-  revalidateBlogPaths();
+  revalidatePath(postHref(slug));
+  revalidatePostLists();
   redirect("/blog");
 };
 
@@ -134,7 +135,7 @@ export const updatePost = async (
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
   revalidatePath(postHref(slug));
-  revalidateBlogPaths();
+  revalidatePostLists();
   redirect(postHref(slug, page));
 };
 
@@ -156,6 +157,6 @@ export const deletePost = async (
 
   updateTag(POSTS_TAG);
   updateTag(postTag(id));
-  revalidateBlogPaths();
+  revalidatePostLists();
   redirect(blogHref(page));
 };
