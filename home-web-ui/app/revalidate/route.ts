@@ -3,7 +3,7 @@ import {
   FORBIDDEN_MESSAGE,
   SERVICE_UNAVAILABLE_MESSAGE,
 } from "@/app/lib/messages";
-import { getCachedPosts, revalidatePostPaths } from "@/app/lib/posts";
+import { getPosts, revalidatePostPaths } from "@/app/lib/posts";
 import { REVALIDATE_SECRET } from "@/app/lib/serverEnv";
 import { ApiSuccess } from "@home/shared";
 import { timingSafeEqual } from "node:crypto";
@@ -31,7 +31,7 @@ export const POST = async (request: Request) => {
     return failureResponse(FORBIDDEN_STATUS, FORBIDDEN_MESSAGE);
   }
 
-  const result = await getCachedPosts(1);
+  const result = await getPosts(1);
   if (result.error) {
     return failureResponse(
       SERVICE_UNAVAILABLE_STATUS,
