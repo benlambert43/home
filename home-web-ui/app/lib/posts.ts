@@ -111,12 +111,12 @@ export const getCachedPost = async (slug: string): Promise<PostLookup> => {
 
     return result;
   } catch (error) {
-    cacheLife("seconds");
-
     if (error instanceof ApiError && error.status === NOT_FOUND_STATUS) {
+      cacheLife("days");
       return { error: false, post: null };
     }
 
+    cacheLife("seconds");
     return { error: true, message: errorMessage(error) };
   }
 };
