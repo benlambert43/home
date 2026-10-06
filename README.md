@@ -61,7 +61,7 @@ A post's address is `/blog/<slug>`. The slug is made from the title when the pos
 
 The site saves pages in `.next/server/route-cache` inside the web container. A new container starts again from the build output. After a restart of the same container, each page saved before the restart is rendered again on its first visit and saved again, while pages that were never saved keep their build output.
 
-`npm run revalidate` brings the site to the fully static state. It regenerates the post lists, then visits every page in the sitemap so each one is saved before a visitor or crawler arrives.
+`npm run revalidate` brings the site to the fully static state. It regenerates the post lists, then runs the postbuild render crawl, which programmatically exercises every route in the sitemap so each one is rendered and saved before a visitor or crawler arrives.
 
 ### When and where to run it
 
@@ -79,13 +79,13 @@ The script has two steps.
 
 **Revalidate.** The script reads `REVALIDATE_SECRET` from the environment or `home-web-ui/.env`, then calls `POST /revalidate` on the site with the secret in an `x-revalidate-secret` header. The site compares the header with its own `REVALIDATE_SECRET` (403 if they differ) and checks that the API is reachable (503 if not). On a 503 or no answer the script retries every 2 seconds, 60 times by default (`REVALIDATE_ATTEMPTS` and `REVALIDATE_DELAY_SECONDS` change this), so it can be started before the API is ready. Once the API answers, the site marks `/`, `/blog` and every `/blog/page/<n>` for regeneration.
 
-**Warm.** The script fetches `/sitemap.xml` and requests every URL it lists, one at a time: the home, project and about pages, `/blog`, and every post. It keeps only the path of each URL and requests it from the site URL it was given, so it warms that server even when the sitemap's origin (`BASE_SITE_URL`) is different, for example a test server on another port. Each line shows the path, the HTTP status and what happened, read from the `x-nextjs-cache` response header:
+**Postbuild render crawl.** The script fetches `/sitemap.xml` and programmatically exercises every URL it lists, requesting them one at a time: the home, project and about pages, `/blog`, and every post. It keeps only the path of each URL and requests it from the site URL it was given, so it exercises the routes of that server even when the sitemap's origin (`BASE_SITE_URL`) is different, for example a test server on another port. Each line shows the path, the HTTP status and what happened, read from the `x-nextjs-cache` response header:
 
 - `saved now` (`MISS`): this request rendered the page and the site saved it.
 - `already saved` (`HIT` or `STALE`): the site served a page it had already saved.
 - `not saved` (no header): the page was rendered for this request only, for example because the API went down.
 
-The script visits every URL even after a failure, then exits with an error if any page answered with a status other than 200 or was not saved. `/blog/page/<n>` pages are not in the sitemap, so it does not visit them; they are saved on their first visit.
+The crawl requests every URL even after a failure, then exits with an error if any route answered with a status other than 200 or was not saved. `/blog/page/<n>` pages are not in the sitemap, so the crawl does not exercise them; they are saved on their first visit.
 
 `REVALIDATE_SECRET` is required like the other variables in `home-web-ui/.env.template`; CI needs it set to build.
 

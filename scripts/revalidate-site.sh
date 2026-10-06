@@ -75,7 +75,7 @@ sitemap_paths() {
 
   if [ "$status" != 200 ]; then
     printf '%s/sitemap.xml answered %s; check the site URL.\n' "$site_url" "$status" >&2
-    report_fail warm
+    report_fail postbuild-render-crawl
     exit 1
   fi
 
@@ -84,11 +84,11 @@ sitemap_paths() {
       > "$paths_file"
 }
 
-warm() {
-  step warm "$site_url"
+postbuild_render_crawl() {
+  step postbuild-render-crawl "$site_url"
   sitemap_paths
 
-  visited=0
+  exercised=0
   posts=0
   failed=0
 
@@ -113,18 +113,18 @@ warm() {
       /blog/*) posts=$((posts + 1)) ;;
     esac
 
-    visited=$((visited + 1))
+    exercised=$((exercised + 1))
     printf '  %s -> %s %s\n' "$path" "$status" "$outcome"
   done < "$paths_file"
 
   if [ "$failed" -gt 0 ]; then
-    printf '\n%s of %s pages were not saved. Check that the API is up, then run this again.\n' "$failed" "$visited" >&2
-    report_fail warm
+    printf '\n%s of %s routes were not saved. Check that the API is up, then run this again.\n' "$failed" "$exercised" >&2
+    report_fail postbuild-render-crawl
     exit 1
   fi
 
-  pass "warmed $visited pages ($posts posts) at $site_url"
+  pass "exercised $exercised routes ($posts posts) at $site_url"
 }
 
 revalidate
-warm
+postbuild_render_crawl
