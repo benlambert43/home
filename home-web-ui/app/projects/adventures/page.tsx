@@ -2,7 +2,9 @@ import { pageMetadata } from "@/app/lib/metadata";
 import RouteMap from "@/app/projects/adventures/RouteMap";
 import ProjectPage from "@/app/projects/ProjectPage";
 
-export const metadata = pageMetadata("adventures");
+export const metadata = pageMetadata("adventures", {
+  canonicalPath: "/projects/adventures",
+});
 
 const Adventures = () => (
   <ProjectPage title="Adventures">

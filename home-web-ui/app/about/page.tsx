@@ -4,7 +4,7 @@ import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
-export const metadata = pageMetadata("about");
+export const metadata = pageMetadata("about", { canonicalPath: "/about" });
 
 const About = () => (
   <PageColumn className="flex flex-col gap-4">

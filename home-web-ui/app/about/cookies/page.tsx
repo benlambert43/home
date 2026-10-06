@@ -1,10 +1,13 @@
 import { RECAPTCHA_FAQ_URL } from "@/app/about/links";
 import Notice from "@/app/about/Notice";
-import { PRIVACY_NOTICE } from "@/app/about/notices";
+import { COOKIE_NOTICE, PRIVACY_NOTICE } from "@/app/about/notices";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
-export const metadata = pageMetadata("cookie notice");
+export const metadata = pageMetadata("cookie notice", {
+  canonicalPath: COOKIE_NOTICE.href,
+  description: COOKIE_NOTICE.description,
+});
 
 const CookieNotice = () => (
   <Notice title="Cookie Notice" updated="2026-10-05">

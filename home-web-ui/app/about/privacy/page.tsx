@@ -3,13 +3,17 @@ import Notice from "@/app/about/Notice";
 import {
   ACCOUNTS_AND_EMAIL,
   COOKIE_NOTICE,
+  PRIVACY_NOTICE,
   TERMS_OF_USE,
 } from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
-export const metadata = pageMetadata("privacy notice");
+export const metadata = pageMetadata("privacy notice", {
+  canonicalPath: PRIVACY_NOTICE.href,
+  description: PRIVACY_NOTICE.description,
+});
 
 const CLOUD_DATA_PROCESSING_ADDENDUM_URL =
   "https://cloud.google.com/terms/data-processing-addendum";

@@ -20,6 +20,7 @@ export const siteMetadata: Metadata = {
   description: SITE_DESCRIPTION,
   alternates: FEED_ALTERNATE,
   openGraph: { type: "website", siteName: SITE_NAME },
+  robots: { "max-image-preview": "large" },
 };
 
 export const siteViewport: Viewport = {

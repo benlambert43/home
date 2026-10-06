@@ -3,7 +3,9 @@ import ProjectPage from "@/app/projects/ProjectPage";
 import SoftwareWindows from "@/app/projects/software/SoftwareWindows";
 import Terminal from "@/app/projects/software/Terminal";
 
-export const metadata = pageMetadata("software");
+export const metadata = pageMetadata("software", {
+  canonicalPath: "/projects/software",
+});
 
 const Software = () => (
   <ProjectPage title="Software">

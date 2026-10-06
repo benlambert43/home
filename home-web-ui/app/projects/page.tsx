@@ -7,7 +7,9 @@ import { ArrowRightIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
 import { CSSProperties, ReactNode } from "react";
 
-export const metadata = pageMetadata("projects");
+export const metadata = pageMetadata("projects", {
+  canonicalPath: "/projects",
+});
 
 const SECTIONS: { href: string; title: string; preview: ReactNode }[] = [
   {

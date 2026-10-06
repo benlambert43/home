@@ -7,12 +7,16 @@ import {
   NOTICES,
   PRIVACY_NOTICE,
   SOURCE_AND_LICENSES,
+  TERMS_OF_USE,
 } from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
-export const metadata = pageMetadata("terms of use");
+export const metadata = pageMetadata("terms of use", {
+  canonicalPath: TERMS_OF_USE.href,
+  description: TERMS_OF_USE.description,
+});
 
 const TermsOfUse = () => (
   <Notice title="Terms of Use" updated="2026-10-05">

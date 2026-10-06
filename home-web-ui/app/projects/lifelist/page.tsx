@@ -2,7 +2,9 @@ import { pageMetadata } from "@/app/lib/metadata";
 import BirdWire from "@/app/projects/lifelist/BirdWire";
 import ProjectPage from "@/app/projects/ProjectPage";
 
-export const metadata = pageMetadata("life list");
+export const metadata = pageMetadata("life list", {
+  canonicalPath: "/projects/lifelist",
+});
 
 const LifeList = () => (
   <ProjectPage title="Life List">

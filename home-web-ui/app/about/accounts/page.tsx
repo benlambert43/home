@@ -1,10 +1,18 @@
 import Notice from "@/app/about/Notice";
-import { NOTICES, PRIVACY_NOTICE, TERMS_OF_USE } from "@/app/about/notices";
+import {
+  ACCOUNTS_AND_EMAIL,
+  NOTICES,
+  PRIVACY_NOTICE,
+  TERMS_OF_USE,
+} from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
-export const metadata = pageMetadata("accounts and email");
+export const metadata = pageMetadata("accounts and email", {
+  canonicalPath: ACCOUNTS_AND_EMAIL.href,
+  description: ACCOUNTS_AND_EMAIL.description,
+});
 
 const AccountsAndEmail = () => (
   <Notice title="Accounts and Email" updated="2026-10-05">

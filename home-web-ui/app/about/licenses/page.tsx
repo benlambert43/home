@@ -1,11 +1,14 @@
 import { GITHUB_REPOSITORY_URL, LICENSE_URL } from "@/app/about/links";
 import Notice from "@/app/about/Notice";
-import { TERMS_OF_USE } from "@/app/about/notices";
+import { SOURCE_AND_LICENSES, TERMS_OF_USE } from "@/app/about/notices";
 import ContactEmail from "@/app/components/ContactEmail";
 import { pageMetadata } from "@/app/lib/metadata";
 import Link from "next/link";
 
-export const metadata = pageMetadata("source and licenses");
+export const metadata = pageMetadata("source and licenses", {
+  canonicalPath: SOURCE_AND_LICENSES.href,
+  description: SOURCE_AND_LICENSES.description,
+});
 
 const PACKAGE_LOCK_URL = `${GITHUB_REPOSITORY_URL}/blob/main/package-lock.json`;
 
