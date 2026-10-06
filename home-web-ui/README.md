@@ -20,3 +20,12 @@ make every smaller size instead of asking the API for them.
 
 Builds with `output: "standalone"`.
 Next preserves the repo structure on deployment: the entrypoint is .next/standalone/home-web-ui/server.js, not .next/standalone/server.js.
+
+```bash
+PORT=3001 npm run start
+```
+
+Runs the production build. The standalone output leaves out `public` and
+`.next/static`, so the script copies both into it before starting the server.
+`next start` does not work with standalone output. The server takes its port
+from `PORT` (default 3000) and ignores `-p`.

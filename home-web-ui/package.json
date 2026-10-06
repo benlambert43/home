@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "cp -r public .next/standalone/home-web-ui/ && cp -r .next/static .next/standalone/home-web-ui/.next/ && node .next/standalone/home-web-ui/server.js",
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
