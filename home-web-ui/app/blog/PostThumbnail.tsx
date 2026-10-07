@@ -78,10 +78,12 @@ const PostThumbnail = ({
   post,
   pixels,
   className,
+  eager = false,
 }: {
   post: PostSummary;
   pixels: number;
   className: string;
+  eager?: boolean;
 }) => {
   const image = post.headerImage;
 
@@ -100,6 +102,7 @@ const PostThumbnail = ({
       alt=""
       width={pixels}
       height={pixels}
+      loading={eager ? "eager" : undefined}
       className={`${className} object-cover`}
     />
   );

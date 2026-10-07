@@ -8,12 +8,16 @@ import Link from "next/link";
 
 const THUMBNAIL_PIXELS = 120;
 
+const EAGER_THUMBNAIL_ROWS = 4;
+
 const PostRowThumbnail = ({
   post,
   page,
+  eager,
 }: {
   post: PostSummary;
   page: number;
+  eager: boolean;
 }) => (
   <Link
     href={postHref(post.slug, page)}
@@ -24,19 +28,28 @@ const PostRowThumbnail = ({
     <PostThumbnail
       post={post}
       pixels={THUMBNAIL_PIXELS}
+      eager={eager}
       className="size-20 rounded-md sm:size-30"
     />
   </Link>
 );
 
-const PostRow = ({ post, page }: { post: PostSummary; page: number }) => (
+const PostRow = ({
+  post,
+  page,
+  eager,
+}: {
+  post: PostSummary;
+  page: number;
+  eager: boolean;
+}) => (
   <li
     id={postAnchor(post.slug)}
     className="box-content flex min-h-30 scroll-mt-28 flex-row items-center
       gap-4 py-4 first:scroll-mt-[100vh] first:pt-0 last:pb-0 sm:scroll-mt-20
       sm:gap-6"
   >
-    <PostRowThumbnail post={post} page={page} />
+    <PostRowThumbnail post={post} page={page} eager={eager} />
     <div className="flex min-w-0 flex-col gap-1">
       <Link
         href={postHref(post.slug, page)}
@@ -87,8 +100,13 @@ const Posts = async ({ page }: { page: number }) => {
   return (
     <div className="flex flex-col gap-6">
       <ul className="flex flex-col divide-y divide-slate-700">
-        {posts.map((post) => (
-          <PostRow key={post._id} post={post} page={page} />
+        {posts.map((post, index) => (
+          <PostRow
+            key={post._id}
+            post={post}
+            page={page}
+            eager={index < EAGER_THUMBNAIL_ROWS}
+          />
         ))}
       </ul>
       <Pagination {...pagination} />

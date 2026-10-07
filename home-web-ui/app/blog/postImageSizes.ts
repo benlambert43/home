@@ -21,6 +21,7 @@ export const postImageSizing = (image: ImageDimensions) => {
     style: {
       "--max-width": `min(100%, ${maxWidth})`,
       "--xl-max-width": `min(100%, ${xlMaxWidth})`,
+      aspectRatio: `${image.width} / ${image.height}`,
     } as CSSProperties,
   };
 };
