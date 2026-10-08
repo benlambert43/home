@@ -8,6 +8,7 @@ cd "$root" || exit 1
 KEEP_ROOT='/.env'
 KEEP_WORKSPACE='/*/.env'
 
+COMPOSE_FILE_DEV='docker-compose.dev.yml'
 DOWN_FLAGS='--volumes --remove-orphans'
 
 force=0
@@ -35,7 +36,7 @@ db_removals=''
 db_error=''
 if ! command -v docker >/dev/null 2>&1; then
   db_error='docker is not installed'
-elif ! db_plan=$(docker compose --dry-run down $DOWN_FLAGS 2>&1 >/dev/null); then
+elif ! db_plan=$(docker compose -f "$COMPOSE_FILE_DEV" --dry-run down $DOWN_FLAGS 2>&1 >/dev/null); then
   db_error=$(printf '%s\n' "$db_plan" | sed '/^$/d' | head -1)
   [ -n "$db_error" ] || db_error='docker compose could not be reached'
 else
@@ -81,9 +82,9 @@ fi
 
 git clean -xdff -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" >/dev/null || exit 1
 
-if [ -n "$db_removals" ] && ! docker compose down $DOWN_FLAGS >/dev/null 2>&1; then
-  printf '\n\033[31m✖ cleaned %s path(s), but docker compose down %s failed\033[0m\n\n' \
-    "$(count "$removals")" "$DOWN_FLAGS"
+if [ -n "$db_removals" ] && ! docker compose -f "$COMPOSE_FILE_DEV" down $DOWN_FLAGS >/dev/null 2>&1; then
+  printf '\n\033[31m✖ cleaned %s path(s), but docker compose -f %s down %s failed\033[0m\n\n' \
+    "$(count "$removals")" "$COMPOSE_FILE_DEV" "$DOWN_FLAGS"
   exit 1
 fi
 
@@ -91,7 +92,7 @@ summary="cleaned $(count "$removals") path(s)"
 
 if [ -n "$db_error" ]; then
   printf '\n\033[31m✖ %s, but the database was left as it is\033[0m\n' "$summary"
-  printf '\n  Reset it once docker is up with: \033[1mdocker compose down %s\033[0m\n\n' "$DOWN_FLAGS"
+  printf '\n  Reset it once docker is up with: \033[1mdocker compose -f %s down %s\033[0m\n\n' "$COMPOSE_FILE_DEV" "$DOWN_FLAGS"
   exit 1
 fi
 
@@ -101,5 +102,5 @@ pass "$summary"
 [ -n "$removals" ] &&
   printf '\033[2mDependencies were removed too — restore them with \033[0m\033[1mnpm install\033[0m\n'
 [ -n "$db_removals" ] &&
-  printf '\033[2mThe database comes back empty with \033[0m\033[1mdocker compose up -d\033[0m\n'
+  printf '\033[2mThe database comes back empty with \033[0m\033[1mdocker compose -f %s up -d\033[0m\n' "$COMPOSE_FILE_DEV"
 printf '\n'

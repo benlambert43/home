@@ -8,14 +8,14 @@ site_url=${1:-http://localhost:3000}
 site_url=${site_url%/}
 attempts=${REVALIDATE_ATTEMPTS:-60}
 delay=${REVALIDATE_DELAY_SECONDS:-2}
-env_file="$root/home-web-ui/.env"
-
-if [ -z "${REVALIDATE_SECRET:-}" ] && [ -f "$env_file" ]; then
+for env_file in "$root/home-web-ui/.env" "$root/.env"; do
+  [ -n "${REVALIDATE_SECRET:-}" ] && break
+  [ -f "$env_file" ] || continue
   REVALIDATE_SECRET=$(sed -n 's/^REVALIDATE_SECRET=//p' "$env_file" | tail -n 1)
-fi
+done
 
 if [ -z "${REVALIDATE_SECRET:-}" ]; then
-  printf 'REVALIDATE_SECRET is not set and %s does not define it.\n' "$env_file" >&2
+  printf 'REVALIDATE_SECRET is not set and neither home-web-ui/.env nor .env defines it.\n' >&2
   exit 1
 fi
 

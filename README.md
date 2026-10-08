@@ -11,7 +11,7 @@ Uses npm workspace.
 
 ## Commands
 
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d
 
 npm run dev
 
@@ -32,9 +32,32 @@ home-shared must be built before web client and server are run.
 
 `npm run dev` and `npm run dev:server` build it first.
 
+## Deployment
+
+`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel. No service publishes a port on the host; the tunnel is the only way in, and only `cloudflared` and `web` share a network with it. `docker-compose.dev.yml` runs just the database for local development.
+
+The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the build context. `.dockerignore` allows in only what the builds need, so `.env` files and the storage directory never enter an image.
+
+Every value comes from the environment the stack is started in: the deployment platform's variables, or a `.env` beside the compose file. A missing value fails `docker compose config` before anything starts.
+
+| Variable                                                                            | Used for                                                                                                                                     |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`                          | The database root user.                                                                                                                      |
+| `MONGO_INITDB_DATABASE`, `MONGO_INITDB_ADMIN_USERNAME`, `MONGO_INITDB_ADMIN_PASSWORD` | The database and the user `api` connects as, created by `mongo-init.js` on the first start.                                                 |
+| `BASE_SITE_URL`                                                                     | The public origin, `https://benlambert.tech`. Baked into `web` at build time; also the API's CORS origin and the base of its emailed links.  |
+| `NEXT_PUBLIC_CAPTCHA_PUBLIC`, `CAPTCHA_SECRET`                                      | The reCAPTCHA site key, baked into `web` at build time, and its secret.                                                                      |
+| `API_SESSION_SECRET`, `BFF_SESSION_SECRET`, `REVALIDATE_SECRET`                     | Token signing for the API and the site, and the revalidate route.                                                                            |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`                                                     | The signup that becomes the admin account.                                                                                                   |
+| `EMAIL_OUTGOING_ADDRESS`, `EMAIL_OUTGOING_CLIENT_ID`, `EMAIL_OUTGOING_CLIENT_SECRET`, `EMAIL_OUTGOING_REFRESH_TOKEN`, `EMAIL_OUTGOING_APP_PASSWORD` | The Gmail sender.                                                                                                                            |
+| `CLOUDFLARE_TUNNEL_TOKEN`                                                           | The tunnel's token from Cloudflare Zero Trust.                                                                                               |
+
+Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web`. Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). After every start of `web`, run `npm run revalidate -- https://benlambert.tech` (see [Static pages after deployment](#static-pages-after-deployment)); the script takes `REVALIDATE_SECRET` from the environment or from the `.env` beside the compose file.
+
 ## Post storage
 
 home-server stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores, and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
+
+In the production stack `storage/` is the `post-storage` volume. The `api` container runs as uid 1000 (`node`) with no capability to change ownership, so everything in the volume must belong to that uid. Docker sets it when it creates the volume empty; a restore into the volume, or a bind mount used in its place, must set it (`chown -R 1000:1000`) or uploads fail.
 
 ## Post slugs
 

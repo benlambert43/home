@@ -1,23 +1,146 @@
+name: home-production
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-service: &service-defaults
+  init: true
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging: *default-logging
+
 services:
   database:
-    container_name: database
-    restart: unless-stopped
-    image: mongo:7
-    ports:
-      - "27017:27017"
+    <<: *service-defaults
+    image: mongo:8.0.32
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
-      MONGO_INITDB_ADMIN_USERNAME: ${MONGO_INITDB_ADMIN_USERNAME}
-      MONGO_INITDB_ADMIN_PASSWORD: ${MONGO_INITDB_ADMIN_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?required}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?required}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:?required}
+      MONGO_INITDB_ADMIN_USERNAME: ${MONGO_INITDB_ADMIN_USERNAME:?required}
+      MONGO_INITDB_ADMIN_PASSWORD: ${MONGO_INITDB_ADMIN_PASSWORD:?required}
     volumes:
-      - mongodba1data:/data/db
-      - mongodba1data-config:/data/configdb
+      - database-data:/data/db
+      - database-config:/data/configdb
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - database
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  api:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: home-server/Dockerfile
+    environment:
+      API_PORT: 4000
+      BASE_FRONTEND_URL: ${BASE_SITE_URL:?required}
+      MONGO_URI: mongodb://database:27017/${MONGO_INITDB_DATABASE:?required}
+      MONGO_USERNAME: ${MONGO_INITDB_ADMIN_USERNAME:?required}
+      MONGO_PASSWORD: ${MONGO_INITDB_ADMIN_PASSWORD:?required}
+      API_SESSION_SECRET: ${API_SESSION_SECRET:?required}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?required}
+      CAPTCHA_SECRET: ${CAPTCHA_SECRET:?required}
+      EMAIL_OUTGOING_ADDRESS: ${EMAIL_OUTGOING_ADDRESS:?required}
+      EMAIL_OUTGOING_CLIENT_ID: ${EMAIL_OUTGOING_CLIENT_ID:?required}
+      EMAIL_OUTGOING_CLIENT_SECRET: ${EMAIL_OUTGOING_CLIENT_SECRET:?required}
+      EMAIL_OUTGOING_REFRESH_TOKEN: ${EMAIL_OUTGOING_REFRESH_TOKEN:?required}
+      EMAIL_OUTGOING_APP_PASSWORD: ${EMAIL_OUTGOING_APP_PASSWORD:?required}
+    volumes:
+      - post-storage:/app/home-server/storage
+    networks:
+      - database
+      - application
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/v1/posts?page=1').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  web:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: home-web-ui/Dockerfile
+      args:
+        BASE_SITE_URL: ${BASE_SITE_URL:?required}
+        NEXT_PUBLIC_CAPTCHA_PUBLIC: ${NEXT_PUBLIC_CAPTCHA_PUBLIC:?required}
+    environment:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      BASE_API_URL: http://api:4000/api/v1
+      BASE_SITE_URL: ${BASE_SITE_URL:?required}
+      NEXT_PUBLIC_CAPTCHA_PUBLIC: ${NEXT_PUBLIC_CAPTCHA_PUBLIC:?required}
+      BFF_SESSION_SECRET: ${BFF_SESSION_SECRET:?required}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?required}
+    networks:
+      - application
+      - ingress
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/session').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  cloudflared:
+    <<: *service-defaults
+    image: cloudflare/cloudflared:2026.10.0
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?required}
+    networks:
+      - ingress
+    depends_on:
+      web:
+        condition: service_healthy
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+networks:
+  database:
+    internal: true
+  application:
+  ingress:
 
 volumes:
-  mongodba1data:
-    driver: local
-  mongodba1data-config:
-    driver: local
+  database-data:
+  database-config:
+  post-storage:

@@ -9,7 +9,12 @@ import { handleRequestError } from "./api/v1/http/handleRequestError";
 import { requireDatabase } from "./api/v1/http/requireDatabase";
 import { sendSuccess } from "./api/v1/http/respond";
 import { resumePostThumbnails } from "./api/v1/post/postThumbnails";
-import { API_PORT, BASE_FRONTEND_URL, MONGO_URI } from "./serverEnv";
+import {
+  API_PORT,
+  BASE_FRONTEND_URL,
+  MONGO_AUTH,
+  MONGO_URI,
+} from "./serverEnv";
 
 const POSTS_PATH = "/api/v1/posts";
 
@@ -27,7 +32,7 @@ const MONGO_RETRY_SECONDS = 5;
 const connectToMongo = async () => {
   for (;;) {
     try {
-      await mongoose.connect(MONGO_URI, {});
+      await mongoose.connect(MONGO_URI, { auth: MONGO_AUTH });
       return;
     } catch (e) {
       if (!(e instanceof mongoose.Error.MongooseServerSelectionError)) throw e;

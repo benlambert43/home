@@ -31,7 +31,20 @@ export const API_PORT = requirePort("API_PORT");
 
 export const BASE_FRONTEND_URL = requireUrl("BASE_FRONTEND_URL");
 
+const mongoAuth = () => {
+  if (!process.env.MONGO_USERNAME && !process.env.MONGO_PASSWORD) {
+    return undefined;
+  }
+
+  return {
+    username: requireEnvironmentVariable("MONGO_USERNAME"),
+    password: requireEnvironmentVariable("MONGO_PASSWORD"),
+  };
+};
+
 export const MONGO_URI = requireEnvironmentVariable("MONGO_URI");
+
+export const MONGO_AUTH = mongoAuth();
 
 export const API_SESSION_SECRET = apiSessionSecret();
 
