@@ -1,73 +1,78 @@
 # home
 
-Ben Lambert's personal website.
-Uses npm workspace.
+Ben Lambert's personal website, an npm workspaces monorepo.
 
-| Package       |                                                   |
-| ------------- | ------------------------------------------------- |
-| `home-web-ui` | Next.js site.                                     |
-| `home-server` | Express + mongoose API.                           |
-| `home-shared` | Shared frontend + backend types and runtime code. |
+| Package       |                                                                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `home-web-ui` | Next.js site. Talks to the API only from the server (see [home-web-ui/README.md](home-web-ui/README.md)).                               |
+| `home-server` | Express + Mongoose API on port 4000, under `/api/v1`: `accountManagement`, `signIn`, `notifications`, `posts`. Post files live on disk. |
+| `home-shared` | Types, Zod schemas and Markdown, slug and image-name code used by both (see [home-shared/README.md](home-shared/README.md)).            |
 
-## Commands
+## Development
 
-docker compose -f docker-compose.dev.yml up -d
+Needs Node 24, npm and Docker.
 
-npm run dev
+1. `npm install`
+2. Copy `.env.template` to `.env` in the root (the dev database), `home-server` and `home-web-ui`, and fill them in. `npm run env:placeholders` writes workspace `.env` files with placeholder values instead, which is enough to build and test (CI does this).
+3. `docker compose -f docker-compose.dev.yml up -d` starts MongoDB on port 27017.
+4. `npm run dev:server` (API) and `npm run dev` (site on [localhost:3000](http://localhost:3000)). Both build `home-shared` first.
+5. `npm run seed` adds the test accounts and sample posts. It refuses a `MONGO_URI` that is not on localhost, skips posts that already exist, and takes a post count (default 33).
 
-npm run dev:server
+| Command                       |                                                                                                                                                                 |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, build, test. CI runs it. `-- --no-build` skips the build.                                          |
+| `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations` and `test` run one check each.                                       |
+| `npm run build`               | Builds every workspace.                                                                                                                                         |
+| `npm run clean`               | `git clean` everything ignored except `.env` files, and resets the dev database. Refuses to delete uncommitted files without `--force`; `--dry-run` only lists. |
+| `npm run revalidate -- <url>` | Makes a deployed site fully static (see [Static pages](#static-pages)).                                                                                         |
+
+The pre-commit hook runs the same checks on staged files only; `git commit --no-verify` bypasses it. Lint rules shared by every workspace live in `eslint.config.base.mjs`; each workspace's `eslint.config.mjs` layers its framework config and ignores on top. Timestamp strings are ISO 8601. Dependabot updates npm (through the root lockfile only), GitHub Actions, the Dockerfiles and compose images weekly.
 
 ## Test accounts
 
-`npm run seed` creates these accounts and sample blog posts in the local database. The server never sends email to either address.
+`npm run seed` creates these accounts. The server never sends email to either address.
 
 | Role      | Email              | Password      |
 | --------- | ------------------ | ------------- |
 | Admin     | `test@example.com` | `testtest123` |
 | Non-admin | `user@example.com` | `testtest123` |
 
-## home-shared
-
-home-shared must be built before web client and server are run.
-
-`npm run dev` and `npm run dev:server` build it first.
-
 ## Deployment
 
-`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel. No service publishes a port on the host; the tunnel is the only way in, and only `cloudflared` and `web` share a network with it. `docker-compose.dev.yml` runs just the database for local development.
+`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
 
-The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the build context. `.dockerignore` allows in only what the builds need, so `.env` files and the storage directory never enter an image.
+The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the context. `.dockerignore` lets in only what the builds need, so `.env` files and the storage directory never enter an image.
 
-Every value comes from the environment the stack is started in: the deployment platform's variables, or a `.env` beside the compose file. A missing value fails `docker compose config` before anything starts.
+Every value comes from the environment the stack is started in, or a `.env` beside the compose file. A missing value fails `docker compose config`.
 
-| Variable                                                                            | Used for                                                                                                                                     |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`                          | The database root user.                                                                                                                      |
-| `MONGO_INITDB_DATABASE`, `MONGO_INITDB_ADMIN_USERNAME`, `MONGO_INITDB_ADMIN_PASSWORD` | The database and the user `api` connects as, created by `mongo-init.js` on the first start.                                                 |
-| `BASE_SITE_URL`                                                                     | The public origin, `https://benlambert.tech`. Baked into `web` at build time; also the API's CORS origin and the base of its emailed links.  |
-| `NEXT_PUBLIC_CAPTCHA_PUBLIC`, `CAPTCHA_SECRET`                                      | The reCAPTCHA site key, baked into `web` at build time, and its secret.                                                                      |
-| `API_SESSION_SECRET`, `BFF_SESSION_SECRET`, `REVALIDATE_SECRET`                     | Token signing for the API and the site, and the revalidate route.                                                                            |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD`                                                     | The signup that becomes the admin account.                                                                                                   |
-| `EMAIL_OUTGOING_ADDRESS`, `EMAIL_OUTGOING_CLIENT_ID`, `EMAIL_OUTGOING_CLIENT_SECRET`, `EMAIL_OUTGOING_REFRESH_TOKEN`, `EMAIL_OUTGOING_APP_PASSWORD` | The Gmail sender.                                                                                                                            |
-| `CLOUDFLARE_TUNNEL_TOKEN`                                                           | The tunnel's token from Cloudflare Zero Trust.                                                                                               |
+| Variable                                                                                                                                            | Used for                                                                                                                                |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`                                                                                          | The database root user.                                                                                                                 |
+| `MONGO_INITDB_DATABASE`, `MONGO_INITDB_ADMIN_USERNAME`, `MONGO_INITDB_ADMIN_PASSWORD`                                                               | The database and the user `api` connects as, created by `mongo-init.js` on first start.                                                 |
+| `BASE_SITE_URL`                                                                                                                                     | The public origin, `https://benlambert.tech`. Baked into `web` at build time; also the API's CORS origin and the base of emailed links. |
+| `NEXT_PUBLIC_CAPTCHA_PUBLIC`, `CAPTCHA_SECRET`                                                                                                      | The reCAPTCHA site key, baked into `web` at build time, and its secret.                                                                 |
+| `API_SESSION_SECRET`, `BFF_SESSION_SECRET`, `REVALIDATE_SECRET`                                                                                     | Token signing for the API and the site, and the revalidate route.                                                                       |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`                                                                                                                     | The signup that becomes the admin account.                                                                                              |
+| `EMAIL_OUTGOING_ADDRESS`, `EMAIL_OUTGOING_CLIENT_ID`, `EMAIL_OUTGOING_CLIENT_SECRET`, `EMAIL_OUTGOING_REFRESH_TOKEN`, `EMAIL_OUTGOING_APP_PASSWORD` | The Gmail sender: OAuth first, the app password as fallback.                                                                            |
+| `CLOUDFLARE_TUNNEL_TOKEN`                                                                                                                           | The tunnel's token from Cloudflare Zero Trust.                                                                                          |
 
-Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web`. Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). After every start of `web`, run `npm run revalidate -- https://benlambert.tech` (see [Static pages after deployment](#static-pages-after-deployment)); the script takes `REVALIDATE_SECRET` from the environment or from the `.env` beside the compose file.
+Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web`. Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). After every start of `web`, run `npm run revalidate -- https://benlambert.tech` (see [Static pages](#static-pages)).
 
 ## Post storage
 
-home-server stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores, and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
+`home-server` stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
 
-In the production stack `storage/` is the `post-storage` volume. The `api` container runs as uid 1000 (`node`) with no capability to change ownership, so everything in the volume must belong to that uid. Docker sets it when it creates the volume empty; a restore into the volume, or a bind mount used in its place, must set it (`chown -R 1000:1000`) or uploads fail.
+In the production stack `storage/` is the `post-storage` volume. The `api` container runs as uid 1000 (`node`) with no capability to change ownership, so everything in the volume must belong to that uid. Docker sets it when it creates the volume empty; a restore into the volume, or a bind mount in its place, must set it (`chown -R 1000:1000`) or uploads fail.
 
 ## Post slugs
 
 A post's address is `/blog/<slug>`. The slug is made from the title when the post is created and never changes. When a post is deleted its slug is retired, and no later post is given it.
 
-`RESERVED_POST_SLUGS` in `home-shared/src/postSlug.ts` lists the slugs that static routes under `/blog` already use. It is maintained by hand. When adding a static route under `home-web-ui/app/blog`, add its name in lowercase to the list, and first check that no post already has that slug: the static route would take over the address and hide the post.
+`RESERVED_POST_SLUGS` in `home-shared/src/postSlug.ts` lists the slugs that static routes under `/blog` already use, by hand. When adding a static route under `home-web-ui/app/blog`, add its name in lowercase to the list, and first check that no post already has that slug: the static route would take over the address and hide the post.
 
-## Static pages after deployment
+## Static pages
 
-`next build` runs in CI without access to the API, so the build can only fully prerender the pages that show no posts:
+The `web` image builds without access to the API, so `next build` can only fully prerender the pages that show no posts:
 
 | Pages                                                                                                                    | After the build                                     | Fully static                                     |
 | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------ |
@@ -78,87 +83,44 @@ A post's address is `/blog/<slug>`. The slug is made from the title when the pos
 | `/blog/page/<n>` beyond 2                                                                                                | Not built                                           | After their first visit                          |
 | `/sitemap.xml`, `/feed.xml`                                                                                              | Rendered on every request from the cached post list | Never                                            |
 
-`/blog/page/2` is in the build but, unlike `/blog`, has no shell: it checks the requested page number against the post count before it renders, outside the list's Suspense boundary, and without the API that check cannot be made at build time. `/sitemap.xml` and `/feed.xml` are route handlers, which have no first-visit save: after a build made without the API they are rendered on every request, from the cached post list, and are never saved as pages. A build made with the API reachable prerenders all of these.
+`/signin`, `/createaccount`, `/forgotpassword`, `/profile`, `/settings`, the other pages under `/profile/accountManagement`, `/blog/newPost` and `/blog/<slug>/edit` read the session cookie or the query string with no Suspense boundary below the layout, so they have no static shell and render on every visit. Each exports `instant = false` so that `next build` accepts the empty shell; `/blog/[slug]` and `/blog/page/[page]` do the same because their shells are empty until the slug or page number is known. `/session`, `/revalidate` and the image routes under `/blog` are route handlers that run on every request.
 
-`/signin`, `/createaccount`, `/forgotpassword`, `/profile`, `/settings`, the pages under `/profile/accountManagement` other than `resetPasswordSuccess`, `/blog/newPost` and `/blog/<slug>/edit` are never saved. Each reads the session cookie, or the query string, at the top of the page with no Suspense boundary below the layout, so it has no static shell: every visit renders the whole page, layout included. `export const instant = false` in each of these pages tells `next build` to accept the empty shell. `/session`, `/revalidate` and the image routes under `/blog` are route handlers that run on every request.
+Saved pages live inside the `web` container, so a new container starts again from the build output. `npm run revalidate` brings the site to the fully static state.
 
-The site saves pages in `.next/server/route-cache` inside the web container. A new container starts again from the build output. After a restart of the same container, each page saved before the restart is rendered again on its first visit and saved again, while pages that were never saved keep their build output.
+### Post pages
 
-`npm run revalidate` brings the site to the fully static state. It marks the post lists and every post page for regeneration, then runs the postbuild render crawl, which programmatically exercises every route in the sitemap so each one is rendered and saved before a visitor or crawler arrives.
+Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so `/blog/[slug]` lists one placeholder slug that is never a post and prerenders as a 404. The `?page=` the blog list adds to post links is read in the browser after hydration, so one static page serves every list page.
 
-### When and where to run it
+A slug that is not a post answers 404 with the Post Not Found page, saved like any post page: the post lookup caches the API's not-found answer for a day and the `notFound()` it throws sets the status. While the API is unreachable the lookup's error result lives only seconds, which keeps it out of the saved page: the page is saved as a shell that answers 200 and renders the rest on each visit, until its path is expired by a post change or `npm run revalidate`. No not-found answer is ever saved during an outage. A post whose header image has no share image yet (they are generated after the write) is cached for minutes rather than days, so the share image appears without a post change.
 
-Run it on the home server, from a checkout of this repository, after every start of the web container, once the API container is up:
+### `npm run revalidate`
+
+Run it on the home server, from a checkout of this repository, after every start of the web container, once the API container is up. It is safe to repeat, and not needed after post changes.
 
 ```bash
 npm run revalidate -- https://benlambert.tech
 ```
 
-It needs `sh` and `curl`, defaults to `http://localhost:3000` when no URL is given, and is safe to run again at any time. It is not needed after post changes: the site updates its saved pages itself (see [Post changes](#post-changes)).
+It needs `sh` and `curl`, defaults to `http://localhost:3000`, and reads `REVALIDATE_SECRET` from the environment, `home-web-ui/.env` or `.env`. It has two steps:
 
-### How it works
-
-The script has two steps.
-
-**Revalidate.** The script reads `REVALIDATE_SECRET` from the environment or `home-web-ui/.env`, then calls `POST /revalidate` on the site with the secret in an `x-revalidate-secret` header. The site compares the header with its own `REVALIDATE_SECRET` (403 if they differ) and checks that the API is reachable (503 if not). On a 503 or no answer the script retries every 2 seconds, 60 times by default (`REVALIDATE_ATTEMPTS` and `REVALIDATE_DELAY_SECONDS` change this), so it can be started before the API is ready. Once the API answers, the site marks `/`, `/blog`, every `/blog/page/<n>` and every `/blog/<slug>` for regeneration.
-
-**Postbuild render crawl.** The script fetches `/sitemap.xml` and programmatically exercises every URL it lists, requesting them one at a time: the home, project and about pages, `/blog`, and every post. It keeps only the path of each URL and requests it from the site URL it was given, so it exercises the routes of that server even when the sitemap's origin (`BASE_SITE_URL`) is different, for example a test server on another port. Each line shows the path, the HTTP status and what happened, read from the `x-nextjs-cache` response header:
-
-- `saved now` (`MISS`): this request rendered the page and the site saved it.
-- `already saved` (`HIT` or `STALE`): the site served a page it had already saved.
-- `not saved` (no header): the page was rendered for this request only, for example because the API went down.
-
-The crawl requests every URL even after a failure, then exits with an error if any route answered with a status other than 200 or was not saved. `/blog/page/<n>` pages are not in the sitemap, so the crawl does not exercise them; they are saved on their first visit.
-
-`REVALIDATE_SECRET` is required like the other variables in `home-web-ui/.env.template`; CI needs it set to build.
+1. **Revalidate.** `POST /revalidate` with the secret in an `x-revalidate-secret` header. The site answers 403 if the secret differs and 503 if it cannot reach the API; on 503 or no answer the script retries every 2 seconds, 60 times (`REVALIDATE_DELAY_SECONDS`, `REVALIDATE_ATTEMPTS`), so it can be started before the API is ready. On success the site expires `/`, `/blog`, every `/blog/page/<n>` and every `/blog/<slug>`.
+2. **Postbuild render crawl.** Fetches `/sitemap.xml` and requests each listed path, one at a time, from the site URL it was given (only the path is kept, so a test server on another port works). Each line shows the path, the status and what the `x-nextjs-cache` header says: `saved now` (`MISS`), `already saved` (`HIT` or `STALE`) or `not saved` (no header, for example because the API went down). It requests every URL even after a failure, then exits with an error if any route did not answer 200 or was not saved. `/blog/page/<n>` pages are not in the sitemap; they are saved on their first visit.
 
 ### Post changes
 
-Creating, editing or deleting a post updates every saved page that shows posts, so the next visit to each one renders it again with the change and saves it. No script is needed.
+Creating, editing or deleting a post through the site expires every saved page that shows posts, so the next visit to each renders and saves it again.
 
-Everything that reads posts goes through the cached lookups in `home-web-ui/app/lib/posts.ts`, which tag their results:
+Everything that reads posts goes through the cached lookups in `home-web-ui/app/lib/posts.ts`, which tag their results: every list and post lookup, `/sitemap.xml` and `/feed.xml` carry `posts`; a post lookup also carries `post:<id>`, `post-slug:<slug>` and `post-author:<user id>`; a list carries `post-author:<user id>` for each author in it. Saved pages inherit the tags of the lookups they used. The post actions in `home-web-ui/app/actions/posts.ts` expire `posts`, plus `post-slug:<slug>` on create or `post:<id>` on edit and delete, and always the paths `/`, `/blog`, `/blog/page/[page]` and `/blog/[slug]`. The paths are expired as well so that a shell saved during an outage, which carries no post tags, is rendered again. A username change or account deletion expires `post-author:<user id>`.
 
-- every post list and post lookup, `/sitemap.xml` and `/feed.xml` carry the `posts` tag
-- a post lookup also carries `post:<id>`, `post-slug:<slug>` and `post-author:<user id>`
-- a post list also carries `post-author:<user id>` for each author in it
+When adding a page or route that shows posts, read them through `getCachedPosts` or `getPost`, or tag the cached function with `POSTS_TAG`, so post changes reach it.
 
-Saved pages inherit the tags of the lookups they used. The post actions in `home-web-ui/app/actions/posts.ts` then expire:
+Changes that bypass the post actions, such as `npm run seed` or edits made directly in the database, expire nothing: a cached lookup lives a day, after which a visit serves the saved page and renders it again in the background. `npm run revalidate` refreshes the lists and the post pages but not the sitemap or the feed.
 
-| Change | Expires                                                                             |
-| ------ | ----------------------------------------------------------------------------------- |
-| Create | `posts`, `post-slug:<slug>`, and `/`, `/blog`, `/blog/page/<n>`, `/blog/<slug>` |
-| Edit   | `posts`, `post:<id>`, and `/`, `/blog`, `/blog/page/<n>`, `/blog/<slug>`         |
-| Delete | `posts`, `post:<id>`, and `/`, `/blog`, `/blog/page/<n>`, `/blog/<slug>`         |
-
-Expiring `posts` reaches the Recent Activity list on `/`, every list page, every post page (each links to its neighbours), the post metadata, the sitemap and the feed. The list paths and the post page route are expired as well, so that a change made before `npm run revalidate` has run still turns them fully static, and so that a page saved as a shell while the API was unreachable, which carries no post tags, is rendered again on its next visit. A visit that found no post saves the Post Not Found page, which carries `posts` and `post-slug:<slug>` and is reached by expiring them. A username change or account deletion expires `post-author:<user id>`, which reaches that author's posts and the lists that show them.
-
-Post image URLs never change what they serve, because a post never reuses an image name, so `next/image` and browsers can cache them safely.
-
-When adding a page or route that shows posts, read them through `getCachedPosts` or `getPost` (or tag the cached function with `POSTS_TAG`) so post changes reach it.
+Post image URLs never change what they serve, because a post never reuses an image name, so `next/image` and browsers can cache them.
 
 ### Page counts
 
-No page stores a page count. `Page N of M`, the Previous and Next links and the redirect from a page beyond the last one all come from the API's pagination, which the server recomputes on every request from the number of posts. Posts are listed by creation date, so editing a post never moves it to another page; only creating or deleting one changes the count. Every list page is expired on each change, so each shows the new count the next time it is visited, and a saved page beyond the new last page becomes a redirect to the last page on its next visit.
-
-Two things can drift. The `?page=` the blog list adds to post links records the page the post was on when the link was made: after posts are added above it, the links back from the post page open that page, where the `#post-<slug>` anchor is no longer found, and a page number beyond the last page redirects to the last page. Changes that bypass the post actions, such as `npm run seed` or edits made directly in the database, expire nothing: a visit more than a day after a list page was saved serves it and renders it again in the background, and `npm run revalidate` refreshes the lists and the post pages but not the sitemap or the feed.
-
-### Post pages
-
-Post pages (`/blog/<slug>`) are not in the build. Cache Components only saves a dynamic route's pages after their first visit when the route exports `generateStaticParams`, and it refuses an empty list, so the route lists one placeholder slug that is never a post and prerenders as a 404. With the slug unknown until the visit, the route's shell is empty, and `export const instant = false` tells `next build` to accept that; `/blog/page/<n>` does the same. Each post is rendered the first time it is visited and served as a fully static page from then on, until a post is created, updated or deleted. The `?page=` the blog list adds to post links is read in the browser after hydration, so the same static page serves every list page.
-
-A slug that is not a post answers HTTP status 404 with the Post Not Found page, and that page is saved like any post page. The post lookup caches the API's not-found answer for a day, as it does a post, so the route waits for the lookup before it sends headers and the `notFound()` it throws sets the status. Cache Components leaves a cached result that expires in under five minutes out of the saved page and asks for it again on every visit, which is what the lookup's error branch does with `"seconds"`: a post page first rendered while the API is unreachable is saved as a shell that answers 200 and renders the rest on each visit, so no not-found answer is ever saved during an outage. That shell has no lifetime of its own and is served until its path is expired, which every post change and `npm run revalidate` do for every post page; a restart with the API up also replaces it, in the background, on its first visit. A saved Post Not Found page carries the `posts` and `post-slug:<slug>` tags, so creating a post at that slug replaces it on the next visit; a change made outside the post actions, such as `npm run seed`, leaves it in place for up to a day, as with the list pages.
-
-`/sitemap.xml` lists every post URL and `/feed.xml` the latest ones. Both read the post list through the cached lookups, so a post change reaches them, but their responses are only saved as pages when the build could reach the API: after a CI build they are rendered on every request from the cached list.
-
-## Linting
-
-Lint rules shared by every workspace live in eslint.config.base.mjs
-
-Each workspace's `eslint.config.mjs` layers its own framework config and ignores on top of the root base eslint config.
-
-## Timestamps
-
-All timestamp strings should be in ISO 8601 format.
+No page stores a page count: `Page N of M`, the Previous and Next links and the redirect from a page beyond the last one all come from the API's pagination on each render. Posts are listed by creation date, so only creating or deleting a post changes the count, and every list page is expired on each change. The `?page=` on post links records the page the post was on when the link was made, so after posts are added above it the link back opens a page where the post's anchor is no longer found.
 
 ## License
 
