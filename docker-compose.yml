@@ -38,7 +38,30 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
+
+  storage-ownership:
+    <<: *service-defaults
+    image: busybox:1.38.0
+    restart: "no"
+    command:
+      - sh
+      - -c
+      - |
+        find /storage ! \( -user 1000 -group 1000 \) -exec chown -c 1000:1000 {} + &&
+          echo "post-storage: every path is owned by 1000:1000"
+    volumes:
+      - post-storage:/storage
+    network_mode: none
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          memory: 256m
 
   api:
     <<: *service-defaults
@@ -68,6 +91,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      storage-ownership:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/v1/posts?page=1').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 30s
@@ -79,7 +104,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
 
   web:
     <<: *service-defaults
@@ -114,7 +139,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
 
   cloudflared:
     <<: *service-defaults
@@ -132,7 +157,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128m
+          memory: 256m
 
   revalidate:
     <<: *service-defaults
@@ -154,7 +179,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 64m
+          memory: 256m
 
 networks:
   database:

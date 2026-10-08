@@ -39,7 +39,7 @@ The pre-commit hook runs the same checks on staged files only; `git commit --no-
 
 ## Deployment
 
-`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`), `cloudflared`, which publishes the site through a Cloudflare Tunnel, and `revalidate`, a one-shot that makes the site fully static once `web` is up. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
+`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel, plus two one-shots: `storage-ownership`, which fixes file ownership in `post-storage` before `api` starts, and `revalidate`, which makes the site fully static once `web` is up. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
 
 The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the context. `.dockerignore` lets in only what the builds need, so `.env` files and the storage directory never enter an image.
 
@@ -62,7 +62,7 @@ Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web
 
 `home-server` stores post files in `storage/` inside the directory it starts from, and logs the full path on startup. MongoDB post records point at these files, so backups, restores and server moves must keep the database and the storage directory together: back up the database before the storage directory, and copy storage with a tool that preserves hard links (for example `rsync -H`).
 
-In the production stack `storage/` is the `post-storage` volume. The `api` container runs as uid 1000 (`node`) with no capability to change ownership, so everything in the volume must belong to that uid. Docker sets it when it creates the volume empty; a restore into the volume, or a bind mount in its place, must set it (`chown -R 1000:1000`) or uploads fail.
+In the production stack `storage/` is the `post-storage` volume. The `api` container runs as uid 1000 (`node`) with no capability to change ownership, so everything in the volume must belong to that uid. The `storage-ownership` service runs as root before `api` on every `docker compose up` and gives that uid to anything in the volume that lacks it, so a restore into the volume needs no `chown` of its own. A bind mount in place of the volume must be mounted into `storage-ownership` as well.
 
 ## Post slugs
 
