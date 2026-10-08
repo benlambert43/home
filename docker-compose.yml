@@ -68,6 +68,7 @@ services:
     build:
       context: .
       dockerfile: home-server/Dockerfile
+    pull_policy: build
     environment:
       API_PORT: 4000
       BASE_FRONTEND_URL: ${BASE_SITE_URL:?required}
@@ -114,6 +115,7 @@ services:
       args:
         BASE_SITE_URL: ${BASE_SITE_URL:?required}
         NEXT_PUBLIC_CAPTCHA_PUBLIC: ${NEXT_PUBLIC_CAPTCHA_PUBLIC:?required}
+    pull_policy: build
     environment:
       PORT: 3000
       HOSTNAME: 0.0.0.0

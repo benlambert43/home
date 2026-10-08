@@ -41,7 +41,13 @@ The pre-commit hook runs the same checks on staged files only; `git commit --no-
 
 `docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel, plus two one-shots: `storage-ownership`, which fixes file ownership in `post-storage` before `api` starts, and `revalidate`, which makes the site fully static once `web` is up. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
 
-The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the context. `.dockerignore` lets in only what the builds need, so `.env` files and the storage directory never enter an image.
+To deploy, from a checkout on the home server:
+
+```bash
+git pull && docker compose up -d
+```
+
+The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the context. `api` and `web` set `pull_policy: build`, so every `docker compose up` rebuilds both images from the checkout and no `--build` flag is needed; with nothing changed, the rebuild is a few seconds of cache hits. `.dockerignore` lets in only what the builds need, so `.env` files and the storage directory never enter an image.
 
 Every value comes from the environment the stack is started in, or a `.env` beside the compose file. A missing value fails `docker compose config`.
 
@@ -56,7 +62,7 @@ Every value comes from the environment the stack is started in, or a `.env` besi
 | `EMAIL_OUTGOING_ADDRESS`, `EMAIL_OUTGOING_CLIENT_ID`, `EMAIL_OUTGOING_CLIENT_SECRET`, `EMAIL_OUTGOING_REFRESH_TOKEN`, `EMAIL_OUTGOING_APP_PASSWORD` | The Gmail sender: OAuth first, the app password as fallback.                                                                            |
 | `CLOUDFLARE_TUNNEL_TOKEN`                                                                                                                           | The tunnel's token from Cloudflare Zero Trust.                                                                                          |
 
-Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web`. Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). Every `docker compose up` ends with the `revalidate` service making the site fully static; `docker compose up -d revalidate` runs it again on its own (see [Static pages](#static-pages)).
+Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). Every `docker compose up` ends with the `revalidate` service making the site fully static; `docker compose up -d revalidate` runs it again on its own (see [Static pages](#static-pages)).
 
 ## Post storage
 
