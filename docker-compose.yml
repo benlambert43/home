@@ -134,6 +134,28 @@ services:
         limits:
           memory: 128m
 
+  revalidate:
+    <<: *service-defaults
+    image: curlimages/curl:8.22.0
+    restart: on-failure:5
+    entrypoint: ["sh"]
+    command: ["/app/scripts/revalidate-site.sh", "http://web:3000"]
+    environment:
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?required}
+    volumes:
+      - ./scripts:/app/scripts:ro
+    networks:
+      - application
+    depends_on:
+      web:
+        condition: service_healthy
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
 networks:
   database:
     internal: true

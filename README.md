@@ -39,7 +39,7 @@ The pre-commit hook runs the same checks on staged files only; `git commit --no-
 
 ## Deployment
 
-`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
+`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`), `cloudflared`, which publishes the site through a Cloudflare Tunnel, and `revalidate`, a one-shot that makes the site fully static once `web` is up. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
 
 The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the context. `.dockerignore` lets in only what the builds need, so `.env` files and the storage directory never enter an image.
 
@@ -56,7 +56,7 @@ Every value comes from the environment the stack is started in, or a `.env` besi
 | `EMAIL_OUTGOING_ADDRESS`, `EMAIL_OUTGOING_CLIENT_ID`, `EMAIL_OUTGOING_CLIENT_SECRET`, `EMAIL_OUTGOING_REFRESH_TOKEN`, `EMAIL_OUTGOING_APP_PASSWORD` | The Gmail sender: OAuth first, the app password as fallback.                                                                            |
 | `CLOUDFLARE_TUNNEL_TOKEN`                                                                                                                           | The tunnel's token from Cloudflare Zero Trust.                                                                                          |
 
-Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web`. Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). After every start of `web`, run `npm run revalidate -- https://benlambert.tech` (see [Static pages](#static-pages)).
+Changing `BASE_SITE_URL` or `NEXT_PUBLIC_CAPTCHA_PUBLIC` needs a rebuild of `web`. Post files live in the `post-storage` volume and the database in `database-data` and `database-config`; back them up together (see [Post storage](#post-storage)). Every `docker compose up` ends with the `revalidate` service making the site fully static; `docker compose up -d revalidate` runs it again on its own (see [Static pages](#static-pages)).
 
 ## Post storage
 
@@ -74,18 +74,18 @@ A post's address is `/blog/<slug>`. The slug is made from the title when the pos
 
 The `web` image builds without access to the API, so `next build` can only fully prerender the pages that show no posts:
 
-| Pages                                                                                                                    | After the build                                     | Fully static                                     |
-| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------ |
-| `/projects`, `/about` and their subpages, `/forgotpasswordsuccess` and `/profile/accountManagement/resetPasswordSuccess` | Static                                              | From the build                                   |
-| `/`, `/blog`                                                                                                             | Static shell; the post list renders on every visit  | After `npm run revalidate`                       |
-| `/blog/page/2`                                                                                                           | Rendered on every visit                             | After `npm run revalidate`                       |
-| `/blog/<slug>`                                                                                                           | Not built                                           | After `npm run revalidate`, or their first visit |
-| `/blog/page/<n>` beyond 2                                                                                                | Not built                                           | After their first visit                          |
-| `/sitemap.xml`, `/feed.xml`                                                                                              | Rendered on every request from the cached post list | Never                                            |
+| Pages                                                                                                                    | After the build                                     | Fully static                             |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------- |
+| `/projects`, `/about` and their subpages, `/forgotpasswordsuccess` and `/profile/accountManagement/resetPasswordSuccess` | Static                                              | From the build                           |
+| `/`, `/blog`                                                                                                             | Static shell; the post list renders on every visit  | After revalidation                       |
+| `/blog/page/2`                                                                                                           | Rendered on every visit                             | After revalidation                       |
+| `/blog/<slug>`                                                                                                           | Not built                                           | After revalidation, or their first visit |
+| `/blog/page/<n>` beyond 2                                                                                                | Not built                                           | After their first visit                  |
+| `/sitemap.xml`, `/feed.xml`                                                                                              | Rendered on every request from the cached post list | Never                                    |
 
 `/signin`, `/createaccount`, `/forgotpassword`, `/profile`, `/settings`, the other pages under `/profile/accountManagement`, `/blog/newPost` and `/blog/<slug>/edit` read the session cookie or the query string with no Suspense boundary below the layout, so they have no static shell and render on every visit. Each exports `instant = false` so that `next build` accepts the empty shell; `/blog/[slug]` and `/blog/page/[page]` do the same because their shells are empty until the slug or page number is known. `/session`, `/revalidate` and the image routes under `/blog` are route handlers that run on every request.
 
-Saved pages live inside the `web` container, so a new container starts again from the build output. `npm run revalidate` brings the site to the fully static state.
+Saved pages live inside the `web` container, so a new container starts again from the build output. Revalidation, run by the production stack's `revalidate` service or by hand with `npm run revalidate`, brings the site to the fully static state.
 
 ### Post pages
 
@@ -93,9 +93,9 @@ Cache Components only saves a dynamic route's pages after their first visit when
 
 A slug that is not a post answers 404 with the Post Not Found page, saved like any post page: the post lookup caches the API's not-found answer for a day and the `notFound()` it throws sets the status. While the API is unreachable the lookup's error result lives only seconds, which keeps it out of the saved page: the page is saved as a shell that answers 200 and renders the rest on each visit, until its path is expired by a post change or `npm run revalidate`. No not-found answer is ever saved during an outage. A post whose header image has no share image yet (they are generated after the write) is cached for minutes rather than days, so the share image appears without a post change.
 
-### `npm run revalidate`
+### Revalidation
 
-Run it on the home server, from a checkout of this repository, after every start of the web container, once the API container is up. It is safe to repeat, and not needed after post changes.
+`scripts/revalidate-site.sh` makes the site fully static. In the production stack the `revalidate` service runs it against `http://web:3000` on every `docker compose up`, once `web` is healthy; it exits when done, and Docker retries it up to five times if it fails. It is safe to repeat, and not needed after post changes. To run it by hand against any server:
 
 ```bash
 npm run revalidate -- https://benlambert.tech
