@@ -21,7 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "marked": "^18.0.14",
+    "marked": "^18.1.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
