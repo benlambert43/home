@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  CI:
+  ci:
     name: Full CI Run
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -56,8 +56,8 @@ jobs:
       - name: Test
         run: npm run test
 
-  stack:
-    name: Production stack
+  smoke-test-full-build:
+    name: Smoke Test (Full Build)
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
