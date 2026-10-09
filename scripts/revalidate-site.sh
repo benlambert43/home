@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 . "$root/scripts/lib.sh"
 
 site_url=${1:-http://localhost:3000}

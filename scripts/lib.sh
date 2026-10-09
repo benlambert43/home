@@ -4,11 +4,11 @@ const fs = require("node:fs");
 const label = process.argv[1] || "";
 const patterns = require("./package.json").workspaces || [];
 const dirs = [...new Set(patterns.flatMap((pattern) => fs.globSync(pattern)))]
-  .filter((dir) => fs.existsSync(`${dir}/package.json`))
+  .filter((dir) => fs.existsSync(dir + "/package.json"))
   .sort();
 const covered = label
   ? dirs.filter((dir) => {
-      const { scripts } = JSON.parse(fs.readFileSync(`${dir}/package.json`, "utf8"));
+      const { scripts } = JSON.parse(fs.readFileSync(dir + "/package.json", "utf8"));
       return Boolean(scripts && scripts[label]);
     })
   : dirs;
@@ -25,6 +25,7 @@ fix_hint() {
     format:check)      printf '  Fix with: \033[1mnpm run format\033[0m\n' ;;
     lint)              printf '  Fix with: \033[1mnpm run lint:fix\033[0m\n' ;;
     lint:deprecations) printf '  Each finding names its replacement; there is no autofix.\n' ;;
+    lint:shell)        printf '  Each finding links to a wiki page with the fix; there is no autofix.\n' ;;
   esac
 }
 

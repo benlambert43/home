@@ -17,8 +17,9 @@ updates:
     schedule:
       interval: "weekly"
 
-  # ci.yml pins actions/checkout, actions/setup-node, and actions/cache by major
-  # version. Nothing else in the repo updates them.
+  # ci.yml pins actions/checkout, actions/setup-node, actions/cache,
+  # docker/setup-buildx-action and docker/build-push-action by major version.
+  # Nothing else in the repo updates them.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

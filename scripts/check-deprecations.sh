@@ -1,12 +1,14 @@
 #!/bin/sh
 set -u
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
 if [ "$#" -eq 0 ]; then
-  set -- $(workspaces)
+  for workspace in $(workspaces); do
+    set -- "$@" "$workspace"
+  done
   if [ "$#" -eq 0 ]; then
     printf 'No workspaces to check.\n'
     exit 0

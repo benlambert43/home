@@ -10,7 +10,7 @@ Ben Lambert's personal website, an npm workspaces monorepo.
 
 ## Development
 
-Needs Node 24, npm and Docker.
+Needs Node 24, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
 
 1. `npm install`
 2. Copy `.env.template` to `.env` in the root (the dev database), `home-server` and `home-web-ui`, and fill them in. `npm run env:placeholders` writes workspace `.env` files with placeholder values instead, which is enough to build and test (CI does this).
@@ -20,9 +20,10 @@ Needs Node 24, npm and Docker.
 
 | Command                       |                                                                                                                                                                 |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, build, test. CI runs it in separate steps. `-- --no-build` skips the build.                        |
-| `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations` and `test` run one check each.                                       |
+| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, shell scripts, build, test. CI runs it in separate steps. `-- --no-build` skips the build.         |
+| `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations`, `lint:shell` and `test` run one check each.                         |
 | `npm run build`               | Builds every workspace.                                                                                                                                         |
+| `npm run smoke`               | Builds the production stack, starts it with the values in `smoke.env`, waits for every healthcheck, runs revalidate and a few requests, then removes it.        |
 | `npm run clean`               | `git clean` everything ignored except `.env` files, and resets the dev database. Refuses to delete uncommitted files without `--force`; `--dry-run` only lists. |
 | `npm run revalidate -- <url>` | Makes a deployed site fully static (see [Static pages](#static-pages)).                                                                                         |
 
@@ -49,7 +50,7 @@ git pull && docker compose up -d
 
 The images build from `home-server/Dockerfile` and `home-web-ui/Dockerfile` with the repository root as the context. `api` and `web` set `pull_policy: build`, so every `docker compose up` rebuilds both images from the checkout and no `--build` flag is needed; with nothing changed, the rebuild is a few seconds of cache hits. `.dockerignore` lets in only what the builds need, so `.env` files and the storage directory never enter an image.
 
-Every value comes from the environment the stack is started in, or a `.env` beside the compose file. A missing value fails `docker compose config`.
+Every value comes from the environment the stack is started in, or a `.env` beside the compose file. A missing value fails `docker compose config`. `smoke.env` gives every variable a throwaway value: CI validates both compose files with it, builds the `api` and `web` images, and runs `npm run smoke` against them. The smoke test starts the stack under the project name `home-smoke`, so it never touches a `home-production` stack on the same machine, leaves `cloudflared` out, and removes everything it created when it finishes. `-- --no-build` uses images already tagged `home-smoke-api` and `home-smoke-web` instead of building them.
 
 | Variable                                                                                                                                            | Used for                                                                                                                                |
 | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |

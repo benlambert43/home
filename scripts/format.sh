@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
@@ -14,7 +14,10 @@ case "$mode" in
     ;;
 esac
 
-set -- $(workspaces)
+set --
+for workspace in $(workspaces); do
+  set -- "$@" "$workspace"
+done
 
 if [ "$#" -eq 0 ]; then
   printf 'No workspaces to format.\n'

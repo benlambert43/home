@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    name: Full check
+  CI:
+    name: Full CI Run
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -48,9 +48,54 @@ jobs:
           npm run lint
           npm run typecheck
           npm run lint:deprecations
+          npm run lint:shell
 
       - name: Build
         run: npm run build
 
       - name: Test
         run: npm run test
+
+  stack:
+    name: Production stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Load smoke environment
+        run: cat smoke.env >> "$GITHUB_ENV"
+
+      - name: Validate compose files
+        run: |
+          docker compose --env-file smoke.env config --quiet
+          docker compose --env-file smoke.env -f docker-compose.dev.yml config --quiet
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build api image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: home-server/Dockerfile
+          load: true
+          tags: home-smoke-api
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: home-web-ui/Dockerfile
+          build-args: |
+            BASE_SITE_URL=${{ env.BASE_SITE_URL }}
+            NEXT_PUBLIC_CAPTCHA_PUBLIC=${{ env.NEXT_PUBLIC_CAPTCHA_PUBLIC }}
+          load: true
+          tags: home-smoke-web
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: Smoke test
+        run: npm run smoke -- --no-build

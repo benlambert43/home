@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
@@ -98,6 +98,7 @@ else
 fi
 
 skip lint:deprecations "full check only"
+skip lint:shell "full check only"
 
 run_step build:shared "home-shared — tests import its build output" \
   npm run --silent build:shared

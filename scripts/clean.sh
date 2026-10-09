@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
@@ -10,6 +10,10 @@ KEEP_WORKSPACE='/*/.env'
 
 COMPOSE_FILE_DEV='docker-compose.dev.yml'
 DOWN_FLAGS='--volumes --remove-orphans'
+
+compose_down() {
+  docker compose -f "$COMPOSE_FILE_DEV" "$@" down --volumes --remove-orphans
+}
 
 force=0
 dry_run=0
@@ -36,7 +40,7 @@ db_removals=''
 db_error=''
 if ! command -v docker >/dev/null 2>&1; then
   db_error='docker is not installed'
-elif ! db_plan=$(docker compose -f "$COMPOSE_FILE_DEV" --dry-run down $DOWN_FLAGS 2>&1 >/dev/null); then
+elif ! db_plan=$(compose_down --dry-run 2>&1 >/dev/null); then
   db_error=$(printf '%s\n' "$db_plan" | sed '/^$/d' | head -1)
   [ -n "$db_error" ] || db_error='docker compose could not be reached'
 else
@@ -82,7 +86,7 @@ fi
 
 git clean -xdff -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" >/dev/null || exit 1
 
-if [ -n "$db_removals" ] && ! docker compose -f "$COMPOSE_FILE_DEV" down $DOWN_FLAGS >/dev/null 2>&1; then
+if [ -n "$db_removals" ] && ! compose_down >/dev/null 2>&1; then
   printf '\n\033[31m✖ cleaned %s path(s), but docker compose -f %s down %s failed\033[0m\n\n' \
     "$(count "$removals")" "$COMPOSE_FILE_DEV" "$DOWN_FLAGS"
   exit 1

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 cd "$root" || exit 1
 . "$root/scripts/lib.sh"
 
@@ -22,6 +22,7 @@ run format:check "$(workspace_list)"
 run lint
 run typecheck
 run lint:deprecations "$(workspace_list)"
+run lint:shell "scripts/*.sh, .husky/pre-commit"
 
 if [ "$with_build" -eq 1 ]; then
   run build
