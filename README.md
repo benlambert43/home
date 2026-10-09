@@ -20,7 +20,7 @@ Needs Node 24, npm and Docker.
 
 | Command                       |                                                                                                                                                                 |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, build, test. CI runs it. `-- --no-build` skips the build.                                          |
+| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, build, test. CI runs it in separate steps. `-- --no-build` skips the build.                        |
 | `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations` and `test` run one check each.                                       |
 | `npm run build`               | Builds every workspace.                                                                                                                                         |
 | `npm run clean`               | `git clean` everything ignored except `.env` files, and resets the dev database. Refuses to delete uncommitted files without `--force`; `--dry-run` only lists. |

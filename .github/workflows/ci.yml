@@ -42,5 +42,15 @@ jobs:
       - name: Stub environment variables
         run: npm run env:placeholders
 
-      - name: Check
-        run: npm run check
+      - name: Format and Lint
+        run: |
+          npm run format:check
+          npm run lint
+          npm run typecheck
+          npm run lint:deprecations
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test
