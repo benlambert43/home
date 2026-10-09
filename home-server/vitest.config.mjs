@@ -11,5 +11,5 @@ export default defineConfig({
       ),
     },
   },
-  test: { name: "home-server" },
+  test: { name: { label: "home-server", color: "green" } },
 });

@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },
   test: {
-    name: "home-web-ui",
+    name: { label: "home-web-ui", color: "green" },
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
   },
