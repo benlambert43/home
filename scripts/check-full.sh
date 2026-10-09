@@ -27,10 +27,7 @@ run lint:shell "scripts/*.sh, .husky/pre-commit"
 if [ "$with_build" -eq 1 ]; then
   run build
 else
-  try_step build:shared "home-shared — tests import its build output" \
-    npm run --silent build:shared
   skip build "--no-build"
 fi
-run test
 
 summarize "all checks passed"

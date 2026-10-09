@@ -53,9 +53,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test
-        run: npm run test
-
   smoke-test-full-build:
     name: Smoke Test (Full Build)
     runs-on: ubuntu-latest

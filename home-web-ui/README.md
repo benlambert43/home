@@ -25,9 +25,6 @@ npm run dev
 Serves on [localhost:3000](http://localhost:3000). This workspace's script does
 not build `home-shared`; `npm run dev` from the repository root does.
 
-`npm test` builds `home-shared`, then runs Vitest with jsdom and Testing
-Library.
-
 ## Post images
 
 Post images come from the API's `large` thumbnail, which the site treats as the

@@ -12,12 +12,6 @@
 **/.build.tmp
 **/.build.lock
 **/.next
-**/coverage
 **/*.tsbuildinfo
-**/*.test.ts
-**/*.test.tsx
-**/vitest.*
 **/README.md
 home-server/storage
-home-server/src/api/v1/testFixtures
-home-web-ui/test

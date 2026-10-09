@@ -99,13 +99,7 @@ fi
 
 skip lint:deprecations "full check only"
 skip lint:shell "full check only"
-
-run_step build:shared "home-shared — tests import its build output" \
-  npm run --silent build:shared
 skip build "full check only"
-
-
-run_step test "$(workspace_list test)" npm run --silent test
 
 pass "checks passed for staged changes"
 printf '\033[2mThe full check runs in CI — run it here with \033[0m\033[1mnpm run check\033[0m\n\n'

@@ -17,19 +17,6 @@ const sharedTsRules = {
         varsIgnorePattern: "^_",
       },
     ],
-
-    "@typescript-eslint/no-floating-promises": [
-      "error",
-      {
-        allowForKnownSafeCalls: [
-          {
-            from: "package",
-            package: "vitest",
-            name: ["describe", "it", "test"],
-          },
-        ],
-      },
-    ],
   },
 };
 
@@ -46,7 +33,7 @@ export const typeChecked = (tsconfigRootDir) => [
 
 export const typescriptBase = (tsconfigRootDir) =>
   defineConfig([
-    { ignores: ["build/**", "coverage/**"] },
+    { ignores: ["build/**"] },
     js.configs.recommended,
     ...typeChecked(tsconfigRootDir),
   ]);
