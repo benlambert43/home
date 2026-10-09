@@ -90,8 +90,8 @@ jobs:
           context: .
           file: home-web-ui/Dockerfile
           build-args: |
-            BASE_SITE_URL=${{ env.BASE_SITE_URL }}
-            NEXT_PUBLIC_CAPTCHA_PUBLIC=${{ env.NEXT_PUBLIC_CAPTCHA_PUBLIC }}
+            BASE_SITE_URL
+            NEXT_PUBLIC_CAPTCHA_PUBLIC
           load: true
           tags: home-smoke-web
           cache-from: type=gha,scope=web
