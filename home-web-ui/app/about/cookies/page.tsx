@@ -10,7 +10,7 @@ export const metadata = pageMetadata("cookie notice", {
 });
 
 const CookieNotice = () => (
-  <Notice title="Cookie Notice" updated="2026-10-05">
+  <Notice title="Cookie Notice" updated="2026-10-09">
     <p>
       Cookies are small pieces of text that a website asks your browser to keep
       and send back on later visits. This site uses cookies only to keep you

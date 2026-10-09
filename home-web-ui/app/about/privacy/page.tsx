@@ -18,8 +18,11 @@ export const metadata = pageMetadata("privacy notice", {
 const CLOUD_DATA_PROCESSING_ADDENDUM_URL =
   "https://cloud.google.com/terms/data-processing-addendum";
 
+const CLOUDFLARE_PRIVACY_POLICY_URL =
+  "https://www.cloudflare.com/privacypolicy/";
+
 const PrivacyNotice = () => (
-  <Notice title="Privacy Notice" updated="2026-10-05">
+  <Notice title="Privacy Notice" updated="2026-10-09">
     <p>
       benlambert.tech is my personal website. This notice explains what
       information the site collects, why it collects it, who else handles it,
@@ -40,9 +43,11 @@ const PrivacyNotice = () => (
     <h2>Visiting without an account</h2>
     <p>
       You can read everything public on this site without an account. The site
-      does not use analytics, advertising, or tracking scripts of any kind.
-      Using the control that pauses animations sets one cookie, which records
-      only that choice and is described in the{" "}
+      does not use advertising or tracking scripts. Analytics about how the site
+      is used, such as which pages are visited and how quickly they load, may be
+      collected to keep the site reliable and to maintain it, and are never sold
+      or shared. Using the control that pauses animations sets one cookie, which
+      records only that choice and is described in the{" "}
       <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>. The site's
       own server logs record errors, such as which request failed and why. They
       are designed not to record your IP address, your email address, or
@@ -149,6 +154,26 @@ const PrivacyNotice = () => (
       .
     </p>
 
+    <h2>Cloudflare</h2>
+    <p>
+      Every visit to the site passes through Cloudflare, which delivers the site
+      and protects it from attacks. Your connection is encrypted between your
+      browser and Cloudflare. Cloudflare decrypts each request, including
+      anything you enter in a form, such as your password, so that it can pass
+      the request on to the site's servers over a separate encrypted connection.
+      Cloudflare handles this information as a service provider and may keep
+      technical logs, such as IP addresses and request times, for security and
+      reliability. Cloudflare explains how it handles this information in its{" "}
+      <a
+        href={CLOUDFLARE_PRIVACY_POLICY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        privacy policy
+      </a>
+      .
+    </p>
+
     <h2>Who else handles your information</h2>
     <p>
       The site does not sell, rent, or trade your information, and shares it
@@ -158,7 +183,8 @@ const PrivacyNotice = () => (
       <li>
         Google, which checks reCAPTCHA responses and delivers the site's email.
       </li>
-      <li>The hosting providers that run the site's servers and database.</li>
+      <li>Cloudflare, which delivers the site and protects it from attacks.</li>
+      <li>Any hosting providers that run the site's servers and database.</li>
     </ul>
     <p>
       Information may also be disclosed if the law requires it, or to protect
@@ -233,9 +259,10 @@ const PrivacyNotice = () => (
       to know, correct, and delete it.
     </p>
     <p>
-      The site does not track visitors, so it has nothing to change in response
-      to a Do Not Track or Global Privacy Control signal from your browser, and
-      it treats every visitor the same whether or not one is sent.
+      The site does not track visitors across other sites or sell or share their
+      information, so it has nothing to change in response to a Do Not Track or
+      Global Privacy Control signal from your browser, and it treats every
+      visitor the same whether or not one is sent.
     </p>
 
     <h2>Security</h2>
