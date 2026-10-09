@@ -23,6 +23,7 @@ run lint
 run typecheck
 run lint:deprecations "$(workspace_list)"
 run lint:shell "scripts/*.sh, .husky/pre-commit"
+run test
 
 if [ "$with_build" -eq 1 ]; then
   run build

@@ -13,15 +13,15 @@ Ben Lambert's personal website, an npm workspaces monorepo.
 Needs Node 24, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
 
 1. `npm install`
-2. Copy `.env.template` to `.env` in the root (the dev database), `home-server` and `home-web-ui`, and fill them in. `npm run env:placeholders` writes workspace `.env` files with placeholder values instead, which is enough to build (CI does this).
+2. Copy `.env.template` to `.env` in the root (the dev database), `home-server` and `home-web-ui`, and fill them in. `npm run env:placeholders` writes workspace `.env` files with placeholder values instead, which is enough to build and test (CI does this).
 3. `docker compose -f docker-compose.dev.yml up -d` starts MongoDB on port 27017.
 4. `npm run dev:server` (API) and `npm run dev` (site on [localhost:3000](http://localhost:3000)). Both build `home-shared` first.
 5. `npm run seed` adds the test accounts and sample posts. It refuses a `MONGO_URI` that is not on localhost, skips posts that already exist, and takes a post count (default 33).
 
 | Command                       |                                                                                                                                                                 |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, shell scripts, build. CI runs it in separate steps. `-- --no-build` skips the build.               |
-| `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations` and `lint:shell` run one check each.                                 |
+| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, shell scripts, test, build. CI runs it in separate steps. `-- --no-build` skips the build.         |
+| `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations`, `lint:shell` and `test` run one check each.                         |
 | `npm run build`               | Builds every workspace.                                                                                                                                         |
 | `npm run smoke`               | Builds the production stack, starts it with the values in `smoke.env`, waits for every healthcheck, runs revalidate and a few requests, then removes it.        |
 | `npm run clean`               | `git clean` everything ignored except `.env` files, and resets the dev database. Refuses to delete uncommitted files without `--force`; `--dry-run` only lists. |

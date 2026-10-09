@@ -75,11 +75,11 @@ acquire_lock() {
 }
 
 sources() {
-  find "$shared/src" -type f -name '*.ts' | LC_ALL=C sort
+  find "$shared/src" -type f -name '*.ts' ! -name '*.test.ts' | LC_ALL=C sort
 }
 
 sources_newer() {
-  find "$shared/src" -type f -name '*.ts' -newer "$stamp" | head -n 1
+  find "$shared/src" -type f -name '*.ts' ! -name '*.test.ts' -newer "$stamp" | head -n 1
 }
 
 config_newer() {
@@ -122,7 +122,7 @@ tsc() {
 
 build_shared() {
   rm -rf "$staging" || return 1
-  tsc -p "$shared/tsconfig.json" --outDir "$staging" || return 1
+  tsc -p "$shared/tsconfig.build.json" --outDir "$staging" || return 1
   mkdir -p "$build" || return 1
 
   ( cd "$staging" && find . -type f ) | LC_ALL=C sort > "$manifest" || return 1

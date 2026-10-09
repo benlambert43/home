@@ -4,5 +4,5 @@
     "rootDir": "./src"
   },
   "include": ["src"],
-  "exclude": ["src/scripts"]
+  "exclude": ["**/*.test.ts", "src/scripts"]
 }

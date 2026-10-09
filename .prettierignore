@@ -5,6 +5,7 @@ out/
 build/
 .build.tmp/
 .build.lock/
+coverage/
 *.tsbuildinfo
 
 next-env.d.ts

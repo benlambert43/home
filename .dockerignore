@@ -12,6 +12,10 @@
 **/.build.tmp
 **/.build.lock
 **/.next
+**/coverage
 **/*.tsbuildinfo
+**/*.test.ts
+**/*.test.tsx
+**/vitest.*
 **/README.md
 home-server/storage

@@ -9,6 +9,7 @@ WORKSPACES=$(workspaces)
 IN_WORKSPACE="^($(printf '%s' "$WORKSPACES" | tr ' ' '|'))/"
 LINTABLE='\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$'
 TYPECHECK_ALL='^(package\.json|package-lock\.json|tsconfig[^/]*\.json|home-shared/)'
+TEST_ALL='^vitest\.config\.mjs$'
 
 count() {
   printf '%s\n' "$1" | sed '/^$/d' | wc -l | tr -d ' '
@@ -99,6 +100,23 @@ fi
 
 skip lint:deprecations "full check only"
 skip lint:shell "full check only"
+
+if touches "$TEST_ALL"; then
+  tests="$WORKSPACES"
+else
+  tests="$projects"
+fi
+
+if [ -n "$tests" ]; then
+  set --
+  for ws in $tests; do
+    set -- "$@" --project "$ws"
+  done
+  run_step test "$(printf '%s' "$tests" | sed 's/^ *//; s/ /, /g')" npm run --silent test -- "$@"
+else
+  skip test "no workspace sources changed"
+fi
+
 skip build "full check only"
 
 pass "checks passed for staged changes"

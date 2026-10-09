@@ -33,7 +33,7 @@ export const typeChecked = (tsconfigRootDir) => [
 
 export const typescriptBase = (tsconfigRootDir) =>
   defineConfig([
-    { ignores: ["build/**"] },
+    { ignores: ["build/**", "coverage/**"] },
     js.configs.recommended,
     ...typeChecked(tsconfigRootDir),
   ]);

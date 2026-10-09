@@ -50,6 +50,9 @@ jobs:
           npm run lint:deprecations
           npm run lint:shell
 
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
 
