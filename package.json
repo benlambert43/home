@@ -27,6 +27,7 @@
     "env:placeholders": "sh scripts/env-placeholders.sh",
     "revalidate": "sh scripts/revalidate-site.sh",
     "clean": "sh scripts/clean.sh",
+    "rebuilddevenvironment": "npm run clean && npm install && docker compose -f docker-compose.dev.yml up -d && npm run seed",
     "prepare": "husky"
   },
   "devDependencies": {
