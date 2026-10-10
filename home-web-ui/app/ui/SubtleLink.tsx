@@ -12,13 +12,17 @@ const SubtleLink = ({
   href,
   children,
   textSize = "xs",
+  external = false,
 }: {
   href: LinkProps["href"];
   children: ReactNode;
   textSize?: SubtleLinkTextSize;
+  external?: boolean;
 }) => (
   <Link
     href={href}
+    target={external ? "_blank" : undefined}
+    rel={external ? "noopener noreferrer" : undefined}
     className={`${TEXT_SIZE_CLASSES[textSize]} text-slate-400 underline
       decoration-transparent decoration-1 underline-offset-4 transition-colors
       duration-200 ease-out hover:text-slate-200 hover:decoration-slate-200/50

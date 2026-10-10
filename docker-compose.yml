@@ -117,6 +117,7 @@ services:
       args:
         BASE_SITE_URL: ${BASE_SITE_URL:?required}
         NEXT_PUBLIC_CAPTCHA_PUBLIC: ${NEXT_PUBLIC_CAPTCHA_PUBLIC:?required}
+        SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     pull_policy: build
     environment:
       PORT: 3000

@@ -1,5 +1,12 @@
+import { GITHUB_REPOSITORY_URL } from "@/app/about/links";
 import { NOTICES } from "@/app/about/notices";
 import SubtleLink from "@/app/ui/SubtleLink";
+
+const sourceCommit = process.env.NEXT_PUBLIC_SOURCE_COMMIT ?? "";
+
+const SOURCE_COMMIT = /^[0-9a-f]{7,40}$/.test(sourceCommit)
+  ? sourceCommit
+  : undefined;
 
 const Footer = () => (
   <footer
@@ -17,6 +24,14 @@ const Footer = () => (
       ))}
     </nav>
     <p>© 2026 Ben Lambert</p>
+    {SOURCE_COMMIT && (
+      <SubtleLink
+        href={`${GITHUB_REPOSITORY_URL}/commit/${SOURCE_COMMIT}`}
+        external
+      >
+        Commit {SOURCE_COMMIT.slice(0, 7)}
+      </SubtleLink>
+    )}
   </footer>
 );
 

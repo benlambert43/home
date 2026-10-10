@@ -14,7 +14,10 @@ asks `/session` whether it is signed in and an admin.
 
 `.env.template` lists the environment: `BASE_API_URL`, `BASE_SITE_URL`,
 `BFF_SESSION_SECRET`, `NEXT_PUBLIC_CAPTCHA_PUBLIC` and `REVALIDATE_SECRET`.
-Every one is required.
+Every one is required. The Dockerfile also sets `NEXT_PUBLIC_SOURCE_COMMIT`
+from its `SOURCE_COMMIT` build argument, and the footer links to that commit on
+GitHub. It is optional and inlined by `next build`, so the footer shows no
+commit in development or when the build had none.
 
 ## Development
 

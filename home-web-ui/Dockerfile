@@ -23,6 +23,8 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY scripts/ scripts/
 COPY home-shared/ home-shared/
 COPY home-web-ui/ home-web-ui/
+ARG SOURCE_COMMIT
+ENV NEXT_PUBLIC_SOURCE_COMMIT=${SOURCE_COMMIT}
 RUN npm run build --workspace home-shared \
  && npm run build --workspace home-web-ui
 
