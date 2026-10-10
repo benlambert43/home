@@ -148,7 +148,7 @@ services:
   cloudflared:
     <<: *service-defaults
     image: cloudflare/cloudflared:2026.10.0
-    command: tunnel --no-autoupdate run
+    command: tunnel --no-autoupdate --metrics 127.0.0.1:20241 run
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_CONNECTOR_TOKEN:?required}
     networks:
@@ -156,6 +156,12 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:20241", "ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     cap_drop:
       - ALL
     deploy:
@@ -166,7 +172,7 @@ services:
   revalidate:
     <<: *service-defaults
     image: curlimages/curl:8.22.0
-    restart: on-failure:5
+    restart: "no"
     entrypoint: ["sh"]
     command: ["/app/scripts/revalidate-site.sh", "http://web:3000"]
     environment:

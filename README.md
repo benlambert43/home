@@ -40,7 +40,7 @@ The pre-commit hook runs the same checks on staged files only; `git commit --no-
 
 ## Deployment
 
-`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel, plus two one-shots: `storage-ownership`, which fixes file ownership in `post-storage` before `api` starts, and `revalidate`, which makes the site fully static once `web` is up. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`.
+`docker-compose.yml` is the production stack: `database` (MongoDB), `api` (`home-server`), `web` (`home-web-ui`) and `cloudflared`, which publishes the site through a Cloudflare Tunnel, plus two one-shots: `storage-ownership`, which fixes file ownership in `post-storage` before `api` starts, and `revalidate`, which makes the site fully static once `web` is up. No service publishes a host port; the tunnel is the only way in, and `cloudflared` shares a network only with `web`. `database`, `api`, `web` and `cloudflared` each have a healthcheck; `cloudflared`'s passes while the tunnel holds a connection to Cloudflare. Both one-shots use `restart: "no"`: Coolify leaves services with that policy out of an app's health, so they do not mark the app Degraded once they exit.
 
 To deploy, from a checkout on the home server:
 
@@ -104,7 +104,7 @@ A slug that is not a post answers 404 with the Post Not Found page, saved like a
 
 ### Revalidation
 
-`scripts/revalidate-site.sh` makes the site fully static. In the production stack the `revalidate` service runs it against `http://web:3000` on every `docker compose up`, once `web` is healthy; it exits when done, and Docker retries it up to five times if it fails. It is safe to repeat, and not needed after post changes. To run it by hand against any server:
+`scripts/revalidate-site.sh` makes the site fully static. In the production stack the `revalidate` service runs it against `http://web:3000` on every `docker compose up`, once `web` is healthy; it exits when done and is not restarted if it fails. It is safe to repeat, and not needed after post changes. To run it by hand against any server:
 
 ```bash
 npm run revalidate -- https://benlambert.tech
