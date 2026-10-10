@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24.21.0-bookworm-slim AS base
+FROM node:26.10.0-bookworm-slim AS base
 ENV NPM_CONFIG_FUND=false \
     NPM_CONFIG_UPDATE_NOTIFIER=false
 WORKDIR /app
