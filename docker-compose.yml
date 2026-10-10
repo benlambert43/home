@@ -150,7 +150,7 @@ services:
     image: cloudflare/cloudflared:2026.10.0
     command: tunnel --no-autoupdate run
     environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?required}
+      TUNNEL_TOKEN: ${CLOUDFLARE_CONNECTOR_TOKEN:?required}
     networks:
       - ingress
     depends_on:
