@@ -72,10 +72,10 @@ jobs:
           docker compose --env-file smoke.env config --quiet
           docker compose --env-file smoke.env -f docker-compose.dev.yml config --quiet
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Build api image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: home-server/Dockerfile
@@ -85,7 +85,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=api
 
       - name: Build web image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: home-web-ui/Dockerfile
