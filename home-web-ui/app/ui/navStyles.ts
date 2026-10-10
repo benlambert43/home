@@ -3,3 +3,6 @@ export const NAV_TEXT_LINK_CLASSES =
 
 export const NAV_ICON_LINK_CLASSES =
   "-m-1.5 block rounded-full p-1.5 transition-colors duration-200 ease-out hover:bg-slate-50/10 focus-visible:bg-slate-50/10";
+
+export const NAV_DRAWER_LINK_CLASSES =
+  "flex items-center gap-3 rounded-lg px-3 py-2 text-lg transition-colors duration-200 ease-out hover:bg-slate-50/10 focus-visible:bg-slate-50/10";

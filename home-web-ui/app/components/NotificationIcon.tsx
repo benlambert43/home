@@ -1,11 +1,14 @@
+"use client";
+
 import { NotificationContext } from "@/app/components/Notifications";
 import NotificationDrawer from "@/app/components/NotificationDrawer";
+import UnreadBadge from "@/app/components/UnreadBadge";
 import { NAV_ICON_LINK_CLASSES } from "@/app/ui/navStyles";
 import { BellIcon } from "@heroicons/react/16/solid";
 import { useContext, useEffect, useRef } from "react";
 
 const NotificationIcon = () => {
-  const { notifications, drawer } = useContext(NotificationContext);
+  const { hasUnread, drawer } = useContext(NotificationContext);
   const { open, toggle, close } = drawer;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,10 +29,6 @@ const NotificationIcon = () => {
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, [open, close]);
 
-  const hasUnread = notifications.some(
-    (notification) => !notification.markedAsRead,
-  );
-
   return (
     <div ref={containerRef} className="flex items-center">
       <button
@@ -37,15 +36,9 @@ const NotificationIcon = () => {
         className={`${NAV_ICON_LINK_CLASSES} hover:cursor-pointer`}
         onClick={toggle}
       >
-        <div className="relative">
+        <UnreadBadge>
           <BellIcon className="size-6" />
-          {hasUnread && (
-            <span
-              className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full
-                bg-red-500"
-            />
-          )}
-        </div>
+        </UnreadBadge>
       </button>
       <NotificationDrawer />
     </div>

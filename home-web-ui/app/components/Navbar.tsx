@@ -1,5 +1,13 @@
-import { Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
+import NavDrawer from "@/app/components/NavDrawer";
+import {
+  AccountLink,
+  NAV_LINKS,
+  PROFILE_LINK,
+  SETTINGS_LINK,
+  SIGN_IN_LINK,
+} from "@/app/components/navLinks";
+import NotificationIcon from "@/app/components/NotificationIcon";
 import { Notifications } from "@/app/components/Notifications";
 import SessionActions from "@/app/components/SessionActions";
 import StickyNav from "@/app/components/StickyNav";
@@ -11,70 +19,54 @@ import {
 const SignIn = () => {
   return (
     <div className="min-w-12">
-      <Link href="/signin" className={NAV_TEXT_LINK_CLASSES}>
-        sign in
+      <Link href={SIGN_IN_LINK.href} className={NAV_TEXT_LINK_CLASSES}>
+        {SIGN_IN_LINK.label}
       </Link>
     </div>
   );
 };
 
-const Profile = () => {
+const AccountIconLink = ({ href, label, Icon }: AccountLink) => {
   return (
-    <div>
-      <Link
-        href="/profile"
-        aria-label="Profile"
-        className={NAV_ICON_LINK_CLASSES}
-      >
-        <UserCircleIcon className="size-6" />
-      </Link>
-    </div>
+    <Link href={href} aria-label={label} className={NAV_ICON_LINK_CLASSES}>
+      <Icon className="size-6" />
+    </Link>
   );
 };
 
-const Settings = () => {
+const AccountLinks = () => {
   return (
-    <div>
-      <Link
-        href="/settings"
-        aria-label="Settings"
-        className={NAV_ICON_LINK_CLASSES}
-      >
-        <Cog6ToothIcon className="size-6" />
-      </Link>
-    </div>
+    <>
+      <div className="hidden items-center gap-4 sm:flex">
+        <NotificationIcon />
+        <AccountIconLink {...SETTINGS_LINK} />
+      </div>
+      <AccountIconLink {...PROFILE_LINK} />
+    </>
   );
 };
 
 const Navbar = () => {
   return (
     <StickyNav>
-      <div className="flex flex-4 flex-wrap items-center justify-start gap-4">
-        <Link href="/" className={NAV_TEXT_LINK_CLASSES}>
-          benlambert.tech
-        </Link>
-        <Link href="/blog" className={NAV_TEXT_LINK_CLASSES}>
-          blog
-        </Link>
-        <Link href="/projects" className={NAV_TEXT_LINK_CLASSES}>
-          projects
-        </Link>
-        <Link href="/about" className={NAV_TEXT_LINK_CLASSES}>
-          about
-        </Link>
-      </div>
-      <div className="flex min-h-6 flex-1 items-center gap-4 sm:justify-end">
-        <SessionActions
-          signedOut={<SignIn />}
-          signedIn={
-            <>
-              <Notifications />
-              <Settings />
-              <Profile />
-            </>
-          }
-        />
-      </div>
+      <Notifications>
+        <div className="flex items-center gap-4">
+          <NavDrawer />
+          <Link href="/" className={NAV_TEXT_LINK_CLASSES}>
+            benlambert.tech
+          </Link>
+          <div className="hidden items-center gap-4 sm:flex">
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link key={href} href={href} className={NAV_TEXT_LINK_CLASSES}>
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div className="flex min-h-6 items-center gap-4">
+          <SessionActions signedOut={<SignIn />} signedIn={<AccountLinks />} />
+        </div>
+      </Notifications>
     </StickyNav>
   );
 };
