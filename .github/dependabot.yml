@@ -36,3 +36,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "mongo"
+        update-types: ["version-update:semver-major"]
