@@ -1,3 +1,5 @@
+import { createAccountBodySchema } from "@home/shared";
+import * as z from "zod";
 import { apiSessionSecret } from "./api/v1/auth/apiSessionSecret";
 
 const MAX_PORT = 65535;
@@ -27,6 +29,15 @@ const requireUrl = (name: string) => {
   return value;
 };
 
+const requireValid = (name: string, field: z.ZodType<string>) => {
+  const parsed = field.safeParse(requireEnvironmentVariable(name));
+  if (!parsed.success) {
+    const reasons = parsed.error.issues.map(({ message }) => message);
+    throw new Error(`${name} is not valid: ${reasons.join(" ")}`);
+  }
+  return parsed.data;
+};
+
 export const API_PORT = requirePort("API_PORT");
 
 export const BASE_FRONTEND_URL = requireUrl("BASE_FRONTEND_URL");
@@ -45,6 +56,31 @@ const mongoAuth = () => {
 export const MONGO_URI = requireEnvironmentVariable("MONGO_URI");
 
 export const MONGO_AUTH = mongoAuth();
+
+const ADMIN_ACCOUNT_VARIABLES = [
+  "ADMIN_FIRSTNAME",
+  "ADMIN_LASTNAME",
+  "ADMIN_EMAIL",
+  "ADMIN_PASSWORD",
+];
+
+const adminAccount = () => {
+  if (ADMIN_ACCOUNT_VARIABLES.every((name) => !process.env[name])) {
+    return undefined;
+  }
+
+  const { firstname, lastname, email, password } =
+    createAccountBodySchema.shape;
+
+  return {
+    firstname: requireValid("ADMIN_FIRSTNAME", firstname),
+    lastname: requireValid("ADMIN_LASTNAME", lastname),
+    email: requireValid("ADMIN_EMAIL", email),
+    password: requireValid("ADMIN_PASSWORD", password),
+  };
+};
+
+export const ADMIN_ACCOUNT = adminAccount();
 
 export const API_SESSION_SECRET = apiSessionSecret();
 

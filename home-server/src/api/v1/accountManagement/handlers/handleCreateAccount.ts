@@ -21,16 +21,6 @@ interface NewAccount {
   marketingConsent: boolean;
 }
 
-const shouldCreateAdminAccount = (email: string, password: string) => {
-  const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
-  return Boolean(
-    ADMIN_EMAIL &&
-    ADMIN_PASSWORD &&
-    email === ADMIN_EMAIL &&
-    password === ADMIN_PASSWORD,
-  );
-};
-
 export const createNewUniqueRandomUsername = async () => {
   for (let attempt = 0; attempt < MAX_USERNAME_ATTEMPTS; attempt++) {
     const newUsername = generateUsername("-", 4);
@@ -65,7 +55,7 @@ const handleCreateUser = async ({
     password: await hashPassword(password),
     createdDate: now,
     modifiedDate: now,
-    role: shouldCreateAdminAccount(email, password) ? "admin" : "user",
+    role: "user",
     termsConsent: { agreed: termsConsent, timestamp: now },
     newsletterConsent: { agreed: newsletterConsent, timestamp: now },
     marketingConsent: { agreed: marketingConsent, timestamp: now },

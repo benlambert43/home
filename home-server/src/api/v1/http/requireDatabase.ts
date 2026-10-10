@@ -3,8 +3,17 @@ import mongoose from "mongoose";
 import { ApiMessage } from "./messages";
 import { sendFailure } from "./respond";
 
+let databaseReady = false;
+
+export const markDatabaseReady = () => {
+  databaseReady = true;
+};
+
 export const requireDatabase: RequestHandler = (_req, res, next) => {
-  if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) {
+  if (
+    databaseReady &&
+    mongoose.connection.readyState === mongoose.ConnectionStates.connected
+  ) {
     return next();
   }
 

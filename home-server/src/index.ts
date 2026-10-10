@@ -6,10 +6,15 @@ import apiRouter from "./api/api";
 import { STORAGE_ROOT } from "./api/v1/fileOperations/storagePath";
 import { handleNotFound } from "./api/v1/http/handleNotFound";
 import { handleRequestError } from "./api/v1/http/handleRequestError";
-import { requireDatabase } from "./api/v1/http/requireDatabase";
+import {
+  markDatabaseReady,
+  requireDatabase,
+} from "./api/v1/http/requireDatabase";
 import { sendSuccess } from "./api/v1/http/respond";
 import { resumePostThumbnails } from "./api/v1/post/postThumbnails";
+import { ensureAdminAccount } from "./api/v1/user/ensureAdminAccount";
 import {
+  ADMIN_ACCOUNT,
   API_PORT,
   BASE_FRONTEND_URL,
   MONGO_AUTH,
@@ -46,15 +51,23 @@ const connectToMongo = async () => {
   }
 };
 
+const startDatabase = async () => {
+  await connectToMongo();
+  console.log("MongoDB connected.");
+
+  if (ADMIN_ACCOUNT) await ensureAdminAccount(ADMIN_ACCOUNT);
+
+  markDatabaseReady();
+};
+
 mongoose.set("strictQuery", false);
 
-connectToMongo().then(
+startDatabase().then(
   () => {
-    console.log("MongoDB connected.");
     void resumePostThumbnails();
   },
   (e: unknown) => {
-    console.error("MongoDB connection failed:", e);
+    console.error("Database startup failed:", e);
     process.exit(1);
   },
 );
