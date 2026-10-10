@@ -3,9 +3,6 @@
 import { useAnimationsPaused } from "@/app/lib/useAnimationsPaused";
 import { PauseIcon, PlayIcon } from "@heroicons/react/16/solid";
 
-export const ANIMATION_BUTTON_CLASSES =
-  "rounded p-1 text-slate-500 hover:cursor-pointer hover:text-slate-300";
-
 const AnimationsPauseButton = () => {
   const { paused, togglePaused } = useAnimationsPaused();
 
@@ -14,7 +11,13 @@ const AnimationsPauseButton = () => {
       type="button"
       title={paused ? "Play animations" : "Pause animations"}
       onClick={togglePaused}
-      className={ANIMATION_BUTTON_CLASSES}
+      className={
+        paused
+          ? `rounded-md p-1 text-slate-100 hover:cursor-pointer
+            hover:bg-slate-700`
+          : `rounded p-1 text-slate-500 hover:cursor-pointer
+            hover:text-slate-300`
+      }
     >
       {paused ? (
         <PlayIcon className="size-4" />
