@@ -2,12 +2,20 @@
 
 import { ReactNode, useEffect, useRef } from "react";
 
+type DialogPlacement = "center" | "start";
+
+const PLACEMENT_CLASSES: Record<DialogPlacement, string> = {
+  center: "flex min-h-full items-center justify-center p-4",
+  start: "flex min-h-full justify-start",
+};
+
 type DialogProps = {
   open: boolean;
   onClose: () => void;
   label?: string;
   labelledBy?: string;
   dismissible?: boolean;
+  placement?: DialogPlacement;
   children?: ReactNode;
 };
 
@@ -17,6 +25,7 @@ const Dialog = ({
   label,
   labelledBy,
   dismissible = true,
+  placement = "center",
   children,
 }: DialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -42,7 +51,7 @@ const Dialog = ({
         e.preventDefault();
         requestClose();
       }}
-      className="min-w-site-min fixed inset-0 m-0 h-full max-h-none w-full
+      className="group min-w-site-min fixed inset-0 m-0 h-full max-h-none w-full
         max-w-none overflow-y-auto bg-transparent p-0 text-slate-50 opacity-0
         transition-[opacity,display,overlay] transition-discrete duration-200
         backdrop:bg-slate-950/70 backdrop:opacity-0
@@ -51,7 +60,7 @@ const Dialog = ({
         starting:open:backdrop:opacity-0"
     >
       <div
-        className="flex min-h-full items-center justify-center p-4"
+        className={PLACEMENT_CLASSES[placement]}
         onClick={(e) => {
           if (e.target === e.currentTarget) requestClose();
         }}

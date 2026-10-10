@@ -1,9 +1,17 @@
 "use client";
 
 import { getNotifications } from "@/app/actions/notifications";
-import NotificationIcon from "@/app/components/NotificationIcon";
+import { SessionContext } from "@/app/components/SessionProvider";
 import { Notification } from "@home/shared";
-import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 type NotificationContextValue = {
   drawer: {
@@ -13,6 +21,8 @@ type NotificationContextValue = {
     close: () => void;
   };
   notifications: Notification[];
+  hasUnread: boolean;
+  refresh: () => void;
 };
 
 const defaultNotificationContext: NotificationContextValue = {
@@ -23,39 +33,51 @@ const defaultNotificationContext: NotificationContextValue = {
     close: () => {},
   },
   notifications: [],
+  hasUnread: false,
+  refresh: () => {},
 };
 
 export const NotificationContext = createContext(defaultNotificationContext);
 
 const CLOSE_ANIMATION_MS = 200;
 
-export const Notifications = () => {
+export const Notifications = ({
+  children,
+}: Readonly<{ children: ReactNode }>) => {
+  const session = useContext(SessionContext);
+  const signedIn = session?.signedIn ?? false;
   const [open, setOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loaded, setLoaded] = useState<Notification[]>([]);
   const [refreshCount, setRefreshCount] = useState(0);
   const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    if (!signedIn) return;
+
     let active = true;
 
     const loadNotifications = async () => {
       const result = await getNotifications();
       if (!active) return;
 
-      setNotifications(result.error ? [] : result.notifications);
+      setLoaded(result.error ? [] : result.notifications);
     };
 
     loadNotifications().catch(() => {
-      if (active) setNotifications([]);
+      if (active) setLoaded([]);
     });
 
     return () => {
       active = false;
     };
-  }, [refreshCount]);
+  }, [signedIn, refreshCount]);
 
   useEffect(() => () => clearTimeout(closeTimer.current), []);
+
+  const refresh = useCallback(() => {
+    setRefreshCount((count) => count + 1);
+  }, []);
 
   const close = useCallback(() => {
     setIsClosing(true);
@@ -71,14 +93,24 @@ export const Notifications = () => {
       return;
     }
     setOpen(true);
-    setRefreshCount((count) => count + 1);
-  }, [open, close]);
+    refresh();
+  }, [open, close, refresh]);
+
+  const notifications = signedIn ? loaded : [];
+  const hasUnread = notifications.some(
+    (notification) => !notification.markedAsRead,
+  );
 
   return (
     <NotificationContext.Provider
-      value={{ drawer: { open, isClosing, toggle, close }, notifications }}
+      value={{
+        drawer: { open, isClosing, toggle, close },
+        notifications,
+        hasUnread,
+        refresh,
+      }}
     >
-      <NotificationIcon />
+      {children}
     </NotificationContext.Provider>
   );
 };

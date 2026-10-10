@@ -26,8 +26,8 @@ const StickyNav = ({ children }: Readonly<{ children: ReactNode }>) => {
           ${scrolled ? "opacity-100" : "opacity-0"}`}
       />
       <nav
-        className="relative flex flex-row flex-wrap-reverse items-center
-          justify-between gap-x-8 gap-y-6 rounded-xl bg-slate-600 px-6 py-4"
+        className="relative flex flex-row items-center justify-between gap-x-4
+          rounded-xl bg-slate-600 px-6 py-4 sm:gap-x-8"
       >
         {children}
       </nav>
