@@ -23,15 +23,17 @@ const Footer = () => (
         </SubtleLink>
       ))}
     </nav>
-    <p>© 2026 Ben Lambert</p>
-    {SOURCE_COMMIT && (
-      <SubtleLink
-        href={`${GITHUB_REPOSITORY_URL}/commit/${SOURCE_COMMIT}`}
-        external
-      >
-        Commit {SOURCE_COMMIT.slice(0, 7)}
-      </SubtleLink>
-    )}
+    <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
+      <p>© 2026 Ben Lambert</p>
+      {SOURCE_COMMIT && (
+        <SubtleLink
+          href={`${GITHUB_REPOSITORY_URL}/commit/${SOURCE_COMMIT}`}
+          external
+        >
+          {SOURCE_COMMIT.slice(0, 7)}
+        </SubtleLink>
+      )}
+    </div>
   </footer>
 );
 
