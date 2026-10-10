@@ -18,16 +18,17 @@ Needs Node 24, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
 4. `npm run dev:server` (API) and `npm run dev` (site on [localhost:3000](http://localhost:3000)). Both build `home-shared` first.
 5. `npm run seed` adds the test accounts and sample posts. It refuses a `MONGO_URI` that is not on localhost, skips posts that already exist, and takes a post count (default 33).
 
-| Command                       |                                                                                                                                                                 |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run check`               | The full check: format, lint, typecheck, deprecated API use, shell scripts, test, build. CI runs it in separate steps. `-- --no-build` skips the build.         |
-| `npm run format`, `lint:fix`  | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations`, `lint:shell` and `test` run one check each.                         |
-| `npm run build`               | Builds every workspace.                                                                                                                                         |
-| `npm run smoke`               | Builds the production stack, starts it with the values in `smoke.env`, waits for every healthcheck, runs revalidate and a few requests, then removes it.        |
-| `npm run clean`               | `git clean` everything ignored except `.env` files, and resets the dev database. Refuses to delete uncommitted files without `--force`; `--dry-run` only lists. |
-| `npm run revalidate -- <url>` | Makes a deployed site fully static (see [Static pages](#static-pages)).                                                                                         |
+| Command                         |                                                                                                                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`                 | The full check: format, lint, typecheck, deprecated API use, shell scripts, test, build. CI runs it in separate steps. `-- --no-build` skips the build.         |
+| `npm run format`, `lint:fix`    | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations`, `lint:shell` and `test` run one check each.                         |
+| `npm run build`                 | Builds every workspace.                                                                                                                                         |
+| `npm run smoke`                 | Builds the production stack, starts it with the values in `smoke.env`, waits for every healthcheck, runs revalidate and a few requests, then removes it.        |
+| `npm run clean`                 | `git clean` everything ignored except `.env` files, and resets the dev database. Refuses to delete uncommitted files without `--force`; `--dry-run` only lists. |
+| `npm run rebuilddevenvironment` | `clean`, then `npm install`, starts the dev database and runs `seed`.                                                                                           |
+| `npm run revalidate -- <url>`   | Makes a deployed site fully static (see [Static pages](#static-pages)).                                                                                         |
 
-The pre-commit hook runs the same checks on staged files only; `git commit --no-verify` bypasses it. Lint rules shared by every workspace live in `eslint.config.base.mjs`; each workspace's `eslint.config.mjs` layers its framework config and ignores on top. Timestamp strings are ISO 8601. Dependabot updates npm (through the root lockfile only), GitHub Actions, the Dockerfiles and compose images weekly.
+The pre-commit hook runs format, lint, typecheck and test on the staged files only, and leaves the deprecation, shell and build checks to the full check; `git commit --no-verify` bypasses it. Lint rules shared by every workspace live in `eslint.config.base.mjs`; each workspace's `eslint.config.mjs` layers its framework config and ignores on top. Timestamp strings are ISO 8601. Dependabot updates npm (through the root lockfile only), GitHub Actions, the Dockerfiles and compose images weekly.
 
 ## Test accounts
 
@@ -92,7 +93,7 @@ The `web` image builds without access to the API, so `next build` can only fully
 | `/blog/page/<n>` beyond 2                                                                                                | Not built                                           | After their first visit                  |
 | `/sitemap.xml`, `/feed.xml`                                                                                              | Rendered on every request from the cached post list | Never                                    |
 
-`/signin`, `/createaccount`, `/forgotpassword`, `/profile`, `/settings`, the other pages under `/profile/accountManagement`, `/blog/newPost` and `/blog/<slug>/edit` read the session cookie or the query string with no Suspense boundary below the layout, so they have no static shell and render on every visit. Each exports `instant = false` so that `next build` accepts the empty shell; `/blog/[slug]` and `/blog/page/[page]` do the same because their shells are empty until the slug or page number is known. `/session`, `/revalidate` and the image routes under `/blog` are route handlers that run on every request.
+`/signin`, `/createaccount`, `/forgotpassword`, `/profile`, `/settings`, the other pages under `/profile/accountManagement` and `/blog/newPost` read the session cookie or the query string with no Suspense boundary below the layout, so they have no static shell and render on every visit. Each exports `instant = false` so that `next build` accepts the empty shell; `/blog/[slug]`, `/blog/[slug]/edit` and `/blog/page/[page]` do the same because their shells are empty until the slug or page number is known. `/blog/<slug>/edit` then reads the session cookie like the pages above, so it also renders on every visit. `/session`, `/revalidate` and the image routes under `/blog` are route handlers that run on every request.
 
 Saved pages live inside the `web` container, so a new container starts again from the build output. Revalidation, run by the production stack's `revalidate` service or by hand with `npm run revalidate`, brings the site to the fully static state.
 
