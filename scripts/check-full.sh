@@ -19,6 +19,7 @@ run() {
 }
 
 run format:check "$(workspace_list)"
+run typegen
 run lint
 run typecheck
 run lint:deprecations "$(workspace_list)"

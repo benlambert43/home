@@ -20,6 +20,7 @@
     "lint:deprecations": "sh scripts/check-deprecations.sh",
     "lint:shell": "sh scripts/check-shell.sh",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "typegen": "npm run typegen --workspaces --if-present",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

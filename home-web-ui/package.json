@@ -11,6 +11,7 @@
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
+    "typegen": "next typegen",
     "test": "vitest run"
   },
   "dependencies": {
