@@ -21,7 +21,7 @@ import { useContext, useEffect, useState } from "react";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 40rem)";
 
-const SECTION_CLASSES = "-mx-3 flex flex-col gap-1";
+const SECTION_CLASSES = "ml-7 -mr-3 flex flex-col gap-1";
 
 const ACCOUNT_SECTION_CLASSES = `${SECTION_CLASSES} border-t border-slate-600 pt-4`;
 
@@ -52,6 +52,7 @@ const NavDrawer = () => {
     <>
       <button
         type="button"
+        aria-haspopup="dialog"
         aria-label={
           hasUnread
             ? "Open navigation menu (unread notifications)"
@@ -71,15 +72,10 @@ const NavDrawer = () => {
         placement="start"
       >
         <div
-          className="flex w-72 max-w-[85vw] -translate-x-full flex-col gap-6
-            bg-slate-700 p-6 shadow-xl transition-transform duration-200
-            ease-out group-open:translate-x-0
-            starting:group-open:-translate-x-full"
+          className="flex w-72 max-w-[85vw] flex-col gap-6 rounded-r-2xl
+            bg-slate-700 pt-12 pr-6 pb-6 pl-8 shadow-xl"
         >
-          <div className="flex items-center justify-between gap-4">
-            <Link href="/" className={NAV_TEXT_LINK_CLASSES} onClick={close}>
-              benlambert.tech
-            </Link>
+          <div className="flex items-center gap-4">
             <button
               type="button"
               aria-label="Close navigation menu"
@@ -88,6 +84,9 @@ const NavDrawer = () => {
             >
               <XMarkIcon className="size-6" />
             </button>
+            <Link href="/" className={NAV_TEXT_LINK_CLASSES} onClick={close}>
+              benlambert.tech
+            </Link>
           </div>
           <div className={SECTION_CLASSES}>
             {NAV_LINKS.map(({ href, label }) => (

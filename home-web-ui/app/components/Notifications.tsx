@@ -81,6 +81,7 @@ export const Notifications = ({
 
   const close = useCallback(() => {
     setIsClosing(true);
+    clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => {
       setOpen(false);
       setIsClosing(false);

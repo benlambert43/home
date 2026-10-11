@@ -20,11 +20,12 @@ const NotificationList = ({ onNavigate }: { onNavigate: () => void }) => {
   return (
     <div className="flex flex-col gap-2">
       {notifications.length === 0 ? (
-        <p className="text-sm text-slate-400">No new notifications</p>
+        <p className="text-sm text-slate-300">No new notifications</p>
       ) : (
         notifications.map((n) => (
           <button
             key={n._id}
+            type="button"
             className="rounded-lg bg-slate-600 px-3 py-2 text-left text-sm
               text-white hover:cursor-pointer hover:bg-slate-500"
             onClick={() => {

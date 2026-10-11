@@ -3,17 +3,19 @@ import { NotificationContext } from "@/app/components/Notifications";
 import UnreadBadge from "@/app/components/UnreadBadge";
 import { NAV_DRAWER_LINK_CLASSES } from "@/app/ui/navStyles";
 import { BellIcon } from "@heroicons/react/16/solid";
-import { useContext, useState } from "react";
+import { useContext, useId, useState } from "react";
 
 const NavDrawerNotifications = ({ onNavigate }: { onNavigate: () => void }) => {
   const { hasUnread } = useContext(NotificationContext);
   const [expanded, setExpanded] = useState(false);
+  const listId = useId();
 
   return (
     <div>
       <button
         type="button"
         aria-expanded={expanded}
+        aria-controls={expanded ? listId : undefined}
         aria-label={hasUnread ? "Notifications (unread)" : "Notifications"}
         className={`${NAV_DRAWER_LINK_CLASSES} w-full text-left
           hover:cursor-pointer`}
@@ -25,7 +27,7 @@ const NavDrawerNotifications = ({ onNavigate }: { onNavigate: () => void }) => {
         notifications
       </button>
       {expanded && (
-        <div className="px-3 pt-1 pb-2">
+        <div id={listId} className="px-3 pt-1 pb-2">
           <NotificationList onNavigate={onNavigate} />
         </div>
       )}
