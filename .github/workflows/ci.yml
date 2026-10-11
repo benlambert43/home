@@ -99,3 +99,25 @@ jobs:
 
       - name: Smoke test
         run: npm run smoke -- --no-build
+
+  deploy:
+    name: Deploy (Coolify)
+    needs: [ci, smoke-test-full-build]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://benlambert.tech
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Deploy and verify
+        env:
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          COOLIFY_APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: sh scripts/deploy-coolify.sh "$GITHUB_SHA"
