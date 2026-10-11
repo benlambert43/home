@@ -9,7 +9,7 @@ const StickyNav = ({ children }: Readonly<{ children: ReactNode }>) => {
   return (
     <div
       className={`sticky z-10 mx-2 transition-[top] duration-300 ease-out ${
-        scrolled ? "top-2" : "top-8"
+        scrolled ? "top-2" : "top-4"
       }`}
     >
       <div

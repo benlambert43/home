@@ -27,7 +27,7 @@ const NavDrawerNotifications = ({ onNavigate }: { onNavigate: () => void }) => {
         notifications
       </button>
       {expanded && (
-        <div id={listId} className="px-3 pt-1 pb-2">
+        <div id={listId} className="pt-1 pr-3 pb-2 pl-13">
           <NotificationList onNavigate={onNavigate} />
         </div>
       )}

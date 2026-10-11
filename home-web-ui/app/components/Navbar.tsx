@@ -1,7 +1,7 @@
 import Link from "next/link";
 import NavDrawer from "@/app/components/NavDrawer";
 import {
-  AccountLink,
+  NavLink,
   NAV_LINKS,
   PROFILE_LINK,
   SETTINGS_LINK,
@@ -26,7 +26,7 @@ const SignIn = () => {
   );
 };
 
-const AccountIconLink = ({ href, label, Icon }: AccountLink) => {
+const AccountIconLink = ({ href, label, Icon }: NavLink) => {
   return (
     <Link href={href} aria-label={label} className={NAV_ICON_LINK_CLASSES}>
       <Icon className="size-6" />
