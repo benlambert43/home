@@ -9,7 +9,7 @@ const StickyNav = ({ children }: Readonly<{ children: ReactNode }>) => {
   return (
     <div
       className={`sticky z-10 mx-2 transition-[top] duration-300 ease-out ${
-        scrolled ? "top-2" : "top-8"
+        scrolled ? "top-2" : "top-4"
       }`}
     >
       <div
@@ -26,6 +26,7 @@ const StickyNav = ({ children }: Readonly<{ children: ReactNode }>) => {
           ${scrolled ? "opacity-100" : "opacity-0"}`}
       />
       <nav
+        aria-label="Main"
         className="relative flex flex-row items-center justify-between gap-x-4
           rounded-xl bg-slate-600 px-6 py-4 sm:gap-x-8"
       >

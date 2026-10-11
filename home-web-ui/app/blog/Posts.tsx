@@ -10,30 +10,6 @@ const THUMBNAIL_PIXELS = 120;
 
 const EAGER_THUMBNAIL_ROWS = 4;
 
-const PostRowThumbnail = ({
-  post,
-  page,
-  eager,
-}: {
-  post: PostSummary;
-  page: number;
-  eager: boolean;
-}) => (
-  <Link
-    href={postHref(post.slug, page)}
-    tabIndex={-1}
-    aria-hidden
-    className="shrink-0"
-  >
-    <PostThumbnail
-      post={post}
-      pixels={THUMBNAIL_PIXELS}
-      eager={eager}
-      className="size-20 rounded-md sm:size-30"
-    />
-  </Link>
-);
-
 const PostRow = ({
   post,
   page,
@@ -45,16 +21,21 @@ const PostRow = ({
 }) => (
   <li
     id={postAnchor(post.slug)}
-    className="box-content flex min-h-30 scroll-mt-28 flex-row items-center
-      gap-4 py-4 first:scroll-mt-[100vh] first:pt-0 last:pb-0 sm:scroll-mt-20
-      sm:gap-6"
+    className="relative box-content flex min-h-30 scroll-mt-28 flex-row
+      items-center gap-4 py-4 first:scroll-mt-[100vh] first:pt-0 last:pb-0
+      sm:scroll-mt-20 sm:gap-6"
   >
-    <PostRowThumbnail post={post} page={page} eager={eager} />
+    <PostThumbnail
+      post={post}
+      pixels={THUMBNAIL_PIXELS}
+      eager={eager}
+      className="size-20 shrink-0 rounded-md sm:size-30"
+    />
     <div className="flex min-w-0 flex-col gap-1">
       <Link
         href={postHref(post.slug, page)}
-        className="line-clamp-4 text-lg leading-6 font-semibold hover:underline
-          lg:line-clamp-3 lg:text-xl lg:leading-7"
+        className="line-clamp-4 text-lg leading-6 font-semibold after:absolute
+          after:inset-0 hover:underline lg:line-clamp-3 lg:text-xl lg:leading-7"
       >
         {post.title}
       </Link>

@@ -19,7 +19,7 @@ const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
     <body>
       <AnimationsPausedProvider>
         <SessionProvider>
-          <AnimationsScope className="flex min-h-screen flex-col py-8">
+          <AnimationsScope className="flex min-h-screen flex-col pt-4 pb-8">
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
