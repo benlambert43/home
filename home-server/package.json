@@ -22,7 +22,7 @@
     "cors": "^2.8.6",
     "dayjs": "^1.11.23",
     "express": "^5.2.1",
-    "google-auth-library": "^11.1.0",
+    "google-auth-library": "^11.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.3",
     "multer": "^2.4.0",
