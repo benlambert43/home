@@ -1,0 +1,24 @@
+.aquarius {
+  --win-face: #d4d0c8;
+  --win-light: #ffffff;
+  --win-silver: #c0c0c0;
+  --win-shadow: #808080;
+  --win-dark: #404040;
+  --win-caption: #0a246a;
+  --win-caption-end: #a6caf0;
+  --font-win: Tahoma, "MS Sans Serif", "Segoe UI", sans-serif;
+  --font-document: "Times New Roman", Times, serif;
+  --bevel-window:
+    inset 1px 1px var(--win-face), inset -1px -1px var(--win-dark),
+    inset 2px 2px var(--win-light), inset -2px -2px var(--win-shadow);
+  --bevel-raised:
+    inset 1px 1px var(--win-light), inset -1px -1px var(--win-dark),
+    inset 2px 2px var(--win-face), inset -2px -2px var(--win-shadow);
+  --bevel-sunken:
+    inset 1px 1px var(--win-shadow), inset -1px -1px var(--win-light),
+    inset 2px 2px var(--win-dark), inset -2px -2px var(--win-face);
+  --bevel-thin-raised:
+    inset 1px 1px var(--win-light), inset -1px -1px var(--win-shadow);
+  --bevel-thin-sunken:
+    inset 1px 1px var(--win-shadow), inset -1px -1px var(--win-light);
+}
