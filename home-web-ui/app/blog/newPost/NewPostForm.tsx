@@ -1,10 +1,6 @@
 "use client";
 
 import { createPost } from "@/app/actions/posts";
-import MarkdownEditor, {
-  MarkdownEditorHandle,
-  postImageMarkdown,
-} from "@/app/blog/MarkdownEditor";
 import {
   POST_FORM_FIELDS,
   UPLOAD_ID_FIELD,
@@ -15,7 +11,6 @@ import {
   missingImagesMessage,
   pendingPostImages,
   PostFormImage,
-  postFormMarkdownImages,
   unmatchedImageReferences,
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
@@ -25,6 +20,10 @@ import {
   useUnsavedPostChanges,
 } from "@/app/blog/postForm/useUnsavedPostChanges";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
+import { postImageMarkdown } from "@/app/blog/aquariusEditor/markdownEdits";
+import AquariusEditor, {
+  AquariusEditorHandle,
+} from "@/app/blog/aquariusEditor/AquariusEditor";
 import {
   CreatePostFormState,
   readFormValues,
@@ -32,7 +31,6 @@ import {
 } from "@/app/lib/forms";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
-import TextField from "@/app/ui/TextField";
 import { createPostFormSchema } from "@home/shared";
 import {
   startTransition,
@@ -53,7 +51,7 @@ const NewPostForm = () => {
     errors: uploadErrors,
     uploading,
   } = usePostImageUpload();
-  const editorRef = useRef<MarkdownEditorHandle>(null);
+  const editorRef = useRef<AquariusEditorHandle>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useUnsavedPostChanges(formRef, EMPTY_POST_FIELDS, images);
@@ -109,28 +107,17 @@ const NewPostForm = () => {
 
   return (
     <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
-      <TextField
-        name={POST_FORM_FIELDS.title}
-        label="Title"
-        type="text"
-        placeholder="Title"
-        disabled={busy}
-        defaultValue={state?.values?.title}
-      />
-
-      <FieldError errors={errors?.properties?.title?.errors} />
-
-      <MarkdownEditor
+      <AquariusEditor
         ref={editorRef}
-        name={POST_FORM_FIELDS.content}
-        label="Content"
-        rows={12}
+        titleName={POST_FORM_FIELDS.title}
+        contentName={POST_FORM_FIELDS.content}
+        defaultTitle={state?.values?.title}
+        defaultContent={state?.values?.content}
         disabled={busy}
-        defaultValue={state?.values?.content}
-        images={postFormMarkdownImages(images)}
         onAddImages={addInlineImages}
       />
 
+      <FieldError errors={errors?.properties?.title?.errors} />
       <FieldError errors={errors?.properties?.content?.errors} />
 
       <PostImagePicker

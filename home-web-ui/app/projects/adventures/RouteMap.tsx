@@ -91,8 +91,7 @@ const RouteMap = ({ className }: { className: string }) => (
       style={{ "--delay": ROUTE_START_DELAY_MS } as CSSProperties}
     />
     <g
-      className="animated:motion-safe:animate-pop origin-center
-        [transform-box:fill-box]"
+      className="animated:motion-safe:animate-pop origin-center transform-fill"
       style={{ "--delay": ROUTE_START_DELAY_MS - 200 } as CSSProperties}
     >
       <circle
@@ -119,8 +118,7 @@ const RouteMap = ({ className }: { className: string }) => (
       />
     </g>
     <g
-      className="animated:motion-safe:animate-pop origin-center
-        [transform-box:fill-box]"
+      className="animated:motion-safe:animate-pop origin-center transform-fill"
       style={
         { "--delay": ROUTE_START_DELAY_MS + ROUTE_DRAW_MS } as CSSProperties
       }

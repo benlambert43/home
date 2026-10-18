@@ -1,5 +1,4 @@
 import { postImageHref } from "@/app/blog/links";
-import { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import {
   MAX_POST_IMAGE_BYTES,
   MAX_POST_IMAGE_MEGABYTES,
@@ -241,16 +240,6 @@ export const hasUnsavedImages = (images: PostFormImages) =>
   allPostFormImages(pendingPostImages(images)).length > 0 ||
   images.removedStoredImages.headerImage !== undefined ||
   images.removedStoredImages.inlineImages.length > 0;
-
-export const postFormMarkdownImages = (
-  images: PostFormImages,
-): PostMarkdownImage[] =>
-  allPostFormImages(images).map((image) => ({
-    reference: postImageReference(image.name),
-    src: image.src,
-    width: image.width,
-    height: image.height,
-  }));
 
 export const unmatchedImageReferences = (
   content: string,
