@@ -6,7 +6,17 @@ const sourceCommit = process.env.NEXT_PUBLIC_SOURCE_COMMIT ?? "";
 
 const SOURCE_COMMIT = /^[0-9a-f]{7,40}$/.test(sourceCommit)
   ? sourceCommit
-  : undefined;
+  : "source";
+
+const footerFirstLine = [
+  ...NOTICES,
+  {
+    href: `${GITHUB_REPOSITORY_URL}/commit/${SOURCE_COMMIT}`,
+    title: `${SOURCE_COMMIT.slice(0, 7)}`,
+    description: "Source commit currently deployed",
+    external: true,
+  },
+];
 
 const Footer = () => (
   <footer
@@ -17,22 +27,14 @@ const Footer = () => (
       aria-label="Notices"
       className="flex flex-wrap justify-center gap-x-5 gap-y-2"
     >
-      {NOTICES.map(({ href, title }) => (
-        <SubtleLink key={href} href={href}>
+      {footerFirstLine.map(({ href, title, external }) => (
+        <SubtleLink key={href} href={href} external={external}>
           {title}
         </SubtleLink>
       ))}
     </nav>
     <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
       <p>© 2026 Ben Lambert</p>
-      {SOURCE_COMMIT && (
-        <SubtleLink
-          href={`${GITHUB_REPOSITORY_URL}/commit/${SOURCE_COMMIT}`}
-          external
-        >
-          {SOURCE_COMMIT.slice(0, 7)}
-        </SubtleLink>
-      )}
     </div>
   </footer>
 );
