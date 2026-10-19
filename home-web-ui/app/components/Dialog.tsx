@@ -4,25 +4,53 @@ import { ReactNode, useEffect, useRef } from "react";
 
 type DialogPlacement = "center" | "start";
 
-type PlacementClasses = {
+type PlacementStyles = {
   dialog: string;
   layout: string;
   panel?: string;
+  hiddenDialog: Keyframe;
+  hiddenPanel?: Keyframe;
 };
 
-const PLACEMENT_CLASSES: Record<DialogPlacement, PlacementClasses> = {
+const PLACEMENT_STYLES: Record<DialogPlacement, PlacementStyles> = {
   center: {
-    dialog:
-      "bg-slate-950/70 opacity-0 transition-[opacity,display,overlay] transition-discrete duration-200 open:opacity-100 starting:open:opacity-0",
+    dialog: "bg-slate-950/70",
     layout: "flex min-h-full items-center justify-center p-4",
+    hiddenDialog: { opacity: 0 },
   },
   start: {
-    dialog:
-      "bg-slate-950/0 transition-[background-color,display,overlay] transition-discrete duration-200 ease-in open:bg-slate-950/70 open:duration-300 open:ease-out starting:open:bg-slate-950/0",
+    dialog: "bg-slate-950/70",
     layout: "flex min-h-full justify-start",
-    panel:
-      "flex -translate-x-full outline-none transition-transform duration-200 ease-in group-open:translate-x-0 group-open:duration-300 group-open:ease-out starting:group-open:-translate-x-full motion-reduce:transition-none",
+    panel: "flex outline-none",
+    hiddenDialog: { backgroundColor: "transparent" },
+    hiddenPanel: { transform: "translateX(-100%)" },
   },
+};
+
+const ENTER: KeyframeAnimationOptions = { duration: 250, easing: "ease-out" };
+
+const EXIT: KeyframeAnimationOptions = {
+  duration: 150,
+  easing: "ease-in",
+  fill: "forwards",
+};
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+type TransitionStep = [element: Element | null, hidden: Keyframe | undefined];
+
+const playTransition = (
+  direction: "in" | "out",
+  steps: TransitionStep[],
+): Animation[] => {
+  if (window.matchMedia(REDUCED_MOTION_QUERY).matches) return [];
+
+  return steps.flatMap(([element, hidden]) => {
+    if (!element || !hidden) return [];
+    return direction === "in"
+      ? element.animate([{ ...hidden, offset: 0 }], ENTER)
+      : element.animate([hidden], EXIT);
+  });
 };
 
 type DialogProps = {
@@ -46,18 +74,34 @@ const Dialog = ({
 }: DialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { dialog: dialogClasses, layout, panel } = PLACEMENT_CLASSES[placement];
+  const { dialog: dialogClasses, layout, panel } = PLACEMENT_STYLES[placement];
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (open && !dialog.open) {
+    const { hiddenDialog, hiddenPanel } = PLACEMENT_STYLES[placement];
+    const steps: TransitionStep[] = [
+      [dialog, hiddenDialog],
+      [panelRef.current, hiddenPanel],
+    ];
+
+    if (open) {
+      if (dialog.open) return;
       dialog.showModal();
       panelRef.current?.focus({ preventScroll: true });
+      const animations = playTransition("in", steps);
+      return () => animations.forEach((animation) => animation.cancel());
     }
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
+
+    if (!dialog.open) return;
+    const animations = playTransition("out", steps);
+    Promise.all(animations.map((animation) => animation.finished)).then(
+      () => dialog.close(),
+      () => {},
+    );
+    return () => animations.forEach((animation) => animation.cancel());
+  }, [open, placement]);
 
   const requestClose = () => {
     if (dismissible) onClose();
@@ -72,9 +116,9 @@ const Dialog = ({
         e.preventDefault();
         requestClose();
       }}
-      className={`group min-w-site-min fixed inset-0 m-0 h-full max-h-none
-        w-full max-w-none overflow-y-auto p-0 text-slate-50
-        backdrop:bg-transparent ${dialogClasses}`}
+      className={`min-w-site-min fixed inset-0 m-0 h-full max-h-none w-full
+        max-w-none overflow-y-auto p-0 text-slate-50 backdrop:bg-transparent
+        ${dialogClasses}`}
     >
       <div
         className={layout}
