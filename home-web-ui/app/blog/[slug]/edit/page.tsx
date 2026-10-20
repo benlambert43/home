@@ -2,6 +2,7 @@ import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import EditPostForm from "@/app/blog/[slug]/edit/EditPostForm";
 import { postHref, requestedPage } from "@/app/blog/links";
 import { PostParams } from "@/app/blog/Post";
+import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
 import PostProblem from "@/app/blog/PostProblem";
 import PageColumn from "@/app/components/PageColumn";
 import { pageMetadata } from "@/app/lib/metadata";
@@ -36,7 +37,10 @@ const EditPost = async ({
   }
 
   return (
-    <PageColumn className="flex flex-col gap-4">
+    <PageColumn
+      className="flex flex-col gap-4"
+      widthClassName={POST_COLUMN_WIDTH_CLASS_NAME}
+    >
       <h1 className="text-4xl font-bold">Edit Blog Post</h1>
       <div>
         <EditPostForm

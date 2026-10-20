@@ -1,5 +1,5 @@
 import PostFullSizeImageLink from "@/app/blog/PostFullSizeImageLink";
-import { PostImageColumn, postImageSizing } from "@/app/blog/postImageSizes";
+import { postImageSizing } from "@/app/blog/postImageSizes";
 import { isExternalPostLink, postImageNameFromReference } from "@home/shared";
 import Markdown, { ReactRenderer } from "marked-react";
 import Image from "next/image";
@@ -37,11 +37,7 @@ export type PostImageSource = {
 
 export type PostMarkdownImage = PostImageSource & { reference: string };
 
-const renderer = (
-  images: PostMarkdownImage[],
-  headingIds: string[],
-  columns?: PostImageColumn[],
-) => ({
+const renderer = (images: PostMarkdownImage[], headingIds: string[]) => ({
   heading(this: ReactRenderer, children: ReactNode, level: HeadingLevel) {
     const position = headingsRendered.get(this) ?? 0;
     const Heading = HEADING_TAGS[level];
@@ -93,7 +89,7 @@ const renderer = (
         title={title ?? undefined}
         width={image.width}
         height={image.height}
-        {...postImageSizing(image, columns)}
+        {...postImageSizing(image)}
       />
     );
 
@@ -128,21 +124,16 @@ const PostMarkdown = ({
   content,
   images = [],
   headingIds = [],
-  columns,
 }: {
   content: string;
   images?: PostMarkdownImage[];
   headingIds?: string[];
-  columns?: PostImageColumn[];
 }) => (
   <div
     className="prose prose-invert prose-pre:bg-slate-900
       prose-code:before:content-none prose-code:after:content-none max-w-none"
   >
-    <Markdown
-      value={content}
-      renderer={renderer(images, headingIds, columns)}
-    />
+    <Markdown value={content} renderer={renderer(images, headingIds)} />
   </div>
 );
 

@@ -1,17 +1,11 @@
 import PostFullSizeImageLink from "@/app/blog/PostFullSizeImageLink";
-import { PostImageColumn, postImageSizing } from "@/app/blog/postImageSizes";
+import { postImageSizing } from "@/app/blog/postImageSizes";
 import { PostImageSource } from "@/app/blog/PostMarkdown";
 import Image from "next/image";
 
 export type PostHeaderImageSource = PostImageSource & { alt: string };
 
-const PostHeaderImage = ({
-  image,
-  columns,
-}: {
-  image: PostHeaderImageSource;
-  columns?: PostImageColumn[];
-}) => {
+const PostHeaderImage = ({ image }: { image: PostHeaderImageSource }) => {
   const rendered = (
     <Image
       src={image.src}
@@ -20,7 +14,7 @@ const PostHeaderImage = ({
       height={image.height}
       loading="eager"
       fetchPriority="high"
-      {...postImageSizing(image, columns)}
+      {...postImageSizing(image)}
     />
   );
 

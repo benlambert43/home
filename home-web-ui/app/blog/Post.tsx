@@ -2,8 +2,8 @@ import AdjacentPosts from "@/app/blog/AdjacentPosts";
 import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import PostAdminActions from "@/app/blog/PostAdminActions";
 import PostArticle from "@/app/blog/PostArticle";
+import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
 import PostJsonLd from "@/app/blog/PostJsonLd";
-import { POST_PAGE_IMAGE_COLUMNS } from "@/app/blog/postImageSizes";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import PageColumn from "@/app/components/PageColumn";
@@ -35,7 +35,7 @@ const Post = async ({ params }: { params: PostParams }) => {
   return (
     <PageColumn
       className="flex flex-col gap-4"
-      widthClassName="lg:w-3/4 2xl:w-1/2 3xl:w-1/3"
+      widthClassName={POST_COLUMN_WIDTH_CLASS_NAME}
     >
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
@@ -43,7 +43,6 @@ const Post = async ({ params }: { params: PostParams }) => {
         <PostAdminActions postId={post._id} slug={post.slug} />
       </div>
       <PostArticle
-        columns={POST_PAGE_IMAGE_COLUMNS}
         title={post.title}
         byline={post}
         headerImage={

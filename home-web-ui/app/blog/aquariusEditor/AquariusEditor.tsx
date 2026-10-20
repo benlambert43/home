@@ -482,6 +482,7 @@ const AquariusEditor = ({
     pageView || availableWidth === 0 ? PAGE_WIDTH : availableWidth / scale;
   const pageMargin = pageView ? PAGE_MARGIN : FULL_WIDTH_MARGIN;
   const gutter = pageView ? PAGE_GUTTER : 0;
+  const scrollable = pageView && (zoom !== "page" || scale === MIN_PAGE_SCALE);
 
   useLayoutEffect(() => {
     const page = pageRef.current;
@@ -1312,9 +1313,10 @@ const AquariusEditor = ({
 
         <div
           ref={deskRef}
-          className={`overflow-x-auto border-t border-(--win-shadow) ${
-            pageView ? "bg-(--win-shadow)" : "min-h-96 bg-(--win-light)"
-          }`}
+          className={`border-t border-(--win-shadow) ${
+            scrollable ? "overflow-x-auto" : "overflow-x-clip"
+          }
+            ${pageView ? "bg-(--win-shadow)" : "min-h-96 bg-(--win-light)"}`}
         >
           <div
             className="flex w-max min-w-full justify-center-safe"
