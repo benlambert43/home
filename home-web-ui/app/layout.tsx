@@ -14,7 +14,8 @@ export const viewport = siteViewport;
 const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
   <html
     lang="en"
-    className="min-w-site-min min-h-screen bg-slate-800 text-slate-50"
+    className="min-w-site-min min-h-screen scroll-pt-18 bg-slate-800
+      text-slate-50"
   >
     <body>
       <AnimationsPausedProvider>

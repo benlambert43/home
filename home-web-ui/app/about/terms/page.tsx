@@ -162,7 +162,7 @@ const TermsOfUse = () => (
       having an account will not, by itself, commit you to paying for anything.
     </p>
 
-    <h2 id={NO_WARRANTY_ID} className="scroll-mt-28">
+    <h2 id={NO_WARRANTY_ID} className="scroll-mt-10">
       No warranty
     </h2>
     <p>

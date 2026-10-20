@@ -21,9 +21,9 @@ const PostRow = ({
 }) => (
   <li
     id={postAnchor(post.slug)}
-    className="relative box-content flex min-h-30 scroll-mt-28 flex-row
+    className="relative box-content flex min-h-30 scroll-mt-10 flex-row
       items-center gap-4 py-4 first:scroll-mt-[100vh] first:pt-0 last:pb-0
-      sm:scroll-mt-20 sm:gap-6"
+      sm:scroll-mt-2 sm:gap-6"
   >
     <PostThumbnail
       post={post}

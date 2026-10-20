@@ -47,7 +47,7 @@ const renderer = (images: PostMarkdownImage[], headingIds: string[]) => ({
       <Heading
         key={this.elementId}
         id={headingIds.at(position)}
-        className="scroll-mt-32 sm:scroll-mt-24"
+        className="scroll-mt-14 sm:scroll-mt-6"
       >
         {children}
       </Heading>
