@@ -3,6 +3,7 @@ import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import PostAdminActions from "@/app/blog/PostAdminActions";
 import PostArticle from "@/app/blog/PostArticle";
 import PostJsonLd from "@/app/blog/PostJsonLd";
+import { POST_PAGE_IMAGE_COLUMNS } from "@/app/blog/postImageSizes";
 import PostProblem from "@/app/blog/PostProblem";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import PageColumn from "@/app/components/PageColumn";
@@ -32,13 +33,17 @@ const Post = async ({ params }: { params: PostParams }) => {
     : post.inlineImages;
 
   return (
-    <PageColumn className="flex flex-col gap-4">
+    <PageColumn
+      className="flex flex-col gap-4"
+      widthClassName="lg:w-3/4 2xl:w-1/2 3xl:w-1/3"
+    >
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts postSlug={post.slug} appearance="arrow" />
         <PostAdminActions postId={post._id} slug={post.slug} />
       </div>
       <PostArticle
+        columns={POST_PAGE_IMAGE_COLUMNS}
         title={post.title}
         byline={post}
         headerImage={

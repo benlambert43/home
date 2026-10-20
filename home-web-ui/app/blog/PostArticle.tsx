@@ -2,6 +2,7 @@ import PostByline, { PostBylineFields } from "@/app/blog/PostByline";
 import PostHeaderImage, {
   PostHeaderImageSource,
 } from "@/app/blog/PostHeaderImage";
+import { PostImageColumn } from "@/app/blog/postImageSizes";
 import PostMarkdown, { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import { postHeadingIds } from "@home/shared";
 
@@ -11,12 +12,14 @@ const PostArticle = ({
   headerImage,
   content,
   images,
+  columns,
 }: {
   title: string;
   byline: PostBylineFields;
   headerImage: PostHeaderImageSource | null;
   content: string;
   images: PostMarkdownImage[];
+  columns?: PostImageColumn[];
 }) => (
   <article className="flex flex-col gap-4">
     <header className="flex flex-col gap-4">
@@ -28,12 +31,13 @@ const PostArticle = ({
         {title}
       </h1>
       <PostByline post={byline} />
-      {headerImage && <PostHeaderImage image={headerImage} />}
+      {headerImage && <PostHeaderImage image={headerImage} columns={columns} />}
     </header>
     <PostMarkdown
       content={content}
       images={images}
       headingIds={postHeadingIds(content)}
+      columns={columns}
     />
   </article>
 );
