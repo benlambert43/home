@@ -3,6 +3,7 @@ import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import PostAdminActions from "@/app/blog/PostAdminActions";
 import PostByline from "@/app/blog/PostByline";
 import PostHeaderImage from "@/app/blog/PostHeaderImage";
+import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
 import PostJsonLd from "@/app/blog/PostJsonLd";
 import PostMarkdown from "@/app/blog/PostMarkdown";
 import PostProblem from "@/app/blog/PostProblem";
@@ -35,7 +36,10 @@ const Post = async ({ params }: { params: PostParams }) => {
   }));
 
   return (
-    <PageColumn className="flex flex-col gap-4">
+    <PageColumn
+      className="flex flex-col gap-4"
+      widthClassName={POST_COLUMN_WIDTH_CLASS_NAME}
+    >
       <PostJsonLd post={post} />
       <div className="flex flex-row items-center gap-2">
         <ReturnToBlogPosts postSlug={post.slug} appearance="arrow" />

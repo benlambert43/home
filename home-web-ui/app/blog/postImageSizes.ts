@@ -1,7 +1,8 @@
+import { POST_COLUMN_WIDTHS } from "@/app/blog/postColumn";
 import { CSSProperties } from "react";
 
 const MAX_HEIGHT_REM = 27;
-const XL_MAX_HEIGHT_REM = 36;
+const LG_MAX_HEIGHT_REM = 36;
 
 type ImageDimensions = { width: number; height: number };
 
@@ -12,15 +13,21 @@ const heightLimitedWidth = (
 
 export const postImageSizing = (image: ImageDimensions) => {
   const maxWidth = heightLimitedWidth(image, MAX_HEIGHT_REM);
-  const xlMaxWidth = heightLimitedWidth(image, XL_MAX_HEIGHT_REM);
+  const lgMaxWidth = heightLimitedWidth(image, LG_MAX_HEIGHT_REM);
 
   return {
-    sizes: `(min-width: 1280px) min(75vw, ${image.width}px, ${xlMaxWidth}), min(100vw, ${image.width}px, ${maxWidth})`,
+    sizes: [
+      ...POST_COLUMN_WIDTHS.map(
+        ({ minWidthPx, width }) =>
+          `(min-width: ${minWidthPx}px) min(${width}, ${image.width}px, ${lgMaxWidth})`,
+      ),
+      `min(100vw, ${image.width}px, ${maxWidth})`,
+    ].join(", "),
     className:
-      "mx-auto h-auto max-w-(--max-width) rounded-md xl:max-w-(--xl-max-width)",
+      "mx-auto h-auto max-w-(--max-width) rounded-md lg:max-w-(--lg-max-width)",
     style: {
       "--max-width": `min(100%, ${maxWidth})`,
-      "--xl-max-width": `min(100%, ${xlMaxWidth})`,
+      "--lg-max-width": `min(100%, ${lgMaxWidth})`,
       aspectRatio: `${image.width} / ${image.height}`,
     } as CSSProperties,
   };

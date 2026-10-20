@@ -1,5 +1,6 @@
 @theme {
   --container-site-min: 320px;
+  --breakpoint-3xl: 188rem;
   --color-portrait-sky: #6aaaf0;
   --color-portrait-haze: #d5d8ee;
   --color-portrait-dusk: #f0a585;
