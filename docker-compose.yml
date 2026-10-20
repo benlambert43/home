@@ -148,7 +148,7 @@ services:
 
   cloudflared:
     <<: *service-defaults
-    image: cloudflare/cloudflared:2026.10.0
+    image: cloudflare/cloudflared:2026.10.1
     command: tunnel --no-autoupdate --metrics 127.0.0.1:20241 run
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_CONNECTOR_TOKEN:?required}
@@ -172,7 +172,7 @@ services:
 
   revalidate:
     <<: *service-defaults
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     restart: "no"
     entrypoint: ["sh"]
     command: ["/app/scripts/revalidate-site.sh", "http://web:3000"]
