@@ -3,13 +3,15 @@ import {
   type Extensions,
   type JSONContent,
   type MarkdownRendererHelpers,
+  type MarkdownToken,
 } from "@tiptap/core";
+import { Code } from "@tiptap/extension-code";
 import { CodeBlock } from "@tiptap/extension-code-block";
 import { Document } from "@tiptap/extension-document";
 import { HardBreak } from "@tiptap/extension-hard-break";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
-import { BulletList, OrderedList } from "@tiptap/extension-list";
+import { BulletList, ListItem, OrderedList } from "@tiptap/extension-list";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import {
   renderTableToMarkdown,
@@ -53,11 +55,23 @@ const WHITESPACE = /\s/g;
 
 const LIST_TYPES = new Set(["bulletList", "orderedList"]);
 
-type TextEncoding = (
-  text: string,
-  node: JSONContent,
-  parentNode?: JSONContent,
-) => string;
+const INLINE_NODE_TYPES = new Set(["text", "hardBreak", "image"]);
+
+const BLOCK_CONTAINER_TYPES = new Set(["doc", "blockquote", "listItem"]);
+
+const EMPTY_PARAGRAPH: JSONContent = { type: "paragraph" };
+
+type HtmlToken = { raw?: string; text?: string; block?: boolean };
+
+type PostMarkdownManager = {
+  encodeTextForMarkdown: (
+    text: string,
+    node: JSONContent,
+    parentNode?: JSONContent,
+  ) => string;
+  parseHTMLToken: (token: HtmlToken) => JSONContent | null;
+  parse: (markdown: string) => JSONContent;
+};
 
 const escapePostText = (text: string) =>
   text.replace(INLINE_SYNTAX, "\\$&").replace(ENTITY_AMPERSAND, "\\&");
@@ -66,13 +80,82 @@ const inCode = (node: JSONContent, parentNode?: JSONContent) =>
   parentNode?.type === "codeBlock" ||
   (node.marks ?? []).some((mark) => mark.type === "code");
 
-const applyPostTextEscaping = (manager: MarkdownManager) => {
-  const encoding = manager as unknown as {
-    encodeTextForMarkdown: TextEncoding;
+const textNode = (text: string): JSONContent => ({ type: "text", text });
+
+const paragraphOf = (content: JSONContent[]): JSONContent => ({
+  type: "paragraph",
+  content,
+});
+
+const literalHtml = ({ raw, text, block }: HtmlToken) => {
+  const html = block ? (raw ?? text ?? "").trimEnd() : (raw ?? text ?? "");
+  if (html === "") return null;
+  if (block !== true) return textNode(html);
+
+  return paragraphOf(
+    html
+      .split("\n")
+      .flatMap((line, index) => [
+        ...(index > 0 ? [{ type: "hardBreak" }] : []),
+        ...(line === "" ? [] : [textNode(line)]),
+      ]),
+  );
+};
+
+const wrapInlineRuns = (content: JSONContent[]) => {
+  const blocks: JSONContent[] = [];
+  let run: JSONContent[] = [];
+
+  const flush = () => {
+    if (run.length > 0) blocks.push(paragraphOf(run));
+    run = [];
   };
 
-  encoding.encodeTextForMarkdown = (text, node, parentNode) =>
-    inCode(node, parentNode) ? text : escapePostText(text);
+  for (const node of content) {
+    if (INLINE_NODE_TYPES.has(node.type ?? "")) run.push(node);
+    else {
+      flush();
+      blocks.push(node);
+    }
+  }
+
+  flush();
+  return blocks;
+};
+
+const validPostContent = (node: JSONContent): JSONContent => {
+  const content = (node.content ?? [])
+    .filter((child) => child.type !== "text" || child.text !== "")
+    .map(validPostContent);
+
+  if (!BLOCK_CONTAINER_TYPES.has(node.type ?? "")) {
+    return node.content ? { ...node, content } : node;
+  }
+
+  const blocks = wrapInlineRuns(content);
+  const needsLeadingParagraph =
+    blocks.length === 0 ||
+    (node.type === "listItem" && blocks[0].type !== "paragraph");
+
+  return {
+    ...node,
+    content: needsLeadingParagraph ? [EMPTY_PARAGRAPH, ...blocks] : blocks,
+  };
+};
+
+const applyPostMarkdownRules = (manager: MarkdownManager) => {
+  const patched = manager as unknown as PostMarkdownManager;
+  const parse = patched.parse.bind(patched);
+
+  patched.encodeTextForMarkdown = (text, node, parentNode) => {
+    const encoded = inCode(node, parentNode) ? text : escapePostText(text);
+
+    return parentNode?.type === "heading"
+      ? encoded.replace(/\n/g, " ")
+      : encoded;
+  };
+  patched.parseHTMLToken = literalHtml;
+  patched.parse = (markdown) => validPostContent(parse(markdown));
 };
 
 const withoutCodeIndent = (line: string) =>
@@ -211,6 +294,8 @@ const codeFence = (code: string) => {
   return "`".repeat(Math.max(MIN_CODE_FENCE, longest + 1));
 };
 
+const PostCode = Code.extend({ excludes: "code" });
+
 const PostCodeBlock = CodeBlock.extend({
   renderMarkdown: (node, helpers) => {
     const language =
@@ -287,6 +372,8 @@ const PostDocument = Document.extend({
     helpers.renderChildren(separateAdjacentLists(node).content ?? [], "\n\n"),
 });
 
+const EMPTY_ITEM_LINE = /^(\s*(?:[-*+]|\d+[.)])) +$/gm;
+
 const renderListItems = (
   node: JSONContent,
   helpers: MarkdownRendererHelpers,
@@ -294,11 +381,64 @@ const renderListItems = (
   alternateMarker: string,
 ) => {
   const items = node.content ? helpers.renderChildren(node.content, "\n") : "";
+  const marked =
+    node.attrs?.alternateMarker === true
+      ? items.replace(marker, alternateMarker)
+      : items;
 
-  return node.attrs?.alternateMarker === true
-    ? items.replace(marker, alternateMarker)
-    : items;
+  return marked.replace(EMPTY_ITEM_LINE, "$1");
 };
+
+const checkboxText = (checkbox: MarkdownToken): MarkdownToken => ({
+  type: "text",
+  raw: checkbox.raw ?? "",
+  text: `${(checkbox.raw ?? "").trim()} `,
+});
+
+const listItemTokens = (tokens: MarkdownToken[]) => {
+  const blocks: MarkdownToken[] = [];
+  let checkbox: MarkdownToken | undefined;
+
+  for (const token of tokens) {
+    if (token.type === "checkbox") {
+      checkbox = token;
+      continue;
+    }
+
+    const prefix = checkbox ? [checkboxText(checkbox)] : [];
+    checkbox = undefined;
+
+    if (token.type === "text") {
+      blocks.push({
+        ...token,
+        type: "paragraph",
+        tokens: [...prefix, ...(token.tokens ?? [])],
+      });
+    } else {
+      if (prefix.length > 0) blocks.push({ type: "paragraph", tokens: prefix });
+      blocks.push(token);
+    }
+  }
+
+  if (checkbox)
+    blocks.push({ type: "paragraph", tokens: [checkboxText(checkbox)] });
+
+  return blocks;
+};
+
+const PostListItem = ListItem.extend({
+  parseMarkdown: (token, helpers) => {
+    if (token.type !== "list_item") return [];
+
+    const tokens = listItemTokens(token.tokens ?? []);
+
+    return helpers.createNode(
+      "listItem",
+      undefined,
+      helpers.parseBlockChildren?.(tokens) ?? helpers.parseChildren(tokens),
+    );
+  },
+});
 
 const PostBulletList = BulletList.extend({
   renderMarkdown: (node, helpers) =>
@@ -313,13 +453,41 @@ const PostOrderedList = OrderedList.extend({
     tokenize: () => undefined,
   },
 
+  parseMarkdown: (token, helpers) => {
+    if (token.type !== "list" || token.ordered !== true) return [];
+
+    const start = typeof token.start === "number" ? token.start : 1;
+
+    return helpers.createNode(
+      "orderedList",
+      start === 1 ? undefined : { start },
+      helpers.parseChildren(token.items ?? []),
+    );
+  },
+
   renderMarkdown: (node, helpers) =>
     renderListItems(node, helpers, /^(\d+)\. /gm, "$1) "),
 });
 
 const PostMarkdown = Markdown.extend({
-  onCreate() {
-    if (this.editor.markdown) applyPostTextEscaping(this.editor.markdown);
+  onBeforeCreate() {
+    const manager = new MarkdownManager({
+      indentation: this.options.indentation,
+      marked: this.options.marked,
+      markedOptions: this.options.markedOptions,
+      extensions: this.editor.extensionManager.baseExtensions,
+    });
+
+    applyPostMarkdownRules(manager);
+    this.storage.manager = manager;
+    this.editor.markdown = manager;
+    this.editor.getMarkdown = () => manager.serialize(this.editor.getJSON());
+
+    const { content, contentType } = this.editor.options;
+    if (contentType !== "markdown" || typeof content !== "string") return;
+
+    const parsed = manager.parse(content);
+    if (parsed.content?.length) this.editor.options.content = parsed;
   },
 });
 
@@ -329,7 +497,9 @@ export const postMarkdownExtensions = (): Extensions => [
     underline: false,
     paragraph: false,
     hardBreak: false,
+    code: false,
     codeBlock: false,
+    listItem: false,
     bulletList: false,
     orderedList: false,
     link: false,
@@ -337,7 +507,9 @@ export const postMarkdownExtensions = (): Extensions => [
   PostDocument,
   PostParagraph,
   PostHardBreak,
+  PostCode,
   PostCodeBlock,
+  PostListItem,
   PostBulletList,
   PostOrderedList,
   PostLink,
