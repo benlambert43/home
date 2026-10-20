@@ -20,7 +20,6 @@ import {
   useUnsavedPostChanges,
 } from "@/app/blog/postForm/useUnsavedPostChanges";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
-import { postImageMarkdown } from "@/app/blog/aquariusEditor/markdownEdits";
 import AquariusEditor, {
   AquariusEditorHandle,
 } from "@/app/blog/aquariusEditor/AquariusEditor";
@@ -60,7 +59,7 @@ const NewPostForm = () => {
   const busy = pending || uploading;
 
   const insertImage = (image: PostFormImage) => {
-    editorRef.current?.insert(postImageMarkdown(image.name));
+    editorRef.current?.insertImage(image.name);
   };
 
   const submitPost = async (formData: FormData) => {
@@ -113,6 +112,7 @@ const NewPostForm = () => {
         contentName={POST_FORM_FIELDS.content}
         defaultTitle={state?.values?.title}
         defaultContent={state?.values?.content}
+        images={allPostFormImages(images)}
         disabled={busy}
         onAddImages={addInlineImages}
       />

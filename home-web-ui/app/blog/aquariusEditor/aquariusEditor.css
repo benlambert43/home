@@ -22,3 +22,64 @@
   --bevel-thin-sunken:
     inset 1px 1px var(--win-shadow), inset -1px -1px var(--win-light);
 }
+
+.aquarius .ProseMirror {
+  --tw-prose-body: #000;
+  --tw-prose-headings: #000;
+  --tw-prose-lead: #000;
+  --tw-prose-links: #0000ee;
+  --tw-prose-bold: #000;
+  --tw-prose-counters: #000;
+  --tw-prose-bullets: #000;
+  --tw-prose-hr: var(--win-silver);
+  --tw-prose-quotes: #000;
+  --tw-prose-quote-borders: var(--win-silver);
+  --tw-prose-captions: var(--win-shadow);
+  --tw-prose-kbd: #000;
+  --tw-prose-code: #000;
+  --tw-prose-pre-code: #000;
+  --tw-prose-pre-bg: #f4f4f4;
+  --tw-prose-th-borders: var(--win-silver);
+  --tw-prose-td-borders: var(--win-silver);
+}
+
+.aquarius .ProseMirror code::before,
+.aquarius .ProseMirror code::after {
+  content: none;
+}
+
+.aquarius .ProseMirror table {
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.aquarius .ProseMirror th,
+.aquarius .ProseMirror td {
+  position: relative;
+  min-width: 2em;
+  border: 1px solid var(--win-silver);
+  padding: 0.25em 0.5em;
+  vertical-align: top;
+}
+
+.aquarius .ProseMirror th {
+  background: #f4f4f4;
+}
+
+.aquarius .ProseMirror .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgb(10 36 106 / 0.15);
+  pointer-events: none;
+}
+
+.aquarius .ProseMirror .ProseMirror-selectednode {
+  outline: 2px solid var(--win-caption);
+  outline-offset: 2px;
+}
+
+.aquarius .ProseMirror hr.ProseMirror-selectednode {
+  border-top-color: var(--win-caption);
+}

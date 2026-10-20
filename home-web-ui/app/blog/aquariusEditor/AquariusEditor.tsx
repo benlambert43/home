@@ -2,26 +2,32 @@
 
 import "@/app/blog/aquariusEditor/aquariusEditor.css";
 import {
+  ImageDialog,
   LinkDialog,
   StatisticsDialog,
   TableDialog,
 } from "@/app/blog/aquariusEditor/AquariusDialogs";
 import AquariusHelp from "@/app/blog/aquariusEditor/AquariusHelp";
 import {
+  AquariusImage,
+  EditorImagesContext,
+  imageAlt,
+} from "@/app/blog/aquariusEditor/AquariusImage";
+import {
   BulletedListIcon,
   CodeBlockIcon,
   CopyIcon,
   CutIcon,
-  OutdentIcon,
   HelpIcon,
   HorizontalLineIcon,
-  LinkIcon,
-  IndentIcon,
-  NumberedListIcon,
-  PasteIcon,
   ImageIcon,
-  RedoIcon,
+  IndentIcon,
+  LinkIcon,
+  NumberedListIcon,
+  OutdentIcon,
+  PasteIcon,
   PostIcon,
+  RedoIcon,
   TableIcon,
   UndoIcon,
 } from "@/app/blog/aquariusEditor/AquariusIcons";
@@ -34,60 +40,49 @@ import AquariusToolbar, {
   TOOLBAR_SEPARATOR,
   ToolbarItem,
 } from "@/app/blog/aquariusEditor/AquariusToolbar";
+import { documentStatistics } from "@/app/blog/aquariusEditor/documentStatistics";
 import {
-  BOLD_MARKER,
-  caretPosition,
-  CODE_MARKER,
-  continueBlock,
-  documentStatistics,
-  EditorSelection,
+  HEADING_LEVELS,
+  HeadingLevel,
+  LIST_ITEM,
+  postMarkdownExtensions,
+} from "@/app/blog/aquariusEditor/postMarkdown";
+import {
   formatShortcut,
-  headingLevel,
-  indentLines,
-  insertCodeBlock,
-  insertHorizontalRule,
-  insertLink,
-  insertTable,
-  insertText,
-  isBulleted,
-  isListItem,
-  isNumbered,
-  isQuoted,
-  isWrapped,
-  ITALIC_MARKER,
-  LINE_BREAK,
-  MarkdownEdit,
   matchesShortcut,
-  MAX_HEADING_LEVEL,
-  postImageMarkdown,
-  setHeading,
   Shortcut,
-  toggleBulletedList,
-  toggleNumberedList,
-  toggleQuote,
-  toggleWrap,
-} from "@/app/blog/aquariusEditor/markdownEdits";
-import {
-  HistoryKind,
-  useEditHistory,
-} from "@/app/blog/aquariusEditor/useEditHistory";
+} from "@/app/blog/aquariusEditor/shortcuts";
+import { PostFormImage } from "@/app/blog/postForm/postFormImages";
 import {
   ACCEPTED_POST_IMAGE_TYPES,
   pickedFiles,
 } from "@/app/blog/postImageFiles";
 import { useHydrated } from "@/app/lib/useHydrated";
+import { normalizePostContent, postImageReference } from "@home/shared";
+import { Fragment, Slice } from "@tiptap/pm/model";
+import { EditorState } from "@tiptap/pm/state";
+import { EditorProps, EditorView } from "@tiptap/pm/view";
+import {
+  ChainedCommands,
+  Editor,
+  EditorContent,
+  useEditor,
+  useEditorState,
+} from "@tiptap/react";
 import {
   ChangeEvent,
   KeyboardEvent,
   Ref,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 
-export type AquariusEditorHandle = { insert: (markdown: string) => void };
+export type AquariusEditorHandle = { insertImage: (name: string) => void };
 
 const APPLICATION_NAME = "benlambertdottech aquarius";
 
@@ -111,8 +106,10 @@ const MIN_PAGE_SCALE = 0.25;
 
 const CHROME_TOP = 64;
 
-const DOCUMENT_TEXT_CLASSES =
-  "w-full border-0 bg-transparent p-0 font-(family-name:--font-document) text-[16px] leading-tight whitespace-pre-wrap wrap-break-word text-black outline-none";
+const DOCUMENT_CLASSES =
+  "prose max-w-none font-(family-name:--font-document) text-black outline-none select-text";
+
+const URL_TEXT = /^https?:\/\/\S+$/i;
 
 type Zoom = "2" | "1.5" | "1" | "0.75" | "0.5" | "page";
 
@@ -120,10 +117,65 @@ type View = "page" | "fullWidth";
 
 type Field = "title" | "content";
 
-type Selection = { start: number; end: number };
-
 type Dialog =
-  { kind: "link"; text: string } | { kind: "table" } | { kind: "statistics" };
+  | { kind: "link"; text: string; href?: string }
+  | { kind: "image"; position: number; alt: string }
+  | { kind: "table" }
+  | { kind: "statistics" };
+
+type Chrome = {
+  heading: number;
+  bold: boolean;
+  italic: boolean;
+  strike: boolean;
+  code: boolean;
+  bulleted: boolean;
+  numbered: boolean;
+  quoted: boolean;
+  codeBlock: boolean;
+  listItem: boolean;
+  table: boolean;
+  link: boolean;
+  image: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  hasSelection: boolean;
+  line: number;
+  column: number;
+};
+
+type Handlers = {
+  keyDown: (event: globalThis.KeyboardEvent) => boolean;
+  paste: (event: ClipboardEvent) => boolean;
+  drop: (view: EditorView, event: DragEvent, moved: boolean) => boolean;
+};
+
+const IDLE_CHROME: Chrome = {
+  heading: 0,
+  bold: false,
+  italic: false,
+  strike: false,
+  code: false,
+  bulleted: false,
+  numbered: false,
+  quoted: false,
+  codeBlock: false,
+  listItem: false,
+  table: false,
+  link: false,
+  image: false,
+  canUndo: false,
+  canRedo: false,
+  hasSelection: false,
+  line: 1,
+  column: 1,
+};
+
+const IDLE_HANDLERS: Handlers = {
+  keyDown: () => false,
+  paste: () => false,
+  drop: () => false,
+};
 
 const ZOOM_OPTIONS: { value: Zoom; label: string }[] = [
   { value: "2", label: "200%" },
@@ -136,16 +188,18 @@ const ZOOM_OPTIONS: { value: Zoom; label: string }[] = [
 
 const STYLE_OPTIONS = [
   { value: "0", label: "Paragraph" },
-  ...Array.from({ length: MAX_HEADING_LEVEL }, (_, index) => ({
-    value: `${index + 1}`,
-    label: `Heading ${index + 1}`,
+  ...HEADING_LEVELS.map((level) => ({
+    value: `${level}`,
+    label: `Heading ${level}`,
   })),
 ];
 
 const SHORTCUTS = {
   bold: { key: "B", mod: true },
   italic: { key: "I", mod: true },
+  strike: { key: "S", mod: true, shift: true },
   code: { key: "E", mod: true },
+  codeBlock: { key: "C", mod: true, alt: true },
   link: { key: "K", mod: true },
   undo: { key: "Z", mod: true },
   redo: { key: "Y", mod: true },
@@ -167,19 +221,43 @@ const SHORTCUTS = {
   outdent: { key: "Tab", shift: true },
 } satisfies Record<string, Shortcut>;
 
-const historyKind = (event: ChangeEvent<HTMLTextAreaElement>): HistoryKind => {
-  const native = event.nativeEvent;
-  const inputType = native instanceof InputEvent ? native.inputType : "";
+const isHeadingLevel = (level: number): level is HeadingLevel =>
+  HEADING_LEVELS.some((known) => known === level);
 
-  if (inputType === "insertText" || inputType === "insertCompositionText") {
-    return "insert";
-  }
+const caretPosition = ({ doc, selection }: EditorState) => {
+  let line = 0;
 
-  return inputType.startsWith("delete") ? "delete" : "edit";
+  doc.nodesBetween(0, selection.head, (node) => {
+    if (node.isTextblock) line += 1;
+  });
+
+  return { line: Math.max(line, 1), column: selection.$head.parentOffset + 1 };
 };
 
-const sameSelection = (a: Selection, b: Selection) =>
-  a.start === b.start && a.end === b.end;
+const chromeState = (editor: Editor): Chrome => ({
+  heading:
+    HEADING_LEVELS.find((level) => editor.isActive("heading", { level })) ?? 0,
+  bold: editor.isActive("bold"),
+  italic: editor.isActive("italic"),
+  strike: editor.isActive("strike"),
+  code: editor.isActive("code"),
+  bulleted: editor.isActive("bulletList"),
+  numbered: editor.isActive("orderedList"),
+  quoted: editor.isActive("blockquote"),
+  codeBlock: editor.isActive("codeBlock"),
+  listItem: editor.isActive(LIST_ITEM),
+  table: editor.isActive("table"),
+  link: editor.isActive("link"),
+  image: editor.isActive("image"),
+  canUndo: editor.can().undo(),
+  canRedo: editor.can().redo(),
+  hasSelection: !editor.state.selection.empty,
+  ...caretPosition(editor.state),
+});
+
+const transferredFiles = (transfer: DataTransfer | null) => [
+  ...(transfer?.files ?? []),
+];
 
 const zoomOption = (value: string) =>
   ZOOM_OPTIONS.find((option) => option.value === value)?.value;
@@ -200,6 +278,16 @@ const ItalicGlyph = () => (
       font-bold italic"
   >
     I
+  </span>
+);
+
+const StrikeGlyph = () => (
+  <span
+    aria-hidden="true"
+    className="font-[Arial,sans-serif] text-[13px] leading-none font-bold
+      line-through"
+  >
+    S
   </span>
 );
 
@@ -227,6 +315,7 @@ const AquariusEditor = ({
   contentName,
   defaultTitle = "",
   defaultContent = "",
+  images = [],
   disabled = false,
   onAddImages,
   ref,
@@ -235,43 +324,88 @@ const AquariusEditor = ({
   contentName: string;
   defaultTitle?: string;
   defaultContent?: string;
+  images?: PostFormImage[];
   disabled?: boolean;
   onAddImages?: (files: File[]) => Promise<string[]>;
   ref?: Ref<AquariusEditorHandle>;
 }) => {
-  const { value, canUndo, canRedo, record, undo, redo } =
-    useEditHistory(defaultContent);
   const [title, setTitle] = useState(defaultTitle);
-  const [selection, setSelection] = useState<Selection>({ start: 0, end: 0 });
+  const [markdown, setMarkdown] = useState(defaultContent);
   const [titleCaret, setTitleCaret] = useState(0);
   const [activeField, setActiveField] = useState<Field>("content");
-  const [restore, setRestore] = useState<EditorSelection>();
   const [zoom, setZoom] = useState<Zoom>("1");
   const [deskWidth, setDeskWidth] = useState(0);
-  const [metrics, setMetrics] = useState({
-    caretTop: PAGE_MARGIN,
-    pageHeight: PAGE_HEIGHT,
-  });
+  const [pageHeight, setPageHeight] = useState(PAGE_HEIGHT);
+  const [caretTop, setCaretTop] = useState(PAGE_MARGIN);
   const [chosenView, setChosenView] = useState<View>();
   const [spellcheck, setSpellcheck] = useState(true);
   const [dialog, setDialog] = useState<Dialog>();
   const [help, setHelp] = useState(false);
   const [stuck, setStuck] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const caretRef = useRef<HTMLSpanElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   const deskRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const contentInputRef = useRef<HTMLInputElement>(null);
+  const baseline = useRef("");
+  const handlers = useRef<Handlers>(IDLE_HANDLERS);
   const mac = useHydrated() && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!restore || !textarea) return;
+  const extensions = useMemo(
+    () => [...postMarkdownExtensions(), AquariusImage],
+    [],
+  );
 
-    textarea.focus({ preventScroll: true });
-    textarea.setSelectionRange(restore.selectionStart, restore.selectionEnd);
-  }, [restore]);
+  const editorProps = useMemo<EditorProps>(
+    () => ({
+      attributes: { class: DOCUMENT_CLASSES, "aria-label": "Content" },
+      handleKeyDown: (_view, event) => handlers.current.keyDown(event),
+      handlePaste: (_view, event) => handlers.current.paste(event),
+      handleDrop: (view, event, _slice, moved) =>
+        handlers.current.drop(view, event, moved),
+    }),
+    [],
+  );
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    shouldRerenderOnTransaction: false,
+    extensions,
+    editorProps,
+    content: defaultContent,
+    contentType: "markdown",
+    onCreate: ({ editor: created }) => {
+      baseline.current = normalizePostContent(created.getMarkdown());
+    },
+    onUpdate: ({ editor: updated }) => {
+      const next = updated.getMarkdown();
+
+      setMarkdown(
+        normalizePostContent(next) === baseline.current ? defaultContent : next,
+      );
+    },
+  });
+
+  const chrome =
+    useEditorState({
+      editor,
+      selector: ({ editor: current }) => current && chromeState(current),
+    }) ?? IDLE_CHROME;
+
+  const editImage = useCallback((position: number, alt: string) => {
+    setDialog({ kind: "image", position, alt });
+  }, []);
+
+  const editorImages = useMemo(
+    () => ({ images, editImage }),
+    [images, editImage],
+  );
+
+  useEffect(() => {
+    if (editor && editor.isEditable === disabled) {
+      editor.setEditable(!disabled, false);
+    }
+  }, [editor, disabled]);
 
   useLayoutEffect(() => {
     const desk = deskRef.current;
@@ -289,6 +423,23 @@ const AquariusEditor = ({
     });
 
     observer.observe(desk);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const page = pageRef.current;
+    if (!page) return;
+
+    setPageHeight(page.offsetHeight);
+
+    const observer = new ResizeObserver(() => {
+      setPageHeight(page.offsetHeight);
+    });
+
+    observer.observe(page);
 
     return () => {
       observer.disconnect();
@@ -315,21 +466,6 @@ const AquariusEditor = ({
     };
   }, []);
 
-  useLayoutEffect(() => {
-    const caret = caretRef.current;
-    const page = pageRef.current;
-    if (!caret || !page) return;
-
-    const next = { caretTop: caret.offsetTop, pageHeight: page.offsetHeight };
-
-    setMetrics((current) =>
-      current.caretTop === next.caretTop &&
-      current.pageHeight === next.pageHeight
-        ? current
-        : next,
-    );
-  }, [value, selection, title, zoom, chosenView, deskWidth]);
-
   const view = chosenView ?? "fullWidth";
   const pageView = view === "page";
   const availableWidth = deskWidth;
@@ -347,27 +483,19 @@ const AquariusEditor = ({
   const pageMargin = pageView ? PAGE_MARGIN : FULL_WIDTH_MARGIN;
   const gutter = pageView ? PAGE_GUTTER : 0;
 
-  const heading = headingLevel(value, selection.start);
-  const bold = isWrapped(value, selection.start, selection.end, BOLD_MARKER);
-  const italic = isWrapped(
-    value,
-    selection.start,
-    selection.end,
-    ITALIC_MARKER,
-  );
-  const code = isWrapped(value, selection.start, selection.end, CODE_MARKER);
-  const bulleted = isBulleted(value, selection.start);
-  const numbered = isNumbered(value, selection.start);
-  const quoted = isQuoted(value, selection.start);
-  const listItem = isListItem(value, selection.start);
-  const hasSelection = selection.start !== selection.end;
+  useLayoutEffect(() => {
+    const page = pageRef.current;
+    if (!page || !editor?.isInitialized) return;
+
+    const caret = editor.view.coordsAtPos(editor.state.selection.head);
+
+    setCaretTop((caret.top - page.getBoundingClientRect().top) / scale);
+  }, [editor, chrome, title, zoom, chosenView, deskWidth, pageHeight, scale]);
+
+  const off = disabled || !editor;
   const documentName = title.trim() || UNTITLED_POST;
-  const caret = caretPosition(value, selection.start);
-  const contentPage = Math.floor(metrics.caretTop / PAGE_HEIGHT) + 1;
-  const pages = Math.max(
-    contentPage,
-    Math.ceil(metrics.pageHeight / PAGE_HEIGHT),
-  );
+  const contentPage = Math.floor(caretTop / PAGE_HEIGHT) + 1;
+  const pages = Math.max(contentPage, Math.ceil(pageHeight / PAGE_HEIGHT));
   const status =
     activeField === "title"
       ? {
@@ -378,203 +506,307 @@ const AquariusEditor = ({
         }
       : {
           page: contentPage,
-          inches: (metrics.caretTop % PAGE_HEIGHT) / PIXELS_PER_INCH,
-          line: caret.line,
-          column: caret.column,
+          inches: (caretTop % PAGE_HEIGHT) / PIXELS_PER_INCH,
+          line: chrome.line,
+          column: chrome.column,
         };
 
-  const currentSelection = (): EditorSelection => {
-    const textarea = textareaRef.current;
-
-    return textarea
-      ? {
-          value: textarea.value,
-          selectionStart: textarea.selectionStart,
-          selectionEnd: textarea.selectionEnd,
-        }
-      : { value, selectionStart: selection.start, selectionEnd: selection.end };
-  };
-
-  const travel = (next: EditorSelection | undefined) => {
-    if (!next) return;
-
-    setSelection({ start: next.selectionStart, end: next.selectionEnd });
-    setRestore({ ...next });
-  };
-
-  const commit = (next: EditorSelection) => {
-    record(next, "edit", Date.now());
-    travel(next);
-  };
-
-  const apply = (edit: MarkdownEdit) => {
-    commit(edit(currentSelection()));
+  const exec = (command: (chain: ChainedCommands) => ChainedCommands) => {
+    if (editor) command(editor.chain().focus()).run();
   };
 
   const undoEdit = () => {
-    travel(undo());
+    exec((chain) => chain.undo());
   };
 
   const redoEdit = () => {
-    travel(redo());
+    exec((chain) => chain.redo());
   };
 
-  const syncSelection = (textarea: HTMLTextAreaElement) => {
-    const next = { start: textarea.selectionStart, end: textarea.selectionEnd };
+  const setStyle = (value: string) => {
+    const level = Number(value);
 
-    setSelection((current) => (sameSelection(current, next) ? current : next));
-  };
-
-  const onContentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    const {
-      value: nextValue,
-      selectionStart,
-      selectionEnd,
-    } = event.currentTarget;
-
-    record(
-      { value: nextValue, selectionStart, selectionEnd },
-      historyKind(event),
-      Date.now(),
+    exec((chain) =>
+      isHeadingLevel(level)
+        ? chain.setHeading({ level })
+        : chain.setParagraph(),
     );
-    setSelection({ start: selectionStart, end: selectionEnd });
+  };
+
+  const insertLineBreak = () => {
+    if (!chrome.table) exec((chain) => chain.setHardBreak());
   };
 
   const submitForm = () => {
-    textareaRef.current?.form?.requestSubmit();
+    contentInputRef.current?.form?.requestSubmit();
   };
 
   const selectAll = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    textarea.focus({ preventScroll: true });
-    textarea.select();
-    syncSelection(textarea);
+    exec((chain) => chain.selectAll());
   };
 
   const copySelection = (cut: boolean) => {
-    const current = currentSelection();
-    const text = current.value.slice(
-      current.selectionStart,
-      current.selectionEnd,
-    );
-    if (text === "") return;
+    if (!editor || editor.state.selection.empty) return;
 
-    void navigator.clipboard
-      .writeText(text)
+    const { dom, text } = editor.view.serializeForClipboard(
+      editor.state.selection.content(),
+    );
+    const written =
+      typeof ClipboardItem === "undefined"
+        ? navigator.clipboard.writeText(text)
+        : navigator.clipboard.write([
+            new ClipboardItem({
+              "text/html": new Blob([dom.innerHTML], { type: "text/html" }),
+              "text/plain": new Blob([text], { type: "text/plain" }),
+            }),
+          ]);
+
+    void written
       .then(() => {
-        if (cut) commit(insertText("")(current));
+        if (cut) exec((chain) => chain.deleteSelection());
       })
       .catch(() => undefined);
+  };
+
+  const pasteMarkdown = (text: string) => {
+    if (
+      !editor?.markdown ||
+      editor.isActive("codeBlock") ||
+      editor.isActive("table")
+    ) {
+      return false;
+    }
+
+    try {
+      const content = editor.markdown.parse(text).content;
+      if (!content?.length) return false;
+
+      const fragment = Fragment.fromJSON(editor.schema, content);
+      const slice = new Slice(
+        fragment,
+        fragment.firstChild?.isTextblock ? 1 : 0,
+        fragment.lastChild?.isTextblock ? 1 : 0,
+      );
+
+      editor.view.dispatch(
+        editor.state.tr.replaceSelection(slice).scrollIntoView(),
+      );
+
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const pasteClipboard = () => {
+    if (!editor) return;
+
+    const { view: editorView } = editor;
+
     void navigator.clipboard
-      .readText()
-      .then((text) => {
-        if (text !== "") apply(insertText(text));
+      .read()
+      .then(async (items) => {
+        const html = items.find((item) => item.types.includes("text/html"));
+
+        if (html) {
+          editorView.pasteHTML(await (await html.getType("text/html")).text());
+          return;
+        }
+
+        const text = await navigator.clipboard.readText();
+
+        if (text !== "" && !pasteMarkdown(text)) editorView.pasteText(text);
       })
       .catch(() => undefined);
   };
 
-  const openLinkDialog = () => {
-    const current = currentSelection();
+  const insertImages = (names: string[], at?: number) => {
+    const nodes = names.map((name) => ({
+      type: "paragraph",
+      content: [{ type: "image", attrs: { src: postImageReference(name) } }],
+    }));
 
-    setDialog({
-      kind: "link",
-      text: current.value.slice(current.selectionStart, current.selectionEnd),
-    });
+    exec((chain) =>
+      at === undefined
+        ? chain.insertContent(nodes)
+        : chain.insertContentAt(at, nodes),
+    );
+  };
+
+  const addImages = async (files: File[], at?: number) => {
+    const names = files.length > 0 ? await onAddImages?.(files) : undefined;
+
+    if (names?.length) insertImages(names, at);
   };
 
   const pickImages = () => {
     imageInputRef.current?.click();
   };
 
-  const addImages = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = pickedFiles(event);
-    const names = files.length > 0 ? await onAddImages?.(files) : undefined;
+  const openLinkDialog = () => {
+    if (!editor) return;
 
-    if (names?.length) {
-      apply(insertText(names.map(postImageMarkdown).join("\n")));
+    if (editor.isActive("link")) editor.commands.extendMarkRange("link");
+
+    const { from, to } = editor.state.selection;
+    const href: unknown = editor.getAttributes("link").href;
+
+    setDialog({
+      kind: "link",
+      text: editor.state.doc.textBetween(from, to, " "),
+      href: typeof href === "string" ? href : undefined,
+    });
+  };
+
+  const insertLink = (text: string, href: string) => {
+    exec((chain) =>
+      chain.insertContent({
+        type: "text",
+        text: text || href,
+        marks: [{ type: "link", attrs: { href } }],
+      }),
+    );
+  };
+
+  const removeLink = () => {
+    exec((chain) => chain.unsetLink());
+  };
+
+  const openImageDialog = () => {
+    if (editor && chrome.image) {
+      editImage(
+        editor.state.selection.from,
+        imageAlt(editor.getAttributes("image")),
+      );
     }
   };
 
+  const saveImageAlt = (position: number, alt: string) => {
+    exec((chain) =>
+      chain.setNodeSelection(position).updateAttributes("image", {
+        alt: alt || null,
+      }),
+    );
+  };
+
   useImperativeHandle(ref, () => ({
-    insert: (markdown: string) => {
-      apply(insertText(markdown));
+    insertImage: (name: string) => {
+      insertImages([name]);
     },
   }));
 
   const contentCommands: { shortcut: Shortcut; run: () => void }[] = [
-    { shortcut: SHORTCUTS.bold, run: () => apply(toggleWrap(BOLD_MARKER)) },
-    { shortcut: SHORTCUTS.italic, run: () => apply(toggleWrap(ITALIC_MARKER)) },
-    { shortcut: SHORTCUTS.code, run: () => apply(toggleWrap(CODE_MARKER)) },
+    {
+      shortcut: SHORTCUTS.bold,
+      run: () => exec((chain) => chain.toggleBold()),
+    },
+    {
+      shortcut: SHORTCUTS.italic,
+      run: () => exec((chain) => chain.toggleItalic()),
+    },
+    {
+      shortcut: SHORTCUTS.strike,
+      run: () => exec((chain) => chain.toggleStrike()),
+    },
+    {
+      shortcut: SHORTCUTS.code,
+      run: () => exec((chain) => chain.toggleCode()),
+    },
+    {
+      shortcut: SHORTCUTS.codeBlock,
+      run: () => exec((chain) => chain.toggleCodeBlock()),
+    },
     { shortcut: SHORTCUTS.link, run: openLinkDialog },
     { shortcut: SHORTCUTS.undo, run: undoEdit },
     { shortcut: SHORTCUTS.redo, run: redoEdit },
     { shortcut: SHORTCUTS.redoAlternate, run: redoEdit },
-    { shortcut: SHORTCUTS.bulletedList, run: () => apply(toggleBulletedList) },
-    { shortcut: SHORTCUTS.numberedList, run: () => apply(toggleNumberedList) },
-    { shortcut: SHORTCUTS.quote, run: () => apply(toggleQuote) },
-    { shortcut: SHORTCUTS.lineBreak, run: () => apply(insertText(LINE_BREAK)) },
+    {
+      shortcut: SHORTCUTS.bulletedList,
+      run: () => exec((chain) => chain.toggleBulletList()),
+    },
+    {
+      shortcut: SHORTCUTS.numberedList,
+      run: () => exec((chain) => chain.toggleOrderedList()),
+    },
+    {
+      shortcut: SHORTCUTS.quote,
+      run: () => exec((chain) => chain.toggleBlockquote()),
+    },
+    { shortcut: SHORTCUTS.lineBreak, run: insertLineBreak },
     {
       shortcut: SHORTCUTS.horizontalRule,
-      run: () => apply(insertHorizontalRule),
+      run: () => exec((chain) => chain.setHorizontalRule()),
     },
-    { shortcut: SHORTCUTS.normal, run: () => apply(setHeading(0)) },
-    { shortcut: SHORTCUTS.heading1, run: () => apply(setHeading(1)) },
-    { shortcut: SHORTCUTS.heading2, run: () => apply(setHeading(2)) },
-    { shortcut: SHORTCUTS.heading3, run: () => apply(setHeading(3)) },
+    { shortcut: SHORTCUTS.normal, run: () => setStyle("0") },
+    { shortcut: SHORTCUTS.heading1, run: () => setStyle("1") },
+    { shortcut: SHORTCUTS.heading2, run: () => setStyle("2") },
+    { shortcut: SHORTCUTS.heading3, run: () => setStyle("3") },
   ];
 
-  const onContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.nativeEvent.isComposing) return;
+  const onContentKeyDown = (event: globalThis.KeyboardEvent) => {
+    if (event.isComposing || disabled) return false;
 
     const command = contentCommands.find(({ shortcut }) =>
       matchesShortcut(shortcut, event, mac),
     );
 
-    if (command) {
-      event.preventDefault();
-      command.run();
-      return;
-    }
+    if (!command) return false;
 
-    const current = currentSelection();
-
-    if (
-      matchesShortcut(SHORTCUTS.indent, event, mac) ||
-      matchesShortcut(SHORTCUTS.outdent, event, mac)
-    ) {
-      if (!isListItem(current.value, current.selectionStart)) return;
-
-      event.preventDefault();
-      apply(indentLines(event.shiftKey ? -1 : 1));
-      return;
-    }
-
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey &&
-      !event.metaKey &&
-      !event.ctrlKey &&
-      !event.altKey
-    ) {
-      const next = continueBlock(current);
-
-      if (next) {
-        event.preventDefault();
-        commit(next);
-      }
-    }
+    command.run();
+    return true;
   };
+
+  const onPaste = (event: ClipboardEvent) => {
+    const transfer = event.clipboardData;
+    if (!transfer) return false;
+
+    const files = transferredFiles(transfer);
+
+    if (files.length > 0) {
+      void addImages(files);
+      return true;
+    }
+
+    if (transfer.types.includes("text/html")) return false;
+
+    const text = transfer.getData("text/plain");
+
+    if (
+      text === "" ||
+      (URL_TEXT.test(text.trim()) && !editor?.state.selection.empty)
+    ) {
+      return false;
+    }
+
+    return pasteMarkdown(text);
+  };
+
+  const onDrop = (editorView: EditorView, event: DragEvent, moved: boolean) => {
+    const files = transferredFiles(event.dataTransfer);
+    if (moved || files.length === 0) return false;
+
+    const at = editorView.posAtCoords({
+      left: event.clientX,
+      top: event.clientY,
+    })?.pos;
+
+    void addImages(files, at);
+    return true;
+  };
+
+  useLayoutEffect(() => {
+    handlers.current = {
+      keyDown: onContentKeyDown,
+      paste: onPaste,
+      drop: onDrop,
+    };
+  });
 
   const onTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
 
     event.preventDefault();
-    travel({ value, selectionStart: 0, selectionEnd: 0 });
+    editor?.chain().focus("start").run();
   };
 
   const shortcut = (keys: Shortcut) => formatShortcut(keys, mac);
@@ -596,38 +828,39 @@ const AquariusEditor = ({
         {
           label: "Undo",
           shortcut: shortcut(SHORTCUTS.undo),
-          disabled: disabled || !canUndo,
+          disabled: off || !chrome.canUndo,
           run: undoEdit,
         },
         {
           label: "Redo",
           shortcut: shortcut(SHORTCUTS.redo),
-          disabled: disabled || !canRedo,
+          disabled: off || !chrome.canRedo,
           run: redoEdit,
         },
         MENU_SEPARATOR,
         {
           label: "Cut",
           shortcut: shortcut(SHORTCUTS.cut),
-          disabled: disabled || !hasSelection,
+          disabled: off || !chrome.hasSelection,
           run: () => copySelection(true),
         },
         {
           label: "Copy",
           shortcut: shortcut(SHORTCUTS.copy),
-          disabled: !hasSelection,
+          disabled: !chrome.hasSelection,
           run: () => copySelection(false),
         },
         {
           label: "Paste",
           shortcut: shortcut(SHORTCUTS.paste),
-          disabled,
+          disabled: off,
           run: pasteClipboard,
         },
         MENU_SEPARATOR,
         {
           label: "Select All",
           shortcut: shortcut(SHORTCUTS.selectAll),
+          disabled: !editor,
           run: selectAll,
         },
       ],
@@ -655,33 +888,44 @@ const AquariusEditor = ({
         {
           label: "Line Break",
           shortcut: shortcut(SHORTCUTS.lineBreak),
-          disabled,
-          run: () => apply(insertText(LINE_BREAK)),
+          disabled: off || chrome.table,
+          run: insertLineBreak,
         },
         {
           label: "Horizontal Line",
           shortcut: shortcut(SHORTCUTS.horizontalRule),
-          disabled,
-          run: () => apply(insertHorizontalRule),
+          disabled: off || chrome.table,
+          run: () => exec((chain) => chain.setHorizontalRule()),
         },
         MENU_SEPARATOR,
         {
           label: "Image...",
-          disabled: disabled || !onAddImages,
+          disabled: off || !onAddImages || chrome.table,
           run: pickImages,
         },
         {
           label: "Table...",
-          disabled,
+          disabled: off || chrome.table,
           run: () => setDialog({ kind: "table" }),
         },
         {
           label: "Link...",
           shortcut: shortcut(SHORTCUTS.link),
-          disabled,
+          disabled: off,
           run: openLinkDialog,
         },
-        { label: "Code Block", disabled, run: () => apply(insertCodeBlock) },
+        {
+          label: "Remove Link",
+          disabled: off || !chrome.link,
+          run: removeLink,
+        },
+        {
+          label: "Code Block",
+          shortcut: shortcut(SHORTCUTS.codeBlock),
+          checked: chrome.codeBlock,
+          disabled: off || chrome.table,
+          run: () => exec((chain) => chain.toggleCodeBlock()),
+        },
       ],
     },
     {
@@ -690,91 +934,104 @@ const AquariusEditor = ({
         {
           label: "Bold",
           shortcut: shortcut(SHORTCUTS.bold),
-          checked: bold,
-          disabled,
-          run: () => apply(toggleWrap(BOLD_MARKER)),
+          checked: chrome.bold,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleBold()),
         },
         {
           label: "Italic",
           shortcut: shortcut(SHORTCUTS.italic),
-          checked: italic,
-          disabled,
-          run: () => apply(toggleWrap(ITALIC_MARKER)),
+          checked: chrome.italic,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleItalic()),
+        },
+        {
+          label: "Strikethrough",
+          shortcut: shortcut(SHORTCUTS.strike),
+          checked: chrome.strike,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleStrike()),
         },
         {
           label: "Code",
           shortcut: shortcut(SHORTCUTS.code),
-          checked: code,
-          disabled,
-          run: () => apply(toggleWrap(CODE_MARKER)),
+          checked: chrome.code,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleCode()),
         },
         MENU_SEPARATOR,
         {
           label: "Paragraph",
           shortcut: shortcut(SHORTCUTS.normal),
-          checked: heading === 0,
+          checked: chrome.heading === 0,
           radio: true,
-          disabled,
-          run: () => apply(setHeading(0)),
+          disabled: off,
+          run: () => setStyle("0"),
         },
         {
           label: "Heading 1",
           shortcut: shortcut(SHORTCUTS.heading1),
-          checked: heading === 1,
+          checked: chrome.heading === 1,
           radio: true,
-          disabled,
-          run: () => apply(setHeading(1)),
+          disabled: off,
+          run: () => setStyle("1"),
         },
         {
           label: "Heading 2",
           shortcut: shortcut(SHORTCUTS.heading2),
-          checked: heading === 2,
+          checked: chrome.heading === 2,
           radio: true,
-          disabled,
-          run: () => apply(setHeading(2)),
+          disabled: off,
+          run: () => setStyle("2"),
         },
         {
           label: "Heading 3",
           shortcut: shortcut(SHORTCUTS.heading3),
-          checked: heading === 3,
+          checked: chrome.heading === 3,
           radio: true,
-          disabled,
-          run: () => apply(setHeading(3)),
+          disabled: off,
+          run: () => setStyle("3"),
         },
         MENU_SEPARATOR,
         {
           label: "Bulleted List",
           shortcut: shortcut(SHORTCUTS.bulletedList),
-          checked: bulleted,
-          disabled,
-          run: () => apply(toggleBulletedList),
+          checked: chrome.bulleted,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleBulletList()),
         },
         {
           label: "Numbered List",
           shortcut: shortcut(SHORTCUTS.numberedList),
-          checked: numbered,
-          disabled,
-          run: () => apply(toggleNumberedList),
+          checked: chrome.numbered,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleOrderedList()),
         },
         {
           label: "Quote",
           shortcut: shortcut(SHORTCUTS.quote),
-          checked: quoted,
-          disabled,
-          run: () => apply(toggleQuote),
+          checked: chrome.quoted,
+          disabled: off,
+          run: () => exec((chain) => chain.toggleBlockquote()),
         },
         MENU_SEPARATOR,
         {
           label: "Indent List Item",
           shortcut: shortcut(SHORTCUTS.indent),
-          disabled: disabled || !listItem,
-          run: () => apply(indentLines(1)),
+          disabled: off || !chrome.listItem,
+          run: () => exec((chain) => chain.sinkListItem(LIST_ITEM)),
         },
         {
           label: "Outdent List Item",
           shortcut: shortcut(SHORTCUTS.outdent),
-          disabled: disabled || !listItem,
-          run: () => apply(indentLines(-1)),
+          disabled: off || !chrome.listItem,
+          run: () => exec((chain) => chain.liftListItem(LIST_ITEM)),
+        },
+        MENU_SEPARATOR,
+        {
+          label: "Image Description...",
+          disabled: off || !chrome.image,
+          run: openImageDialog,
         },
       ],
     },
@@ -789,6 +1046,7 @@ const AquariusEditor = ({
         MENU_SEPARATOR,
         {
           label: "Statistics...",
+          disabled: !editor,
           run: () => setDialog({ kind: "statistics" }),
         },
       ],
@@ -798,8 +1056,45 @@ const AquariusEditor = ({
       items: [
         {
           label: "Insert Table...",
-          disabled,
+          disabled: off || chrome.table,
           run: () => setDialog({ kind: "table" }),
+        },
+        MENU_SEPARATOR,
+        {
+          label: "Insert Row Above",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.addRowBefore()),
+        },
+        {
+          label: "Insert Row Below",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.addRowAfter()),
+        },
+        {
+          label: "Insert Column Left",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.addColumnBefore()),
+        },
+        {
+          label: "Insert Column Right",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.addColumnAfter()),
+        },
+        MENU_SEPARATOR,
+        {
+          label: "Delete Row",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.deleteRow()),
+        },
+        {
+          label: "Delete Column",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.deleteColumn()),
+        },
+        {
+          label: "Delete Table",
+          disabled: off || !chrome.table,
+          run: () => exec((chain) => chain.deleteTable()),
         },
       ],
     },
@@ -822,59 +1117,60 @@ const AquariusEditor = ({
     {
       title: "Cut",
       icon: <CutIcon />,
-      disabled: disabled || !hasSelection,
+      disabled: off || !chrome.hasSelection,
       run: () => copySelection(true),
     },
     {
       title: "Copy",
       icon: <CopyIcon />,
-      disabled: !hasSelection,
+      disabled: !chrome.hasSelection,
       run: () => copySelection(false),
     },
-    { title: "Paste", icon: <PasteIcon />, disabled, run: pasteClipboard },
+    { title: "Paste", icon: <PasteIcon />, disabled: off, run: pasteClipboard },
     TOOLBAR_SEPARATOR,
     {
       title: "Undo",
       icon: <UndoIcon />,
-      disabled: disabled || !canUndo,
+      disabled: off || !chrome.canUndo,
       run: undoEdit,
     },
     {
       title: "Redo",
       icon: <RedoIcon />,
-      disabled: disabled || !canRedo,
+      disabled: off || !chrome.canRedo,
       run: redoEdit,
     },
     TOOLBAR_SEPARATOR,
     {
       title: "Insert Link",
       icon: <LinkIcon />,
-      disabled,
+      disabled: off,
       run: openLinkDialog,
     },
     {
       title: "Insert Table",
       icon: <TableIcon />,
-      disabled,
+      disabled: off || chrome.table,
       run: () => setDialog({ kind: "table" }),
     },
     {
       title: "Insert Image",
       icon: <ImageIcon />,
-      disabled: disabled || !onAddImages,
+      disabled: off || !onAddImages || chrome.table,
       run: pickImages,
     },
     {
       title: "Insert Horizontal Line",
       icon: <HorizontalLineIcon />,
-      disabled,
-      run: () => apply(insertHorizontalRule),
+      disabled: off || chrome.table,
+      run: () => exec((chain) => chain.setHorizontalRule()),
     },
     {
-      title: "Insert Code Block",
+      title: "Code Block",
       icon: <CodeBlockIcon />,
-      disabled,
-      run: () => apply(insertCodeBlock),
+      active: chrome.codeBlock,
+      disabled: off || chrome.table,
+      run: () => exec((chain) => chain.toggleCodeBlock()),
     },
     TOOLBAR_SEPARATOR,
     {
@@ -895,291 +1191,296 @@ const AquariusEditor = ({
     {
       type: "combo",
       title: "Style",
-      value: `${heading}`,
+      value: `${chrome.heading}`,
       options: STYLE_OPTIONS,
       width: "w-32",
-      disabled,
-      onChange: (next) => apply(setHeading(Number(next))),
+      disabled: off,
+      onChange: setStyle,
     },
     TOOLBAR_SEPARATOR,
     {
       title: "Bold",
       icon: <BoldGlyph />,
-      active: bold,
-      disabled,
-      run: () => apply(toggleWrap(BOLD_MARKER)),
+      active: chrome.bold,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleBold()),
     },
     {
       title: "Italic",
       icon: <ItalicGlyph />,
-      active: italic,
-      disabled,
-      run: () => apply(toggleWrap(ITALIC_MARKER)),
+      active: chrome.italic,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleItalic()),
+    },
+    {
+      title: "Strikethrough",
+      icon: <StrikeGlyph />,
+      active: chrome.strike,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleStrike()),
     },
     {
       title: "Code",
       icon: <CodeGlyph />,
-      active: code,
-      disabled,
-      run: () => apply(toggleWrap(CODE_MARKER)),
+      active: chrome.code,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleCode()),
     },
     TOOLBAR_SEPARATOR,
     {
       title: "Numbered List",
       icon: <NumberedListIcon />,
-      active: numbered,
-      disabled,
-      run: () => apply(toggleNumberedList),
+      active: chrome.numbered,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleOrderedList()),
     },
     {
       title: "Bulleted List",
       icon: <BulletedListIcon />,
-      active: bulleted,
-      disabled,
-      run: () => apply(toggleBulletedList),
+      active: chrome.bulleted,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleBulletList()),
     },
     {
       title: "Outdent List Item",
       icon: <OutdentIcon />,
-      disabled: disabled || !listItem,
-      run: () => apply(indentLines(-1)),
+      disabled: off || !chrome.listItem,
+      run: () => exec((chain) => chain.liftListItem(LIST_ITEM)),
     },
     {
       title: "Indent List Item",
       icon: <IndentIcon />,
-      disabled: disabled || !listItem,
-      run: () => apply(indentLines(1)),
+      disabled: off || !chrome.listItem,
+      run: () => exec((chain) => chain.sinkListItem(LIST_ITEM)),
     },
     TOOLBAR_SEPARATOR,
     {
       title: "Quote",
       icon: <QuoteGlyph />,
-      active: quoted,
-      disabled,
-      run: () => apply(toggleQuote),
+      active: chrome.quoted,
+      disabled: off,
+      run: () => exec((chain) => chain.toggleBlockquote()),
     },
   ];
 
-  const statistics = documentStatistics(value);
+  const statistics =
+    dialog?.kind === "statistics" && editor
+      ? documentStatistics(editor.state.doc)
+      : undefined;
 
   return (
-    <div
-      className="aquarius relative w-full cursor-default bg-(--win-face) p-0.75
-        font-(family-name:--font-win) text-[11px] text-black
-        shadow-(--bevel-window) select-none"
-    >
-      <div ref={sentinelRef} aria-hidden="true" className="-mb-px h-px" />
-
-      <div className="sticky z-5 h-0" style={{ top: CHROME_TOP }}>
-        {stuck && (
-          <div
-            aria-hidden="true"
-            className="absolute -inset-x-0.75 bottom-0 bg-slate-800"
-            style={{ height: CHROME_TOP }}
-          />
-        )}
-      </div>
-
+    <EditorImagesContext value={editorImages}>
       <div
-        className={`sticky z-20 bg-(--win-face) transition-shadow duration-200
-          ${stuck ? "shadow-[0_4px_10px_-4px_rgba(0,0,0,0.4)]" : ""}`}
-        style={{ top: CHROME_TOP }}
+        className="aquarius relative w-full cursor-default bg-(--win-face)
+          p-0.75 font-(family-name:--font-win) text-[11px] text-black
+          shadow-(--bevel-window) select-none"
       >
-        <div
-          className="flex h-4.5 items-center gap-1 bg-linear-to-r
-            from-(--win-caption) to-(--win-caption-end) px-0.5
-            text-(--win-light)"
-        >
-          <span className="flex-1 truncate font-bold">
-            {`${documentName} - ${APPLICATION_NAME}`}
-          </span>
-        </div>
+        <div ref={sentinelRef} aria-hidden="true" className="-mb-px h-px" />
 
-        <AquariusMenuBar menus={menus} />
-
-        <div className="border-t border-(--win-light) pb-1">
-          <AquariusToolbar label="Standard" items={standardToolbar} />
-          <AquariusToolbar label="Formatting" items={formattingToolbar} />
-        </div>
-      </div>
-
-      <div
-        ref={deskRef}
-        className={`overflow-x-auto border-t border-(--win-shadow) ${
-          pageView ? "bg-(--win-shadow)" : "min-h-96 bg-(--win-light)"
-        }`}
-      >
-        <div
-          className="flex w-max min-w-full justify-center-safe"
-          style={{ padding: gutter }}
-        >
-          <div
-            ref={pageRef}
-            style={{
-              zoom: scale,
-              width: pageWidth,
-              minHeight: pageView ? PAGE_HEIGHT : undefined,
-              padding: pageMargin,
-            }}
-            className={`relative bg-(--win-light) text-black ${
-              pageView
-                ? `shadow-[2px_2px_0_0_var(--win-dark)] outline-1
-                  outline-(--win-dark)`
-                : ""
-              }`}
-          >
-            <input
-              id={titleName}
-              name={titleName}
-              type="text"
-              aria-label="Title"
-              placeholder="Title"
-              autoComplete="off"
-              disabled={disabled}
-              value={title}
-              onChange={(event) => {
-                setTitle(event.target.value);
-                setTitleCaret(event.target.selectionStart ?? 0);
-              }}
-              onFocus={() => {
-                setActiveField("title");
-              }}
-              onSelect={(event) => {
-                setTitleCaret(event.currentTarget.selectionStart ?? 0);
-              }}
-              onKeyUp={(event) => {
-                setTitleCaret(event.currentTarget.selectionStart ?? 0);
-              }}
-              onKeyDown={onTitleKeyDown}
-              className="w-full border-0 bg-transparent p-0
-                font-(family-name:--font-document) text-[26px] leading-tight
-                font-bold text-black outline-none select-text
-                placeholder:text-(--win-shadow)"
+        <div className="sticky z-5 h-0" style={{ top: CHROME_TOP }}>
+          {stuck && (
+            <div
+              aria-hidden="true"
+              className="absolute -inset-x-0.75 bottom-0 bg-slate-800"
+              style={{ height: CHROME_TOP }}
             />
+          )}
+        </div>
 
-            <hr className="my-3 border-0 border-t border-(--win-silver)" />
+        <div
+          className={`sticky z-20 bg-(--win-face) transition-shadow duration-200
+            ${stuck ? "shadow-[0_4px_10px_-4px_rgba(0,0,0,0.4)]" : ""}`}
+          style={{ top: CHROME_TOP }}
+        >
+          <div
+            className="flex h-4.5 items-center gap-1 bg-linear-to-r
+              from-(--win-caption) to-(--win-caption-end) px-0.5
+              text-(--win-light)"
+          >
+            <span className="flex-1 truncate font-bold">
+              {`${documentName} - ${APPLICATION_NAME}`}
+            </span>
+          </div>
 
-            <div className="grid">
-              <div
-                aria-hidden="true"
-                className={`${DOCUMENT_TEXT_CLASSES} invisible col-start-1
-                  row-start-1`}
-              >
-                {value.slice(0, selection.start)}
-                <span ref={caretRef} />
-                {value.slice(selection.start)}
-                {"​"}
-              </div>
-              <textarea
-                id={contentName}
-                name={contentName}
-                ref={textareaRef}
-                aria-label="Content"
-                rows={1}
+          <AquariusMenuBar menus={menus} />
+
+          <div className="border-t border-(--win-light) pb-1">
+            <AquariusToolbar label="Standard" items={standardToolbar} />
+            <AquariusToolbar label="Formatting" items={formattingToolbar} />
+          </div>
+        </div>
+
+        <div
+          ref={deskRef}
+          className={`overflow-x-auto border-t border-(--win-shadow) ${
+            pageView ? "bg-(--win-shadow)" : "min-h-96 bg-(--win-light)"
+          }`}
+        >
+          <div
+            className="flex w-max min-w-full justify-center-safe"
+            style={{ padding: gutter }}
+          >
+            <div
+              ref={pageRef}
+              style={{
+                zoom: scale,
+                width: pageWidth,
+                minHeight: pageView ? PAGE_HEIGHT : undefined,
+                padding: pageMargin,
+              }}
+              className={`relative bg-(--win-light) text-black ${
+                pageView
+                  ? `shadow-[2px_2px_0_0_var(--win-dark)] outline-1
+                    outline-(--win-dark)`
+                  : ""
+                }`}
+            >
+              <input
+                id={titleName}
+                name={titleName}
+                type="text"
+                aria-label="Title"
+                placeholder="Title"
+                autoComplete="off"
                 disabled={disabled}
+                value={title}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  setTitleCaret(event.target.selectionStart ?? 0);
+                }}
+                onFocus={() => {
+                  setActiveField("title");
+                }}
+                onSelect={(event) => {
+                  setTitleCaret(event.currentTarget.selectionStart ?? 0);
+                }}
+                onKeyUp={(event) => {
+                  setTitleCaret(event.currentTarget.selectionStart ?? 0);
+                }}
+                onKeyDown={onTitleKeyDown}
+                className="w-full border-0 bg-transparent p-0
+                  font-(family-name:--font-document) text-[26px] leading-tight
+                  font-bold text-black outline-none select-text
+                  placeholder:text-(--win-shadow)"
+              />
+
+              <hr className="my-3 border-0 border-t border-(--win-silver)" />
+
+              <div
                 spellCheck={spellcheck}
-                value={value}
-                onChange={onContentChange}
                 onFocus={() => {
                   setActiveField("content");
                 }}
-                onSelect={(event) => {
-                  syncSelection(event.currentTarget);
-                }}
-                onKeyUp={(event) => {
-                  syncSelection(event.currentTarget);
-                }}
-                onClick={(event) => {
-                  syncSelection(event.currentTarget);
-                }}
-                onKeyDown={onContentKeyDown}
-                className={`${DOCUMENT_TEXT_CLASSES} col-start-1 row-start-1
-                  resize-none overflow-hidden select-text`}
+              >
+                <EditorContent editor={editor} />
+              </div>
+
+              <input
+                ref={contentInputRef}
+                type="hidden"
+                name={contentName}
+                value={markdown}
               />
             </div>
           </div>
         </div>
+
+        <div
+          className="sticky bottom-0 z-5 border-t border-(--win-light)
+            bg-(--win-face)"
+        >
+          <AquariusStatusBar
+            page={status.page}
+            pages={pages}
+            inches={status.inches}
+            line={status.line}
+            column={status.column}
+          />
+        </div>
+
+        {help && (
+          <AquariusHelp
+            onClose={() => {
+              setHelp(false);
+            }}
+          />
+        )}
+
+        <input
+          ref={imageInputRef}
+          type="file"
+          multiple
+          hidden
+          accept={ACCEPTED_POST_IMAGE_TYPES}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            void addImages(pickedFiles(event));
+          }}
+        />
+
+        {dialog?.kind === "link" && (
+          <LinkDialog
+            text={dialog.text}
+            href={dialog.href}
+            onInsert={(text, href) => {
+              setDialog(undefined);
+              insertLink(text, href);
+            }}
+            onClose={() => {
+              setDialog(undefined);
+            }}
+          />
+        )}
+
+        {dialog?.kind === "image" && (
+          <ImageDialog
+            alt={dialog.alt}
+            onSave={(alt) => {
+              setDialog(undefined);
+              saveImageAlt(dialog.position, alt);
+            }}
+            onClose={() => {
+              setDialog(undefined);
+            }}
+          />
+        )}
+
+        {dialog?.kind === "table" && (
+          <TableDialog
+            onInsert={(columns, rows) => {
+              setDialog(undefined);
+              exec((chain) =>
+                chain.insertTable({ rows, cols: columns, withHeaderRow: true }),
+              );
+            }}
+            onClose={() => {
+              setDialog(undefined);
+            }}
+          />
+        )}
+
+        {statistics && (
+          <StatisticsDialog
+            statistics={[
+              { label: "Pages", value: pages },
+              { label: "Words", value: statistics.words },
+              {
+                label: "Characters (no spaces)",
+                value: statistics.charactersWithoutSpaces,
+              },
+              {
+                label: "Characters (with spaces)",
+                value: statistics.charactersWithSpaces,
+              },
+              { label: "Paragraphs", value: statistics.paragraphs },
+              { label: "Lines", value: statistics.lines },
+            ]}
+            onClose={() => {
+              setDialog(undefined);
+            }}
+          />
+        )}
       </div>
-
-      <div
-        className="sticky bottom-0 z-5 border-t border-(--win-light)
-          bg-(--win-face)"
-      >
-        <AquariusStatusBar
-          page={status.page}
-          pages={pages}
-          inches={status.inches}
-          line={status.line}
-          column={status.column}
-        />
-      </div>
-
-      {help && (
-        <AquariusHelp
-          onClose={() => {
-            setHelp(false);
-          }}
-        />
-      )}
-
-      <input
-        ref={imageInputRef}
-        type="file"
-        multiple
-        hidden
-        accept={ACCEPTED_POST_IMAGE_TYPES}
-        onChange={(event) => {
-          void addImages(event);
-        }}
-      />
-
-      {dialog?.kind === "link" && (
-        <LinkDialog
-          text={dialog.text}
-          onInsert={(text, href) => {
-            setDialog(undefined);
-            apply(insertLink(text, href));
-          }}
-          onClose={() => {
-            setDialog(undefined);
-          }}
-        />
-      )}
-
-      {dialog?.kind === "table" && (
-        <TableDialog
-          onInsert={(columns, rows) => {
-            setDialog(undefined);
-            apply(insertTable(columns, rows));
-          }}
-          onClose={() => {
-            setDialog(undefined);
-          }}
-        />
-      )}
-
-      {dialog?.kind === "statistics" && (
-        <StatisticsDialog
-          statistics={[
-            { label: "Pages", value: pages },
-            { label: "Words", value: statistics.words },
-            {
-              label: "Characters (no spaces)",
-              value: statistics.charactersWithoutSpaces,
-            },
-            {
-              label: "Characters (with spaces)",
-              value: statistics.charactersWithSpaces,
-            },
-            { label: "Paragraphs", value: statistics.paragraphs },
-            { label: "Lines", value: statistics.lines },
-          ]}
-          onClose={() => {
-            setDialog(undefined);
-          }}
-        />
-      )}
-    </div>
+    </EditorImagesContext>
   );
 };
 

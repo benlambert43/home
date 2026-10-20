@@ -2,13 +2,12 @@ import { CloseIcon } from "@/app/blog/aquariusEditor/AquariusIcons";
 
 const TIPS: { syntax: string; meaning: string }[] = [
   { syntax: "**bold** _italic_ `code`", meaning: "Bold, italic, code" },
+  { syntax: "~~text~~", meaning: "Strikethrough" },
   { syntax: "# Heading", meaning: "Heading (## for a subheading)" },
   { syntax: "- item / 1. item", meaning: "Bullets / numbering" },
   { syntax: "> text", meaning: "Quote" },
-  { syntax: "[text](https://…)", meaning: "Link" },
-  { syntax: "| a | b |", meaning: "Table" },
+  { syntax: "```", meaning: "Code block" },
   { syntax: "---", meaning: "Horizontal line" },
-  { syntax: "\\ at the end of a line", meaning: "Line break" },
 ];
 
 const AquariusHelp = ({ onClose }: { onClose: () => void }) => (
@@ -45,7 +44,9 @@ const AquariusHelp = ({ onClose }: { onClose: () => void }) => (
     </dl>
 
     <p className="mt-2 text-(--win-shadow)">
-      Images come from Insert › Image or the Images list below.
+      Type Markdown and it turns into formatting as you go. Pasted text is read
+      as Markdown too. Links, tables, images and line breaks come from the
+      Insert menu; double-click an image to describe it.
     </p>
   </div>
 );

@@ -13,6 +13,8 @@ const MAX_TABLE_COLUMNS = 20;
 
 const MAX_TABLE_ROWS = 100;
 
+const EMPTY_HREF = "https://";
+
 const FIELD_CLASSES =
   "shadow-(--bevel-sunken) h-5.25 w-full bg-(--win-light) px-1 font-(family-name:--font-win) text-[11px] text-black outline-none select-text";
 
@@ -118,17 +120,19 @@ const AquariusDialog = ({
 
 export const LinkDialog = ({
   text: initialText,
+  href: initialHref = EMPTY_HREF,
   onInsert,
   onClose,
 }: {
   text: string;
+  href?: string;
   onInsert: (text: string, href: string) => void;
   onClose: () => void;
 }) => {
   const [text, setText] = useState(initialText);
-  const [href, setHref] = useState("https://");
+  const [href, setHref] = useState(initialHref);
   const id = useId();
-  const ready = href.trim() !== "" && href.trim() !== "https://";
+  const ready = href.trim() !== "" && href.trim() !== EMPTY_HREF;
 
   const insert = () => {
     if (ready) onInsert(text.trim(), href.trim());
@@ -164,6 +168,52 @@ export const LinkDialog = ({
         </div>
         <div className="flex justify-end gap-2 pt-1">
           <DialogButton primary disabled={!ready} onClick={insert}>
+            OK
+          </DialogButton>
+          <DialogButton onClick={onClose}>Cancel</DialogButton>
+        </div>
+      </div>
+    </AquariusDialog>
+  );
+};
+
+export const ImageDialog = ({
+  alt: initialAlt,
+  onSave,
+  onClose,
+}: {
+  alt: string;
+  onSave: (alt: string) => void;
+  onClose: () => void;
+}) => {
+  const [alt, setAlt] = useState(initialAlt);
+  const id = useId();
+
+  const save = () => {
+    onSave(alt.trim());
+  };
+
+  return (
+    <AquariusDialog title="Image" onClose={onClose} onConfirm={save}>
+      <div className="flex w-80 max-w-full flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`${id}-alt`}>Alternative text:</label>
+          <input
+            id={`${id}-alt`}
+            type="text"
+            value={alt}
+            data-autofocus
+            onChange={(event) => {
+              setAlt(event.target.value);
+            }}
+            className={FIELD_CLASSES}
+          />
+          <p className="text-(--win-shadow)">
+            Describes the image for readers who cannot see it.
+          </p>
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <DialogButton primary onClick={save}>
             OK
           </DialogButton>
           <DialogButton onClick={onClose}>Cancel</DialogButton>
