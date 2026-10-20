@@ -1,7 +1,7 @@
 import { CSSProperties } from "react";
 
-const MAX_HEIGHT_REM = 27;
-const XL_MAX_HEIGHT_REM = 36;
+const MAX_HEIGHT_REM = 21;
+const XL_MAX_HEIGHT_REM = 28;
 
 type ImageDimensions = { width: number; height: number };
 
