@@ -24,9 +24,15 @@ import { Markdown, MarkdownManager } from "@tiptap/markdown";
 import { StarterKit } from "@tiptap/starter-kit";
 import { decode } from "html-entities";
 
-export const HEADING_LEVELS = [1, 2, 3, 4, 5, 6] as const;
+export const HEADING_LEVELS = [1, 2, 3] as const;
 
 export type HeadingLevel = (typeof HEADING_LEVELS)[number];
+
+const MAX_HEADING_LEVEL: HeadingLevel =
+  HEADING_LEVELS[HEADING_LEVELS.length - 1];
+
+export const isHeadingLevel = (level: number): level is HeadingLevel =>
+  HEADING_LEVELS.some((known) => known === level);
 
 export const LIST_ITEM = "listItem";
 
@@ -127,6 +133,19 @@ const validPostContent = (node: JSONContent): JSONContent => {
   const content = (node.content ?? [])
     .filter((child) => child.type !== "text" || child.text !== "")
     .map(validPostContent);
+
+  if (node.type === "heading") {
+    const level = typeof node.attrs?.level === "number" ? node.attrs.level : 1;
+
+    return {
+      ...node,
+      attrs: {
+        ...node.attrs,
+        level: isHeadingLevel(level) ? level : MAX_HEADING_LEVEL,
+      },
+      content,
+    };
+  }
 
   if (!BLOCK_CONTAINER_TYPES.has(node.type ?? "")) {
     return node.content ? { ...node, content } : node;
@@ -494,6 +513,7 @@ const PostMarkdown = Markdown.extend({
 export const postMarkdownExtensions = (): Extensions => [
   StarterKit.configure({
     document: false,
+    heading: { levels: [...HEADING_LEVELS] },
     underline: false,
     paragraph: false,
     hardBreak: false,

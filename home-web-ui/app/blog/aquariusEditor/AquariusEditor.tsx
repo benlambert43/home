@@ -43,7 +43,7 @@ import AquariusToolbar, {
 import { documentStatistics } from "@/app/blog/aquariusEditor/documentStatistics";
 import {
   HEADING_LEVELS,
-  HeadingLevel,
+  isHeadingLevel,
   LIST_ITEM,
   postMarkdownExtensions,
 } from "@/app/blog/aquariusEditor/postMarkdown";
@@ -224,9 +224,6 @@ const SHORTCUTS = {
   indent: { key: "Tab" },
   outdent: { key: "Tab", shift: true },
 } satisfies Record<string, Shortcut>;
-
-const isHeadingLevel = (level: number): level is HeadingLevel =>
-  HEADING_LEVELS.some((known) => known === level);
 
 const caretPosition = ({ doc, selection }: EditorState) => {
   let line = 0;
