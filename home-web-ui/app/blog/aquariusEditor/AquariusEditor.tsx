@@ -107,7 +107,7 @@ const MIN_PAGE_SCALE = 0.25;
 const CHROME_TOP = 64;
 
 const DOCUMENT_CLASSES =
-  "prose max-w-none font-(family-name:--font-document) text-black outline-none select-text";
+  "prose max-w-none cursor-text font-(family-name:--font-document) text-black outline-none select-text";
 
 const URL_TEXT = /^https?:\/\/\S+$/i;
 

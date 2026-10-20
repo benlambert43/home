@@ -80,6 +80,10 @@
   outline-offset: 2px;
 }
 
+.aquarius .ProseMirror hr {
+  cursor: default;
+}
+
 .aquarius .ProseMirror hr.ProseMirror-selectednode {
   border-top-color: var(--win-caption);
 }

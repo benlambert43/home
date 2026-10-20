@@ -21,7 +21,7 @@ const AquariusStatusBar = ({
   column: number;
 }) => (
   <div
-    role="status"
+    role="group"
     aria-label="Document position"
     className="flex h-5 items-center gap-0.5 overflow-hidden px-0.5"
   >
