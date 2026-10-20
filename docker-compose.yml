@@ -172,7 +172,7 @@ services:
 
   revalidate:
     <<: *service-defaults
-    image: curlimages/curl:8.22.0
+    image: curlimages/curl:8.23.0
     restart: "no"
     entrypoint: ["sh"]
     command: ["/app/scripts/revalidate-site.sh", "http://web:3000"]
