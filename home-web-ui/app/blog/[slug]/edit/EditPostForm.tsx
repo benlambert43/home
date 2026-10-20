@@ -9,6 +9,7 @@ import {
   REVISION_FIELD,
   UPLOAD_ID_FIELD,
 } from "@/app/blog/postForm/postFormFields";
+import PostFormViews, { PostFormView } from "@/app/blog/postForm/PostFormViews";
 import PostImagePicker from "@/app/blog/postForm/PostImagePicker";
 import {
   allPostFormImages,
@@ -20,6 +21,7 @@ import {
   storedPostImages,
   unmatchedImageReferences,
 } from "@/app/blog/postForm/postFormImages";
+import PostPreview from "@/app/blog/postForm/PostPreview";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
 import { useUnsavedPostChanges } from "@/app/blog/postForm/useUnsavedPostChanges";
@@ -67,6 +69,7 @@ const EditPostForm = ({
     undefined,
   );
   const [submitted, setSubmitted] = useState<UpdatePostFormState>(undefined);
+  const [view, setView] = useState<PostFormView>("editor");
   const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
     usePostFormImages(storedPostImages({ post, usedImageNames }));
   const {
@@ -87,6 +90,11 @@ const EditPostForm = ({
     editorRef.current?.insertImage(image.name);
   };
 
+  const reject = (failure: UpdatePostFormState) => {
+    setSubmitted(failure);
+    setView("editor");
+  };
+
   const submitPost = async (formData: FormData) => {
     setSubmitted(undefined);
 
@@ -94,7 +102,7 @@ const EditPostForm = ({
     const validatedFields = updatePostFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
-      setSubmitted({ values, ...treeifyFormError(validatedFields.error) });
+      reject({ values, ...treeifyFormError(validatedFields.error) });
       return;
     }
 
@@ -104,7 +112,7 @@ const EditPostForm = ({
     );
 
     if (unmatched.length > 0) {
-      setSubmitted({ values, errors: [missingImagesMessage(unmatched)] });
+      reject({ values, errors: [missingImagesMessage(unmatched)] });
       return;
     }
 
@@ -112,7 +120,7 @@ const EditPostForm = ({
       const uploaded = await upload(images);
 
       if (!uploaded.ok) {
-        setSubmitted({ values, errors: [uploaded.message] });
+        reject({ values, errors: [uploaded.message] });
         return;
       }
 
@@ -134,48 +142,65 @@ const EditPostForm = ({
 
   return (
     <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
-      <AquariusEditor
-        ref={editorRef}
-        titleName={POST_FORM_FIELDS.title}
-        contentName={POST_FORM_FIELDS.content}
-        defaultTitle={post.title}
-        defaultContent={post.content}
-        images={allPostFormImages(images)}
-        disabled={busy}
-        onAddImages={addInlineImages}
-      />
+      <PostFormViews
+        view={view}
+        onViewChange={setView}
+        formRef={formRef}
+        renderPreview={(snapshot) => (
+          <PostPreview
+            snapshot={snapshot}
+            authorUsername={post.authorUsername}
+            createdDate={post.createdDate}
+            images={images}
+          />
+        )}
+        actions={
+          <>
+            <div className="mt-4 flex flex-row items-start justify-start gap-2">
+              <Button
+                type="link"
+                linkProps={{ href: postHref(post.slug, page) }}
+                size="large"
+                emphasis="secondary"
+              >
+                Go Back
+              </Button>
+              <Button size="large" disabled={busy} type="submit">
+                Save Post
+              </Button>
+            </div>
+            <FieldError errors={errors?.errors} />
+          </>
+        }
+      >
+        <AquariusEditor
+          ref={editorRef}
+          titleName={POST_FORM_FIELDS.title}
+          contentName={POST_FORM_FIELDS.content}
+          defaultTitle={post.title}
+          defaultContent={post.content}
+          images={allPostFormImages(images)}
+          disabled={busy}
+          onAddImages={addInlineImages}
+        />
 
-      <FieldError errors={errors?.properties?.title?.errors} />
-      <FieldError errors={errors?.properties?.content?.errors} />
+        <FieldError errors={errors?.properties?.title?.errors} />
+        <FieldError errors={errors?.properties?.content?.errors} />
 
-      <PostImagePicker
-        images={images}
-        headerImageAlt={post.headerImageAlt}
-        headerImageAltErrors={errors?.properties?.headerImageAlt?.errors}
-        problems={problems}
-        progress={progress}
-        errors={uploadErrors}
-        disabled={busy}
-        onPickHeaderImage={pickHeaderImage}
-        onAddInlineImages={addInlineImages}
-        onInsertImage={insertImage}
-        onRemoveImage={removeImage}
-      />
-
-      <div className="mt-4 flex flex-row items-start justify-start gap-2">
-        <Button
-          type="link"
-          linkProps={{ href: postHref(post.slug, page) }}
-          size="large"
-          emphasis="secondary"
-        >
-          Go Back
-        </Button>
-        <Button size="large" disabled={busy} type="submit">
-          Save Post
-        </Button>
-      </div>
-      <FieldError errors={errors?.errors} />
+        <PostImagePicker
+          images={images}
+          headerImageAlt={post.headerImageAlt}
+          headerImageAltErrors={errors?.properties?.headerImageAlt?.errors}
+          problems={problems}
+          progress={progress}
+          errors={uploadErrors}
+          disabled={busy}
+          onPickHeaderImage={pickHeaderImage}
+          onAddInlineImages={addInlineImages}
+          onInsertImage={insertImage}
+          onRemoveImage={removeImage}
+        />
+      </PostFormViews>
     </form>
   );
 };

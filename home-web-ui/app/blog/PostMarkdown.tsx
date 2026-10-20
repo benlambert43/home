@@ -28,13 +28,14 @@ const HEADING_TAGS: Record<HeadingLevel, "h2" | "h3" | "h4" | "h5" | "h6"> = {
 
 const headingsRendered = new WeakMap<ReactRenderer, number>();
 
-export type PostMarkdownImage = {
-  reference: string;
+export type PostImageSource = {
   src: string;
   fullSizeHref?: string;
   width: number;
   height: number;
 };
+
+export type PostMarkdownImage = PostImageSource & { reference: string };
 
 const renderer = (images: PostMarkdownImage[], headingIds: string[]) => ({
   heading(this: ReactRenderer, children: ReactNode, level: HeadingLevel) {

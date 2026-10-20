@@ -38,31 +38,6 @@ full-size original, and `next/image` makes every smaller size from it. The API's
 `medium` and `small` thumbnails are for other clients. The upload itself is only
 a link target: clicking a post image opens it in a new tab.
 
-## Post editor
-
-`/blog/newPost` and `/blog/<slug>/edit` use the editor in `app/blog/aquariusEditor`:
-a Tiptap (ProseMirror) document behind a Word 97 style chrome. Formatting
-shows as it is typed, so `**bold**`, `# `, `- `, `> ` and ` ` ``` become
-bold text, a heading, a list, a quote and a code block, and plain text pasted
-into the document is read as Markdown. Links, tables, images and line breaks
-come from the Insert menu, and double-clicking an image sets its description.
-The editor renders only in the browser; both pages are already dynamic (see
-Static pages in the root README).
-
-`postMarkdown.ts` defines how the document reads and writes a post's Markdown
-through `@tiptap/markdown`, which parses with `marked` like `home-shared`, and
-keeps the output inside the rules `disallowedPostMarkdown` enforces: text is
-backslash-escaped rather than HTML-encoded, so excerpts and heading ids see the
-real characters; a paragraph line that would otherwise start a block (`#`, `-`,
-`1.`, `>`, `---`) is escaped; a hard break is a trailing backslash; images are
-inline nodes written as `![alt](./images/<name>)` and shown with `next/image`
-from the form's image list; a table cell holds one paragraph, and a line break
-inside one becomes a space, since GFM cells are single lines; a code fence is
-longer than any backtick run inside the block. The form submits the Markdown in
-a hidden `content` field. Until the document changes, the field keeps the
-content the page loaded, so an untouched post is submitted byte for byte and
-the unsaved-changes warning stays quiet.
-
 ## Production build
 
 `next.config.ts` sets `output: "standalone"` and `cacheComponents: true`, and

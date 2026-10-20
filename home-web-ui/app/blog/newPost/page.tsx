@@ -18,7 +18,7 @@ const NewPost = async () => {
     <PageColumn className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">New Blog Post</h1>
       <div>
-        <NewPostForm />
+        <NewPostForm authorUsername={user.username} />
       </div>
     </PageColumn>
   );

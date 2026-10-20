@@ -1,4 +1,4 @@
-import { postImageHref } from "@/app/blog/links";
+import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import {
   MAX_POST_IMAGE_BYTES,
   MAX_POST_IMAGE_MEGABYTES,
@@ -17,6 +17,7 @@ const TOO_MANY_IMAGES_PROBLEM = `A post may add at most ${MAX_POST_INLINE_IMAGES
 type PostFormImageDetails = {
   name: string;
   src: string;
+  fullSizeHref: string;
   byteSize: number;
   width: number;
   height: number;
@@ -43,7 +44,10 @@ export type PostFormImageRemovals = Pick<
   "headerImage" | "removeInlineImages"
 >;
 
-export type ReadImageFile = Omit<PendingPostImage, "stored" | "src">;
+export type ReadImageFile = Omit<
+  PendingPostImage,
+  "stored" | "src" | "fullSizeHref"
+>;
 
 export const NO_POST_FORM_IMAGES: PostFormImages = {
   inlineImages: [],
@@ -108,6 +112,7 @@ const storedImage = (
   stored: true,
   name,
   src: postImageHref(slug, name),
+  fullSizeHref: postFullSizeImageHref(slug, name),
   byteSize,
   width,
   height,
@@ -146,15 +151,20 @@ const pendingImage = (
   read: ReadImageFile,
   usedImageNames: string[],
   taken: PostFormImage[],
-): PendingPostImage => ({
-  ...read,
-  stored: false,
-  name: uniquePostImageName(read.name, [
-    ...usedImageNames,
-    ...taken.map((image) => image.name),
-  ]),
-  src: URL.createObjectURL(read.file),
-});
+): PendingPostImage => {
+  const src = URL.createObjectURL(read.file);
+
+  return {
+    ...read,
+    stored: false,
+    name: uniquePostImageName(read.name, [
+      ...usedImageNames,
+      ...taken.map((image) => image.name),
+    ]),
+    src,
+    fullSizeHref: src,
+  };
+};
 
 export const releasePostFormImage = (image: PostFormImage) => {
   if (!image.stored) URL.revokeObjectURL(image.src);
