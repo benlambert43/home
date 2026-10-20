@@ -20,7 +20,7 @@ const OPEN_SOURCE_PROJECTS = [
     href: "https://github.com/vercel/next.js/blob/canary/license.md",
   },
   {
-    name: "React, React DOM, and Scheduler",
+    name: "React, React DOM, Scheduler, and use-sync-external-store",
     license: "MIT License",
     copyright: "Copyright (c) Meta Platforms, Inc. and affiliates.",
     href: "https://github.com/react/react/blob/main/LICENSE",
@@ -61,6 +61,48 @@ const OPEN_SOURCE_PROJECTS = [
     license: "MIT License",
     copyright: "Copyright (c) 2021 Dulin Marat.",
     href: "https://github.com/mdevils/html-entities/blob/master/LICENSE",
+  },
+  {
+    name: "Tiptap",
+    license: "MIT License",
+    copyright: "Copyright (c) 2025, Tiptap GmbH.",
+    href: "https://github.com/ueberdosis/tiptap/blob/main/LICENSE.md",
+  },
+  {
+    name: "ProseMirror",
+    license: "MIT License",
+    copyright: "Copyright (C) 2015-2017 by Marijn Haverbeke and others.",
+    href: "https://github.com/ProseMirror/prosemirror-model/blob/master/LICENSE",
+  },
+  {
+    name: "orderedmap",
+    license: "MIT License",
+    copyright: "Copyright (C) 2016 by Marijn Haverbeke and others.",
+    href: "https://github.com/marijnh/orderedmap/blob/master/LICENSE",
+  },
+  {
+    name: "rope-sequence",
+    license: "MIT License",
+    copyright: "Copyright (C) 2016 by Marijn Haverbeke.",
+    href: "https://github.com/marijnh/rope-sequence/blob/master/LICENSE",
+  },
+  {
+    name: "w3c-keyname",
+    license: "MIT License",
+    copyright: "Copyright (C) 2016 by Marijn Haverbeke and others.",
+    href: "https://github.com/marijnh/w3c-keyname/blob/master/LICENSE",
+  },
+  {
+    name: "Linkify",
+    license: "MIT License",
+    copyright: "Copyright (c) 2024 Nick Frasser.",
+    href: "https://github.com/nfrasser/linkifyjs/blob/main/LICENSE",
+  },
+  {
+    name: "fast-equals",
+    license: "MIT License",
+    copyright: "Copyright (c) 2025 Tony Quetano.",
+    href: "https://github.com/planttheidea/fast-equals/blob/master/LICENSE",
   },
   {
     name: "Zod",
@@ -107,7 +149,7 @@ const OPEN_SOURCE_PROJECTS = [
 ];
 
 const SourceAndLicenses = () => (
-  <Notice title="Source and Licenses" updated="2026-10-04">
+  <Notice title="Source and Licenses" updated="2026-10-20">
     <p>
       benlambert.tech is open source. This page explains how the site's own code
       is licensed, what the license does not cover, and which open-source

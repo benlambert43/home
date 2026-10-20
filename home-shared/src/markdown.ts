@@ -21,10 +21,10 @@ const LINK_MESSAGE =
   "Links in post content must start with https://, http://, mailto:, or /.";
 
 const FIRST_HEADING_MESSAGE =
-  "Post content must start its headings at the top level. Please use a single # for the first heading.";
+  "Post content must start its headings at the top level. Please make the first heading a Heading 1 (# in Markdown).";
 
 const SKIPPED_HEADING_MESSAGE =
-  "Post content may not skip a heading level. Please go one level deeper at a time, such as ## after #.";
+  "Post content may not skip a heading level. Please go one level deeper at a time, such as a Heading 2 (##) after a Heading 1 (#).";
 
 const MAX_POST_EXCERPT_CHARACTERS = 160;
 

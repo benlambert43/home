@@ -135,8 +135,10 @@ type Chrome = {
   codeBlock: boolean;
   listItem: boolean;
   table: boolean;
+  headerRow: boolean;
   link: boolean;
   image: boolean;
+  imageInSelection: boolean;
   canUndo: boolean;
   canRedo: boolean;
   hasSelection: boolean;
@@ -162,8 +164,10 @@ const IDLE_CHROME: Chrome = {
   codeBlock: false,
   listItem: false,
   table: false,
+  headerRow: false,
   link: false,
   image: false,
+  imageInSelection: false,
   canUndo: false,
   canRedo: false,
   hasSelection: false,
@@ -234,6 +238,17 @@ const caretPosition = ({ doc, selection }: EditorState) => {
   return { line: Math.max(line, 1), column: selection.$head.parentOffset + 1 };
 };
 
+const selectionHasImage = ({ doc, selection }: EditorState) => {
+  let found = false;
+
+  doc.nodesBetween(selection.from, selection.to, (node) => {
+    found ||= node.type.name === "image";
+    return !found;
+  });
+
+  return found;
+};
+
 const chromeState = (editor: Editor): Chrome => ({
   heading:
     HEADING_LEVELS.find((level) => editor.isActive("heading", { level })) ?? 0,
@@ -247,8 +262,10 @@ const chromeState = (editor: Editor): Chrome => ({
   codeBlock: editor.isActive("codeBlock"),
   listItem: editor.isActive(LIST_ITEM),
   table: editor.isActive("table"),
+  headerRow: editor.isActive("tableHeader"),
   link: editor.isActive("link"),
   image: editor.isActive("image"),
+  imageInSelection: selectionHasImage(editor.state),
   canUndo: editor.can().undo(),
   canRedo: editor.can().redo(),
   hasSelection: !editor.state.selection.empty,
@@ -496,6 +513,7 @@ const AquariusEditor = ({
   }, [editor, chrome, title, zoom, chosenView, deskWidth, pageHeight, scale]);
 
   const off = disabled || !editor;
+  const lineBreakAllowed = !chrome.table && chrome.heading === 0;
   const documentName = title.trim() || UNTITLED_POST;
   const contentPage = Math.floor(caretTop / PAGE_HEIGHT) + 1;
   const pages = Math.max(contentPage, Math.ceil(pageHeight / PAGE_HEIGHT));
@@ -537,7 +555,7 @@ const AquariusEditor = ({
   };
 
   const insertLineBreak = () => {
-    if (!chrome.table) exec((chain) => chain.setHardBreak());
+    if (lineBreakAllowed) exec((chain) => chain.setHardBreak());
   };
 
   const submitForm = () => {
@@ -647,7 +665,7 @@ const AquariusEditor = ({
   };
 
   const openLinkDialog = () => {
-    if (!editor) return;
+    if (!editor || chrome.imageInSelection) return;
 
     if (editor.isActive("link")) editor.commands.extendMarkRange("link");
 
@@ -661,13 +679,15 @@ const AquariusEditor = ({
     });
   };
 
-  const insertLink = (text: string, href: string) => {
+  const insertLink = (text: string, href: string, selectedText: string) => {
     exec((chain) =>
-      chain.insertContent({
-        type: "text",
-        text: text || href,
-        marks: [{ type: "link", attrs: { href } }],
-      }),
+      text !== "" && text === selectedText.trim()
+        ? chain.setMark("link", { href })
+        : chain.insertContent({
+            type: "text",
+            text: text || href,
+            marks: [{ type: "link", attrs: { href } }],
+          }),
     );
   };
 
@@ -891,7 +911,7 @@ const AquariusEditor = ({
         {
           label: "Line Break",
           shortcut: shortcut(SHORTCUTS.lineBreak),
-          disabled: off || chrome.table,
+          disabled: off || !lineBreakAllowed,
           run: insertLineBreak,
         },
         {
@@ -914,7 +934,7 @@ const AquariusEditor = ({
         {
           label: "Link...",
           shortcut: shortcut(SHORTCUTS.link),
-          disabled: off,
+          disabled: off || chrome.imageInSelection,
           run: openLinkDialog,
         },
         {
@@ -1065,7 +1085,7 @@ const AquariusEditor = ({
         MENU_SEPARATOR,
         {
           label: "Insert Row Above",
-          disabled: off || !chrome.table,
+          disabled: off || !chrome.table || chrome.headerRow,
           run: () => exec((chain) => chain.addRowBefore()),
         },
         {
@@ -1086,7 +1106,7 @@ const AquariusEditor = ({
         MENU_SEPARATOR,
         {
           label: "Delete Row",
-          disabled: off || !chrome.table,
+          disabled: off || !chrome.table || chrome.headerRow,
           run: () => exec((chain) => chain.deleteRow()),
         },
         {
@@ -1147,7 +1167,7 @@ const AquariusEditor = ({
     {
       title: "Insert Link",
       icon: <LinkIcon />,
-      disabled: off,
+      disabled: off || chrome.imageInSelection,
       run: openLinkDialog,
     },
     {
@@ -1427,7 +1447,7 @@ const AquariusEditor = ({
             href={dialog.href}
             onInsert={(text, href) => {
               setDialog(undefined);
-              insertLink(text, href);
+              insertLink(text, href, dialog.text);
             }}
             onClose={() => {
               setDialog(undefined);
