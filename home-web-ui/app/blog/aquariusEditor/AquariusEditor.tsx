@@ -376,6 +376,8 @@ const AquariusEditor = ({
     contentType: "markdown",
     onCreate: ({ editor: created }) => {
       baseline.current = normalizePostContent(created.getMarkdown());
+      setTitle(defaultTitle);
+      setMarkdown(defaultContent);
     },
     onUpdate: ({ editor: updated }) => {
       const next = updated.getMarkdown();

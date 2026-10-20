@@ -5,6 +5,7 @@ import { PostParams } from "@/app/blog/Post";
 import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
 import PostProblem from "@/app/blog/PostProblem";
 import PageColumn from "@/app/components/PageColumn";
+import RemountOnEveryVisit from "@/app/components/RemountOnEveryVisit";
 import { pageMetadata } from "@/app/lib/metadata";
 import { getPost, getPostForEdit } from "@/app/lib/posts";
 import { SearchParams } from "@/app/lib/searchParams";
@@ -43,11 +44,13 @@ const EditPost = async ({
     >
       <h1 className="text-4xl font-bold">Edit Blog Post</h1>
       <div>
-        <EditPostForm
-          post={result.post}
-          usedImageNames={result.usedImageNames}
-          page={page}
-        />
+        <RemountOnEveryVisit>
+          <EditPostForm
+            post={result.post}
+            usedImageNames={result.usedImageNames}
+            page={page}
+          />
+        </RemountOnEveryVisit>
       </div>
     </PageColumn>
   );

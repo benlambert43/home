@@ -2,6 +2,7 @@ import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import NewPostForm from "@/app/blog/newPost/NewPostForm";
 import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
 import PageColumn from "@/app/components/PageColumn";
+import RemountOnEveryVisit from "@/app/components/RemountOnEveryVisit";
 import { pageMetadata } from "@/app/lib/metadata";
 import { redirect } from "next/navigation";
 
@@ -22,7 +23,9 @@ const NewPost = async () => {
     >
       <h1 className="text-4xl font-bold">New Blog Post</h1>
       <div>
-        <NewPostForm authorUsername={user.username} />
+        <RemountOnEveryVisit>
+          <NewPostForm authorUsername={user.username} />
+        </RemountOnEveryVisit>
       </div>
     </PageColumn>
   );
