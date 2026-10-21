@@ -123,6 +123,7 @@ const NewPostForm = () => {
       <TextField
         name={POST_FORM_FIELDS.title}
         label="Title"
+        width="full"
         type="text"
         placeholder="Title"
         disabled={busy}

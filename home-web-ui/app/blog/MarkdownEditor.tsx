@@ -388,10 +388,10 @@ const MarkdownEditor = ({
   };
 
   return (
-    <div className={FIELD_WIDTHS.wide.wrapper}>
+    <div className={FIELD_WIDTHS.full.wrapper}>
       <label htmlFor={name}>{label}</label>
 
-      <div className={`${FIELD_WIDTHS.wide.field} grid grid-cols-1 gap-2`}>
+      <div className={`${FIELD_WIDTHS.full.field} grid grid-cols-1 gap-2`}>
         <div className="flex flex-row flex-wrap items-center gap-2">
           {TOOLBAR.map((item) => (
             <Button
