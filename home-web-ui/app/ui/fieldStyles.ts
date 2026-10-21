@@ -1,9 +1,13 @@
-export type FieldWidth = "wide" | "paired";
+export type FieldWidth = "full" | "wide" | "paired";
 
 export const FIELD_WIDTHS: Record<
   FieldWidth,
   { wrapper: string; field: string }
 > = {
+  full: {
+    wrapper: "flex w-full flex-col items-start justify-center gap-2",
+    field: "w-full",
+  },
   wide: {
     wrapper: "flex flex-col items-start justify-center gap-2",
     field: "w-full max-w-160",

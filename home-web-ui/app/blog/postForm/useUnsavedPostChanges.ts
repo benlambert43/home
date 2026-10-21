@@ -3,7 +3,7 @@ import {
   hasUnsavedImages,
   PostFormImages,
 } from "@/app/blog/postForm/postFormImages";
-import { readFormValues } from "@/app/lib/forms";
+import { useNavigationGuard } from "@/app/components/NavigationGuardProvider";
 import { Post } from "@home/shared";
 import { RefObject, useEffect } from "react";
 
@@ -15,18 +15,26 @@ export const EMPTY_POST_FIELDS: SavedPostFields = {
   headerImageAlt: null,
 };
 
+const fieldValue = (form: HTMLFormElement, name: string) => {
+  const field = form.elements.namedItem(name);
+
+  return field instanceof HTMLInputElement ||
+    field instanceof HTMLTextAreaElement
+    ? field.value
+    : "";
+};
+
 const hasUnsavedFields = (
   form: HTMLFormElement | null,
   saved: SavedPostFields,
 ) => {
   if (!form) return false;
 
-  const current = readFormValues(new FormData(form), POST_FORM_FIELDS);
-
   return (
-    current.title !== saved.title ||
-    current.content !== saved.content ||
-    current.headerImageAlt !== (saved.headerImageAlt ?? "")
+    fieldValue(form, POST_FORM_FIELDS.title) !== saved.title ||
+    fieldValue(form, POST_FORM_FIELDS.content) !== saved.content ||
+    fieldValue(form, POST_FORM_FIELDS.headerImageAlt) !==
+      (saved.headerImageAlt ?? "")
   );
 };
 
@@ -35,20 +43,22 @@ export const useUnsavedPostChanges = (
   saved: SavedPostFields,
   images: PostFormImages,
 ) => {
+  const { blockWhile } = useNavigationGuard();
+
   useEffect(() => {
+    const hasUnsavedChanges = () =>
+      hasUnsavedFields(formRef.current, saved) || hasUnsavedImages(images);
+
     const warn = (event: BeforeUnloadEvent) => {
-      if (
-        hasUnsavedFields(formRef.current, saved) ||
-        hasUnsavedImages(images)
-      ) {
-        event.preventDefault();
-      }
+      if (hasUnsavedChanges()) event.preventDefault();
     };
 
+    const unblock = blockWhile(hasUnsavedChanges);
     window.addEventListener("beforeunload", warn);
 
     return () => {
+      unblock();
       window.removeEventListener("beforeunload", warn);
     };
-  }, [formRef, saved, images]);
+  }, [blockWhile, formRef, saved, images]);
 };

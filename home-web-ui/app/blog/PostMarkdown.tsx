@@ -17,13 +17,13 @@ const CELL_ALIGNMENTS: Record<CellAlignment, string> = {
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
-const HEADING_TAGS: Record<HeadingLevel, "h2" | "h3" | "h4" | "h5" | "h6"> = {
+const HEADING_TAGS: Record<HeadingLevel, "h2" | "h3" | "h4"> = {
   1: "h2",
   2: "h3",
   3: "h4",
-  4: "h5",
-  5: "h6",
-  6: "h6",
+  4: "h4",
+  5: "h4",
+  6: "h4",
 };
 
 const headingsRendered = new WeakMap<ReactRenderer, number>();

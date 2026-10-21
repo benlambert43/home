@@ -2,6 +2,8 @@
 
 import { updatePost } from "@/app/actions/posts";
 import MarkdownEditor, {
+  EDITOR_MODES,
+  EditorMode,
   MarkdownEditorHandle,
   postImageMarkdown,
 } from "@/app/blog/MarkdownEditor";
@@ -35,6 +37,7 @@ import {
 } from "@/app/lib/forms";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
+import SegmentedToggle from "@/app/ui/SegmentedToggle";
 import TextField from "@/app/ui/TextField";
 import { Post, updatePostFormSchema } from "@home/shared";
 import {
@@ -70,6 +73,7 @@ const EditPostForm = ({
     undefined,
   );
   const [submitted, setSubmitted] = useState<UpdatePostFormState>(undefined);
+  const [editorMode, setEditorMode] = useState<EditorMode>("write");
   const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
     usePostFormImages(storedPostImages({ post, usedImageNames }));
   const {
@@ -137,9 +141,17 @@ const EditPostForm = ({
 
   return (
     <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
+      <SegmentedToggle
+        label="Editor mode"
+        options={EDITOR_MODES}
+        value={editorMode}
+        onChange={setEditorMode}
+      />
+
       <TextField
         name={POST_FORM_FIELDS.title}
         label="Title"
+        width="full"
         type="text"
         placeholder="Title"
         disabled={busy}
@@ -154,6 +166,7 @@ const EditPostForm = ({
         label="Content"
         rows={12}
         disabled={busy}
+        previewing={editorMode === "preview"}
         defaultValue={post.content}
         images={postFormMarkdownImages(images)}
         onAddImages={addInlineImages}

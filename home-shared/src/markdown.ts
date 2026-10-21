@@ -26,6 +26,11 @@ const FIRST_HEADING_MESSAGE =
 const SKIPPED_HEADING_MESSAGE =
   "Post content may not skip a heading level. Please go one level deeper at a time, such as ## after #.";
 
+const DEEP_HEADING_MESSAGE =
+  "Post content may only use three heading levels. Please use #, ##, or ### for headings.";
+
+export const MAX_POST_HEADING_DEPTH = 3;
+
 const MAX_POST_EXCERPT_CHARACTERS = 160;
 
 const markdown = new Marked();
@@ -74,6 +79,8 @@ const headingProblem = (tokens: MarkedToken[]) => {
 
   for (const token of tokens) {
     if (token.type !== "heading") continue;
+
+    if (token.depth > MAX_POST_HEADING_DEPTH) return DEEP_HEADING_MESSAGE;
 
     if (token.depth > previousDepth + 1) {
       return previousDepth === 0

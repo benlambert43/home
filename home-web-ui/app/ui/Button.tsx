@@ -1,4 +1,4 @@
-import Link, { type LinkProps as NextLinkProps } from "next/link";
+import GuardedLink from "@/app/components/GuardedLink";
 import { HTMLAttributeAnchorTarget, MouseEventHandler, ReactNode } from "react";
 
 type ButtonSize = "large" | "small";
@@ -27,7 +27,7 @@ const COLOR_CLASSES: Record<ButtonEmphasis, Record<ButtonColor, string>> = {
 };
 
 type LinkProps = {
-  href: NextLinkProps["href"];
+  href: string;
   target?: HTMLAttributeAnchorTarget;
   rel?: string;
 };
@@ -64,7 +64,7 @@ const Button = ({
   if (props.type === "link") {
     const { href, target, rel } = props.linkProps;
     return (
-      <Link
+      <GuardedLink
         href={href}
         target={target}
         rel={rel}
@@ -72,7 +72,7 @@ const Button = ({
         className={className}
       >
         {children}
-      </Link>
+      </GuardedLink>
     );
   }
 

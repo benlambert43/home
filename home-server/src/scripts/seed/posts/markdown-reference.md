@@ -6,12 +6,6 @@ This post has no images at all. It walks through the Markdown a post can use.
 
 ### A third level heading
 
-#### A fourth level heading
-
-##### A fifth level heading
-
-###### A sixth level heading
-
 # Emphasis
 
 Text can be **bold**, _italic_, **_bold and italic_**, or ~~struck through~~. It can hold `inline code`, and inline code can hold a backtick if it is fenced with two: ``a `backtick` inside``.

@@ -1,4 +1,4 @@
-import Link, { type LinkProps } from "next/link";
+import GuardedLink from "@/app/components/GuardedLink";
 import { ReactNode } from "react";
 
 type SubtleLinkTextSize = "xs" | "base";
@@ -14,12 +14,12 @@ const SubtleLink = ({
   textSize = "xs",
   external = false,
 }: {
-  href: LinkProps["href"];
+  href: string;
   children: ReactNode;
   textSize?: SubtleLinkTextSize;
   external?: boolean;
 }) => (
-  <Link
+  <GuardedLink
     href={href}
     target={external ? "_blank" : undefined}
     rel={external ? "noopener noreferrer" : undefined}
@@ -29,7 +29,7 @@ const SubtleLink = ({
       focus-visible:text-slate-200 focus-visible:decoration-slate-200/50`}
   >
     {children}
-  </Link>
+  </GuardedLink>
 );
 
 export default SubtleLink;

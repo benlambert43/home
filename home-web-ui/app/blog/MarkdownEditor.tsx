@@ -8,16 +8,27 @@ import PostMarkdown, { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import { normalizePostContent, postImageReference } from "@home/shared";
+import {
+  MAX_POST_HEADING_DEPTH,
+  normalizePostContent,
+  postImageReference,
+} from "@home/shared";
 import {
   ChangeEvent,
   KeyboardEvent,
   Ref,
-  useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
+
+export type EditorMode = "write" | "preview";
+
+export const EDITOR_MODES: { value: EditorMode; label: string }[] = [
+  { value: "write", label: "Write" },
+  { value: "preview", label: "Preview" },
+];
 
 export type MarkdownEditorHandle = { insert: (markdown: string) => void };
 
@@ -34,7 +45,19 @@ type MarkdownEdit = (selection: MarkdownSelection) => MarkdownSelection;
 
 type Shortcut = { key: string; mod?: boolean; shift?: boolean };
 
+type MarkdownChange = { before: MarkdownSelection; after: MarkdownSelection };
+
+type MarkdownHistory = { undo: MarkdownChange[]; redo: MarkdownChange[] };
+
 const LINE_BREAK = "\\\n";
+
+const MAX_HISTORY_CHANGES = 100;
+
+const UNDO_SHORTCUT: Shortcut = { key: "Z", mod: true };
+
+const REDO_SHORTCUT: Shortcut = { key: "Z", mod: true, shift: true };
+
+const REDO_SHORTCUT_CTRL_Y: Shortcut = { key: "Y", mod: true };
 
 const PHYSICAL_KEYS: Partial<Record<string, string>> = {
   Digit7: "7",
@@ -59,6 +82,39 @@ const formatShortcut = ({ key, mod, shift }: Shortcut, mac: boolean) =>
   mac
     ? `${shift ? "⇧" : ""}${mod ? "⌘" : ""}${key === "Enter" ? "↩" : key}`
     : [mod && "Ctrl", shift && "Shift", key].filter(Boolean).join("+");
+
+const redoShortcuts = (mac: boolean) =>
+  mac ? [REDO_SHORTCUT] : [REDO_SHORTCUT, REDO_SHORTCUT_CTRL_Y];
+
+const selectionOf = (textarea: HTMLTextAreaElement): MarkdownSelection => ({
+  value: textarea.value,
+  selectionStart: textarea.selectionStart,
+  selectionEnd: textarea.selectionEnd,
+});
+
+const selectRange = (
+  textarea: HTMLTextAreaElement,
+  { selectionStart, selectionEnd }: MarkdownSelection,
+) => {
+  textarea.focus();
+  textarea.setSelectionRange(selectionStart, selectionEnd);
+};
+
+const pushChange = (changes: MarkdownChange[], change: MarkdownChange) => {
+  changes.push(change);
+  if (changes.length > MAX_HISTORY_CHANGES) changes.shift();
+};
+
+const unlessNativeHistory = (
+  textarea: HTMLTextAreaElement,
+  fallback: () => void,
+) => {
+  const { value } = textarea;
+
+  window.setTimeout(() => {
+    if (textarea.value === value) fallback();
+  }, 0);
+};
 
 const lineStart = (value: string, index: number) =>
   value.lastIndexOf("\n", index - 1) + 1;
@@ -98,6 +154,30 @@ const prefixLines =
       selectionEnd: start + prefixed.length,
     };
   };
+
+const HEADING_PREFIX = /^(#{1,6}) /;
+
+const cycleHeading: MarkdownEdit = ({
+  value,
+  selectionStart,
+  selectionEnd,
+}) => {
+  const start = lineStart(value, selectionStart);
+  const end = lineEnd(value, selectionEnd);
+  const lines = value.slice(start, end).split("\n");
+  const depth = HEADING_PREFIX.exec(lines[0] ?? "")?.[1]?.length ?? 0;
+  const next = depth >= MAX_POST_HEADING_DEPTH ? 0 : depth + 1;
+  const prefix = next === 0 ? "" : `${"#".repeat(next)} `;
+  const headed = lines
+    .map((line) => `${prefix}${line.replace(HEADING_PREFIX, "")}`)
+    .join("\n");
+
+  return {
+    value: `${value.slice(0, start)}${headed}${value.slice(end)}`,
+    selectionStart: start,
+    selectionEnd: start + headed.length,
+  };
+};
 
 const fenceSelection =
   (placeholder: string): MarkdownEdit =>
@@ -190,7 +270,7 @@ const TOOLBAR: {
     edit: insertLineBreak,
     shortcut: { key: "Enter", shift: true },
   },
-  { label: "H", title: "Heading", edit: prefixLines(() => "# ") },
+  { label: "H", title: "Heading (#, ##, ###)", edit: cycleHeading },
   {
     label: "Quote",
     title: "Quote",
@@ -218,6 +298,7 @@ const MarkdownEditor = ({
   rows,
   disabled = false,
   defaultValue = "",
+  previewing = false,
   images = [],
   onAddImages,
   ref,
@@ -227,41 +308,71 @@ const MarkdownEditor = ({
   rows: number;
   disabled?: boolean;
   defaultValue?: string;
+  previewing?: boolean;
   images?: PostMarkdownImage[];
   onAddImages?: (files: File[]) => Promise<string[]>;
   ref?: Ref<MarkdownEditorHandle>;
 }) => {
   const [content, setContent] = useState(defaultValue);
-  const [previewing, setPreviewing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const pendingSelection = useRef<MarkdownSelection>(undefined);
+  const history = useRef<MarkdownHistory>({ undo: [], redo: [] });
   const mac = useHydrated() && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
-  useEffect(() => {
-    const selection = pendingSelection.current;
-    if (!selection || !textareaRef.current) return;
+  const restore = (
+    textarea: HTMLTextAreaElement,
+    selection: MarkdownSelection,
+  ) => {
+    if (selection.value !== textarea.value) {
+      flushSync(() => {
+        setContent(selection.value);
+      });
+    }
 
-    pendingSelection.current = undefined;
-    textareaRef.current.focus();
-    textareaRef.current.setSelectionRange(
-      selection.selectionStart,
-      selection.selectionEnd,
-    );
-  }, [content]);
+    selectRange(textarea, selection);
+  };
 
   const apply = (edit: MarkdownEdit) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const next = edit({
-      value: textarea.value,
-      selectionStart: textarea.selectionStart,
-      selectionEnd: textarea.selectionEnd,
-    });
+    const before = selectionOf(textarea);
+    const after = edit(before);
 
-    pendingSelection.current = next;
-    setContent(next.value);
+    if (after.value !== before.value) {
+      pushChange(history.current.undo, { before, after });
+      history.current.redo = [];
+    }
+
+    restore(textarea, after);
+  };
+
+  const undo = () => {
+    const textarea = textareaRef.current;
+    const change = history.current.undo.at(-1);
+    if (!textarea || !change) return;
+
+    const current = selectionOf(textarea);
+
+    if (current.value === change.after.value) {
+      history.current.undo.pop();
+      pushChange(history.current.redo, change);
+      restore(textarea, change.before);
+      return;
+    }
+
+    pushChange(history.current.redo, { before: change.after, after: current });
+    restore(textarea, change.after);
+  };
+
+  const redo = () => {
+    const textarea = textareaRef.current;
+    const change = history.current.redo.at(-1);
+    if (!textarea || !change || textarea.value !== change.before.value) return;
+
+    history.current.redo.pop();
+    pushChange(history.current.undo, change);
+    restore(textarea, change.after);
   };
 
   useImperativeHandle(ref, () => ({
@@ -280,6 +391,20 @@ const MarkdownEditor = ({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (matchesShortcut(UNDO_SHORTCUT, event, mac)) {
+      unlessNativeHistory(event.currentTarget, undo);
+      return;
+    }
+
+    if (
+      redoShortcuts(mac).some((shortcut) =>
+        matchesShortcut(shortcut, event, mac),
+      )
+    ) {
+      unlessNativeHistory(event.currentTarget, redo);
+      return;
+    }
+
     const item = TOOLBAR.find(
       ({ shortcut }) => shortcut && matchesShortcut(shortcut, event, mac),
     );
@@ -291,13 +416,10 @@ const MarkdownEditor = ({
   };
 
   return (
-    <div className={FIELD_WIDTHS.wide.wrapper}>
+    <div className={FIELD_WIDTHS.full.wrapper}>
       <label htmlFor={name}>{label}</label>
 
-      <div
-        className={`${FIELD_WIDTHS.wide.field} grid grid-cols-1 gap-2
-          2xl:max-w-324 2xl:grid-cols-2 2xl:gap-x-4`}
-      >
+      <div className={`${FIELD_WIDTHS.full.field} grid grid-cols-1 gap-2`}>
         <div className="flex flex-row flex-wrap items-center gap-2">
           {TOOLBAR.map((item) => (
             <Button
@@ -305,7 +427,7 @@ const MarkdownEditor = ({
               type="button"
               size="small"
               emphasis="secondary"
-              disabled={disabled}
+              disabled={disabled || previewing}
               title={
                 item.shortcut
                   ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
@@ -324,7 +446,7 @@ const MarkdownEditor = ({
               type="button"
               size="small"
               emphasis="secondary"
-              disabled={disabled}
+              disabled={disabled || previewing}
               title="Image"
               onClick={() => {
                 imageInputRef.current?.click();
@@ -333,29 +455,6 @@ const MarkdownEditor = ({
               Image
             </Button>
           )}
-
-          <div className="ml-auto flex flex-row gap-2 2xl:hidden">
-            <Button
-              type="button"
-              size="small"
-              emphasis={previewing ? "secondary" : "primary"}
-              onClick={() => {
-                setPreviewing(false);
-              }}
-            >
-              Write
-            </Button>
-            <Button
-              type="button"
-              size="small"
-              emphasis={previewing ? "primary" : "secondary"}
-              onClick={() => {
-                setPreviewing(true);
-              }}
-            >
-              Preview
-            </Button>
-          </div>
         </div>
 
         <textarea
@@ -367,16 +466,17 @@ const MarkdownEditor = ({
           value={content}
           placeholder={label}
           onChange={(event) => {
+            history.current.redo = [];
             setContent(event.target.value);
           }}
           onKeyDown={onKeyDown}
-          className={`${previewing ? "hidden 2xl:block" : ""} w-full
-            ${FIELD_CLASSES} font-mono 2xl:col-start-1`}
+          className={`${previewing ? "hidden" : ""} w-full ${FIELD_CLASSES}
+            font-mono`}
         />
 
         <div
-          className={`${previewing ? "" : "hidden 2xl:block"} min-h-64
-            overflow-x-auto ${FIELD_CLASSES} 2xl:col-start-2 2xl:row-start-2`}
+          className={`${previewing ? "" : "hidden"} min-h-64 overflow-x-auto
+            ${FIELD_CLASSES}`}
         >
           <PostMarkdown
             content={normalizePostContent(content)}
