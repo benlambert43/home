@@ -1,4 +1,4 @@
-import { postImageHref } from "@/app/blog/links";
+import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import {
   MAX_POST_IMAGE_BYTES,
@@ -28,7 +28,10 @@ export type PendingPostImage = PostFormImageDetails & {
   file: File;
 };
 
-export type StoredPostImage = PostFormImageDetails & { stored: true };
+export type StoredPostImage = PostFormImageDetails & {
+  stored: true;
+  fullSizeHref: string;
+};
 
 export type PostFormImage = PendingPostImage | StoredPostImage;
 
@@ -109,6 +112,7 @@ const storedImage = (
   stored: true,
   name,
   src: postImageHref(slug, name),
+  fullSizeHref: postFullSizeImageHref(slug, name),
   byteSize,
   width,
   height,
@@ -242,15 +246,19 @@ export const hasUnsavedImages = (images: PostFormImages) =>
   images.removedStoredImages.headerImage !== undefined ||
   images.removedStoredImages.inlineImages.length > 0;
 
+export const postFormMarkdownImage = (
+  image: PostFormImage,
+): PostMarkdownImage => ({
+  reference: postImageReference(image.name),
+  src: image.src,
+  fullSizeHref: image.stored ? image.fullSizeHref : image.src,
+  width: image.width,
+  height: image.height,
+});
+
 export const postFormMarkdownImages = (
   images: PostFormImages,
-): PostMarkdownImage[] =>
-  allPostFormImages(images).map((image) => ({
-    reference: postImageReference(image.name),
-    src: image.src,
-    width: image.width,
-    height: image.height,
-  }));
+): PostMarkdownImage[] => allPostFormImages(images).map(postFormMarkdownImage);
 
 export const unmatchedImageReferences = (
   content: string,

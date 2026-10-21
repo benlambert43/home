@@ -12,12 +12,15 @@ import {
   UPLOAD_ID_FIELD,
 } from "@/app/blog/postForm/postFormFields";
 import PostImagePicker from "@/app/blog/postForm/PostImagePicker";
+import PostPreview, {
+  PostPreviewFields,
+  readPostPreviewFields,
+} from "@/app/blog/postForm/PostPreview";
 import {
   allPostFormImages,
   missingImagesMessage,
   pendingPostImages,
   PostFormImage,
-  postFormMarkdownImages,
   unmatchedImageReferences,
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
@@ -45,10 +48,10 @@ import {
   useState,
 } from "react";
 
-const NewPostForm = () => {
+const NewPostForm = ({ authorUsername }: { authorUsername: string }) => {
   const [state, action, pending] = useActionState(createPost, undefined);
   const [submitted, setSubmitted] = useState<CreatePostFormState>(undefined);
-  const [editorMode, setEditorMode] = useState<EditorMode>("write");
+  const [preview, setPreview] = useState<PostPreviewFields>();
   const { images, problems, pickHeaderImage, addInlineImages, removeImage } =
     usePostFormImages();
   const {
@@ -65,6 +68,14 @@ const NewPostForm = () => {
   const errors = submitted ?? state;
   const busy = pending || uploading;
 
+  const changeEditorMode = (mode: EditorMode) => {
+    setPreview(
+      mode === "preview" && formRef.current
+        ? readPostPreviewFields(formRef.current)
+        : undefined,
+    );
+  };
+
   const insertImage = (image: PostFormImage) => {
     editorRef.current?.insert(postImageMarkdown(image.name));
   };
@@ -76,6 +87,7 @@ const NewPostForm = () => {
     const validatedFields = createPostFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
+      setPreview(undefined);
       setSubmitted({ values, ...treeifyFormError(validatedFields.error) });
       return;
     }
@@ -116,48 +128,56 @@ const NewPostForm = () => {
       <SegmentedToggle
         label="Editor mode"
         options={EDITOR_MODES}
-        value={editorMode}
-        onChange={setEditorMode}
+        value={preview ? "preview" : "write"}
+        onChange={changeEditorMode}
       />
 
-      <TextField
-        name={POST_FORM_FIELDS.title}
-        label="Title"
-        width="full"
-        type="text"
-        placeholder="Title"
-        disabled={busy}
-        defaultValue={state?.values?.title}
-      />
+      <div className={`${preview ? "hidden" : "flex"} flex-col gap-4`}>
+        <TextField
+          name={POST_FORM_FIELDS.title}
+          label="Title"
+          width="full"
+          type="text"
+          placeholder="Title"
+          disabled={busy}
+          defaultValue={state?.values?.title}
+        />
 
-      <FieldError errors={errors?.properties?.title?.errors} />
+        <FieldError errors={errors?.properties?.title?.errors} />
 
-      <MarkdownEditor
-        ref={editorRef}
-        name={POST_FORM_FIELDS.content}
-        label="Content"
-        rows={12}
-        disabled={busy}
-        previewing={editorMode === "preview"}
-        defaultValue={state?.values?.content}
-        images={postFormMarkdownImages(images)}
-        onAddImages={addInlineImages}
-      />
+        <MarkdownEditor
+          ref={editorRef}
+          name={POST_FORM_FIELDS.content}
+          label="Content"
+          rows={12}
+          disabled={busy}
+          defaultValue={state?.values?.content}
+          onAddImages={addInlineImages}
+        />
 
-      <FieldError errors={errors?.properties?.content?.errors} />
+        <FieldError errors={errors?.properties?.content?.errors} />
 
-      <PostImagePicker
-        images={images}
-        headerImageAltErrors={errors?.properties?.headerImageAlt?.errors}
-        problems={problems}
-        progress={progress}
-        errors={uploadErrors}
-        disabled={busy}
-        onPickHeaderImage={pickHeaderImage}
-        onAddInlineImages={addInlineImages}
-        onInsertImage={insertImage}
-        onRemoveImage={removeImage}
-      />
+        <PostImagePicker
+          images={images}
+          headerImageAltErrors={errors?.properties?.headerImageAlt?.errors}
+          problems={problems}
+          progress={progress}
+          errors={uploadErrors}
+          disabled={busy}
+          onPickHeaderImage={pickHeaderImage}
+          onAddInlineImages={addInlineImages}
+          onInsertImage={insertImage}
+          onRemoveImage={removeImage}
+        />
+      </div>
+
+      {preview && (
+        <PostPreview
+          fields={preview}
+          images={images}
+          authorUsername={authorUsername}
+        />
+      )}
 
       <div className="mt-4 flex flex-row items-start justify-start gap-2">
         <ReturnToBlogPosts appearance="outlined" />

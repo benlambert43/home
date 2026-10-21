@@ -4,15 +4,10 @@ import {
   ACCEPTED_POST_IMAGE_TYPES,
   pickedFiles,
 } from "@/app/blog/postImageFiles";
-import PostMarkdown, { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import {
-  MAX_POST_HEADING_DEPTH,
-  normalizePostContent,
-  postImageReference,
-} from "@home/shared";
+import { MAX_POST_HEADING_DEPTH, postImageReference } from "@home/shared";
 import {
   ChangeEvent,
   KeyboardEvent,
@@ -298,8 +293,6 @@ const MarkdownEditor = ({
   rows,
   disabled = false,
   defaultValue = "",
-  previewing = false,
-  images = [],
   onAddImages,
   ref,
 }: {
@@ -308,8 +301,6 @@ const MarkdownEditor = ({
   rows: number;
   disabled?: boolean;
   defaultValue?: string;
-  previewing?: boolean;
-  images?: PostMarkdownImage[];
   onAddImages?: (files: File[]) => Promise<string[]>;
   ref?: Ref<MarkdownEditorHandle>;
 }) => {
@@ -427,7 +418,7 @@ const MarkdownEditor = ({
               type="button"
               size="small"
               emphasis="secondary"
-              disabled={disabled || previewing}
+              disabled={disabled}
               title={
                 item.shortcut
                   ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
@@ -446,7 +437,7 @@ const MarkdownEditor = ({
               type="button"
               size="small"
               emphasis="secondary"
-              disabled={disabled || previewing}
+              disabled={disabled}
               title="Image"
               onClick={() => {
                 imageInputRef.current?.click();
@@ -470,19 +461,8 @@ const MarkdownEditor = ({
             setContent(event.target.value);
           }}
           onKeyDown={onKeyDown}
-          className={`${previewing ? "hidden" : ""} w-full ${FIELD_CLASSES}
-            font-mono`}
+          className={`w-full ${FIELD_CLASSES} font-mono`}
         />
-
-        <div
-          className={`${previewing ? "" : "hidden"} min-h-64 overflow-x-auto
-            ${FIELD_CLASSES}`}
-        >
-          <PostMarkdown
-            content={normalizePostContent(content)}
-            images={images}
-          />
-        </div>
       </div>
 
       <input

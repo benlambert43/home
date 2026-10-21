@@ -15,7 +15,7 @@ export const EMPTY_POST_FIELDS: SavedPostFields = {
   headerImageAlt: null,
 };
 
-const fieldValue = (form: HTMLFormElement, name: string) => {
+export const fieldValue = (form: HTMLFormElement, name: string) => {
   const field = form.elements.namedItem(name);
 
   return field instanceof HTMLInputElement ||
