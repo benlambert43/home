@@ -427,7 +427,7 @@ const MarkdownEditor = ({
               type="button"
               size="small"
               emphasis="secondary"
-              disabled={disabled}
+              disabled={disabled || previewing}
               title={
                 item.shortcut
                   ? `${item.title} (${formatShortcut(item.shortcut, mac)})`
@@ -446,7 +446,7 @@ const MarkdownEditor = ({
               type="button"
               size="small"
               emphasis="secondary"
-              disabled={disabled}
+              disabled={disabled || previewing}
               title="Image"
               onClick={() => {
                 imageInputRef.current?.click();

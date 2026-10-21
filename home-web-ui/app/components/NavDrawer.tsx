@@ -66,10 +66,13 @@ const NavDrawer = () => {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [openedOn, setOpenedOn] = useState(pathname);
-  const visible = open && openedOn === pathname;
+
+  if (open && openedOn !== pathname) {
+    setOpen(false);
+  }
 
   useEffect(() => {
-    if (!visible) return;
+    if (!open) return;
 
     const desktop = window.matchMedia(DESKTOP_MEDIA_QUERY);
     const closeOnDesktop = (e: MediaQueryListEvent) => {
@@ -78,7 +81,7 @@ const NavDrawer = () => {
 
     desktop.addEventListener("change", closeOnDesktop);
     return () => desktop.removeEventListener("change", closeOnDesktop);
-  }, [visible]);
+  }, [open]);
 
   const show = () => {
     setOpenedOn(pathname);
@@ -106,7 +109,7 @@ const NavDrawer = () => {
         </UnreadBadge>
       </button>
       <Dialog
-        open={visible}
+        open={open}
         onClose={close}
         label="Navigation menu"
         placement="start"
