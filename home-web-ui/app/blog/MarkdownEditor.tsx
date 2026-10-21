@@ -19,6 +19,13 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 
+export type EditorMode = "write" | "preview";
+
+export const EDITOR_MODES: { value: EditorMode; label: string }[] = [
+  { value: "write", label: "Write" },
+  { value: "preview", label: "Preview" },
+];
+
 export type MarkdownEditorHandle = { insert: (markdown: string) => void };
 
 export const postImageMarkdown = (name: string) =>
@@ -263,6 +270,7 @@ const MarkdownEditor = ({
   rows,
   disabled = false,
   defaultValue = "",
+  previewing = false,
   images = [],
   onAddImages,
   ref,
@@ -272,12 +280,12 @@ const MarkdownEditor = ({
   rows: number;
   disabled?: boolean;
   defaultValue?: string;
+  previewing?: boolean;
   images?: PostMarkdownImage[];
   onAddImages?: (files: File[]) => Promise<string[]>;
   ref?: Ref<MarkdownEditorHandle>;
 }) => {
   const [content, setContent] = useState(defaultValue);
-  const [previewing, setPreviewing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const history = useRef<MarkdownHistory>({ undo: [], redo: [] });
@@ -383,10 +391,7 @@ const MarkdownEditor = ({
     <div className={FIELD_WIDTHS.wide.wrapper}>
       <label htmlFor={name}>{label}</label>
 
-      <div
-        className={`${FIELD_WIDTHS.wide.field} grid grid-cols-1 gap-2
-          2xl:max-w-324 2xl:grid-cols-2 2xl:gap-x-4`}
-      >
+      <div className={`${FIELD_WIDTHS.wide.field} grid grid-cols-1 gap-2`}>
         <div className="flex flex-row flex-wrap items-center gap-2">
           {TOOLBAR.map((item) => (
             <Button
@@ -422,29 +427,6 @@ const MarkdownEditor = ({
               Image
             </Button>
           )}
-
-          <div className="ml-auto flex flex-row gap-2 2xl:hidden">
-            <Button
-              type="button"
-              size="small"
-              emphasis={previewing ? "secondary" : "primary"}
-              onClick={() => {
-                setPreviewing(false);
-              }}
-            >
-              Write
-            </Button>
-            <Button
-              type="button"
-              size="small"
-              emphasis={previewing ? "primary" : "secondary"}
-              onClick={() => {
-                setPreviewing(true);
-              }}
-            >
-              Preview
-            </Button>
-          </div>
         </div>
 
         <textarea
@@ -460,13 +442,13 @@ const MarkdownEditor = ({
             setContent(event.target.value);
           }}
           onKeyDown={onKeyDown}
-          className={`${previewing ? "hidden 2xl:block" : ""} w-full
-            ${FIELD_CLASSES} font-mono 2xl:col-start-1`}
+          className={`${previewing ? "hidden" : ""} w-full ${FIELD_CLASSES}
+            font-mono`}
         />
 
         <div
-          className={`${previewing ? "" : "hidden 2xl:block"} min-h-64
-            overflow-x-auto ${FIELD_CLASSES} 2xl:col-start-2 2xl:row-start-2`}
+          className={`${previewing ? "" : "hidden"} min-h-64 overflow-x-auto
+            ${FIELD_CLASSES}`}
         >
           <PostMarkdown
             content={normalizePostContent(content)}
