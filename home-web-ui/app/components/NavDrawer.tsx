@@ -1,6 +1,7 @@
 "use client";
 
 import Dialog from "@/app/components/Dialog";
+import GuardedLink from "@/app/components/GuardedLink";
 import NavDrawerNotifications from "@/app/components/NavDrawerNotifications";
 import {
   ACCOUNT_LINKS,
@@ -19,7 +20,6 @@ import {
 } from "@/app/ui/navStyles";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 
@@ -49,15 +49,15 @@ const DrawerLink = ({
   const current = isCurrentPath(pathname, href);
 
   return (
-    <Link
+    <GuardedLink
       href={href}
       aria-current={current ? "page" : undefined}
       className={current ? CURRENT_LINK_CLASSES : NAV_DRAWER_LINK_CLASSES}
-      onClick={onNavigate}
+      onNavigate={onNavigate}
     >
       <Icon className="size-6" />
       {label}
-    </Link>
+    </GuardedLink>
   );
 };
 
@@ -65,9 +65,11 @@ const NavDrawer = () => {
   const { hasUnread, refresh } = useContext(NotificationContext);
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [openedOn, setOpenedOn] = useState(pathname);
+  const visible = open && openedOn === pathname;
 
   useEffect(() => {
-    if (!open) return;
+    if (!visible) return;
 
     const desktop = window.matchMedia(DESKTOP_MEDIA_QUERY);
     const closeOnDesktop = (e: MediaQueryListEvent) => {
@@ -76,9 +78,10 @@ const NavDrawer = () => {
 
     desktop.addEventListener("change", closeOnDesktop);
     return () => desktop.removeEventListener("change", closeOnDesktop);
-  }, [open]);
+  }, [visible]);
 
   const show = () => {
+    setOpenedOn(pathname);
     setOpen(true);
     refresh();
   };
@@ -103,7 +106,7 @@ const NavDrawer = () => {
         </UnreadBadge>
       </button>
       <Dialog
-        open={open}
+        open={visible}
         onClose={close}
         label="Navigation menu"
         placement="start"
@@ -122,9 +125,13 @@ const NavDrawer = () => {
                 height={24}
                 className="size-6 rounded-full"
               />
-              <Link href="/" className={NAV_TEXT_LINK_CLASSES} onClick={close}>
+              <GuardedLink
+                href="/"
+                className={NAV_TEXT_LINK_CLASSES}
+                onNavigate={close}
+              >
                 benlambert.tech
-              </Link>
+              </GuardedLink>
             </div>
             <button
               type="button"

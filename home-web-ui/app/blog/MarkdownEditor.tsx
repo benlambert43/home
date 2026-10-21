@@ -13,11 +13,11 @@ import {
   ChangeEvent,
   KeyboardEvent,
   Ref,
-  useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 
 export type MarkdownEditorHandle = { insert: (markdown: string) => void };
 
@@ -34,7 +34,19 @@ type MarkdownEdit = (selection: MarkdownSelection) => MarkdownSelection;
 
 type Shortcut = { key: string; mod?: boolean; shift?: boolean };
 
+type MarkdownChange = { before: MarkdownSelection; after: MarkdownSelection };
+
+type MarkdownHistory = { undo: MarkdownChange[]; redo: MarkdownChange[] };
+
 const LINE_BREAK = "\\\n";
+
+const MAX_HISTORY_CHANGES = 100;
+
+const UNDO_SHORTCUT: Shortcut = { key: "Z", mod: true };
+
+const REDO_SHORTCUT: Shortcut = { key: "Z", mod: true, shift: true };
+
+const REDO_SHORTCUT_CTRL_Y: Shortcut = { key: "Y", mod: true };
 
 const PHYSICAL_KEYS: Partial<Record<string, string>> = {
   Digit7: "7",
@@ -59,6 +71,39 @@ const formatShortcut = ({ key, mod, shift }: Shortcut, mac: boolean) =>
   mac
     ? `${shift ? "⇧" : ""}${mod ? "⌘" : ""}${key === "Enter" ? "↩" : key}`
     : [mod && "Ctrl", shift && "Shift", key].filter(Boolean).join("+");
+
+const redoShortcuts = (mac: boolean) =>
+  mac ? [REDO_SHORTCUT] : [REDO_SHORTCUT, REDO_SHORTCUT_CTRL_Y];
+
+const selectionOf = (textarea: HTMLTextAreaElement): MarkdownSelection => ({
+  value: textarea.value,
+  selectionStart: textarea.selectionStart,
+  selectionEnd: textarea.selectionEnd,
+});
+
+const selectRange = (
+  textarea: HTMLTextAreaElement,
+  { selectionStart, selectionEnd }: MarkdownSelection,
+) => {
+  textarea.focus();
+  textarea.setSelectionRange(selectionStart, selectionEnd);
+};
+
+const pushChange = (changes: MarkdownChange[], change: MarkdownChange) => {
+  changes.push(change);
+  if (changes.length > MAX_HISTORY_CHANGES) changes.shift();
+};
+
+const unlessNativeHistory = (
+  textarea: HTMLTextAreaElement,
+  fallback: () => void,
+) => {
+  const { value } = textarea;
+
+  window.setTimeout(() => {
+    if (textarea.value === value) fallback();
+  }, 0);
+};
 
 const lineStart = (value: string, index: number) =>
   value.lastIndexOf("\n", index - 1) + 1;
@@ -235,33 +280,63 @@ const MarkdownEditor = ({
   const [previewing, setPreviewing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const pendingSelection = useRef<MarkdownSelection>(undefined);
+  const history = useRef<MarkdownHistory>({ undo: [], redo: [] });
   const mac = useHydrated() && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
-  useEffect(() => {
-    const selection = pendingSelection.current;
-    if (!selection || !textareaRef.current) return;
+  const restore = (
+    textarea: HTMLTextAreaElement,
+    selection: MarkdownSelection,
+  ) => {
+    if (selection.value !== textarea.value) {
+      flushSync(() => {
+        setContent(selection.value);
+      });
+    }
 
-    pendingSelection.current = undefined;
-    textareaRef.current.focus();
-    textareaRef.current.setSelectionRange(
-      selection.selectionStart,
-      selection.selectionEnd,
-    );
-  }, [content]);
+    selectRange(textarea, selection);
+  };
 
   const apply = (edit: MarkdownEdit) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const next = edit({
-      value: textarea.value,
-      selectionStart: textarea.selectionStart,
-      selectionEnd: textarea.selectionEnd,
-    });
+    const before = selectionOf(textarea);
+    const after = edit(before);
 
-    pendingSelection.current = next;
-    setContent(next.value);
+    if (after.value !== before.value) {
+      pushChange(history.current.undo, { before, after });
+      history.current.redo = [];
+    }
+
+    restore(textarea, after);
+  };
+
+  const undo = () => {
+    const textarea = textareaRef.current;
+    const change = history.current.undo.at(-1);
+    if (!textarea || !change) return;
+
+    const current = selectionOf(textarea);
+
+    if (current.value === change.after.value) {
+      history.current.undo.pop();
+      pushChange(history.current.redo, change);
+      restore(textarea, change.before);
+      return;
+    }
+
+    pushChange(history.current.redo, { before: change.after, after: current });
+    restore(textarea, change.after);
+  };
+
+  const redo = () => {
+    const textarea = textareaRef.current;
+    const change = history.current.redo.at(-1);
+    if (!textarea || !change || textarea.value !== change.before.value) return;
+
+    history.current.redo.pop();
+    pushChange(history.current.undo, change);
+    restore(textarea, change.after);
   };
 
   useImperativeHandle(ref, () => ({
@@ -280,6 +355,20 @@ const MarkdownEditor = ({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (matchesShortcut(UNDO_SHORTCUT, event, mac)) {
+      unlessNativeHistory(event.currentTarget, undo);
+      return;
+    }
+
+    if (
+      redoShortcuts(mac).some((shortcut) =>
+        matchesShortcut(shortcut, event, mac),
+      )
+    ) {
+      unlessNativeHistory(event.currentTarget, redo);
+      return;
+    }
+
     const item = TOOLBAR.find(
       ({ shortcut }) => shortcut && matchesShortcut(shortcut, event, mac),
     );
@@ -367,6 +456,7 @@ const MarkdownEditor = ({
           value={content}
           placeholder={label}
           onChange={(event) => {
+            history.current.redo = [];
             setContent(event.target.value);
           }}
           onKeyDown={onKeyDown}
