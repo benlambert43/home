@@ -8,7 +8,11 @@ import PostMarkdown, { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import { useHydrated } from "@/app/lib/useHydrated";
 import Button from "@/app/ui/Button";
 import { FIELD_CLASSES, FIELD_WIDTHS } from "@/app/ui/fieldStyles";
-import { normalizePostContent, postImageReference } from "@home/shared";
+import {
+  MAX_POST_HEADING_DEPTH,
+  normalizePostContent,
+  postImageReference,
+} from "@home/shared";
 import {
   ChangeEvent,
   KeyboardEvent,
@@ -151,6 +155,30 @@ const prefixLines =
     };
   };
 
+const HEADING_PREFIX = /^(#{1,6}) /;
+
+const cycleHeading: MarkdownEdit = ({
+  value,
+  selectionStart,
+  selectionEnd,
+}) => {
+  const start = lineStart(value, selectionStart);
+  const end = lineEnd(value, selectionEnd);
+  const lines = value.slice(start, end).split("\n");
+  const depth = HEADING_PREFIX.exec(lines[0] ?? "")?.[1]?.length ?? 0;
+  const next = depth >= MAX_POST_HEADING_DEPTH ? 0 : depth + 1;
+  const prefix = next === 0 ? "" : `${"#".repeat(next)} `;
+  const headed = lines
+    .map((line) => `${prefix}${line.replace(HEADING_PREFIX, "")}`)
+    .join("\n");
+
+  return {
+    value: `${value.slice(0, start)}${headed}${value.slice(end)}`,
+    selectionStart: start,
+    selectionEnd: start + headed.length,
+  };
+};
+
 const fenceSelection =
   (placeholder: string): MarkdownEdit =>
   ({ value, selectionStart, selectionEnd }) => {
@@ -242,7 +270,7 @@ const TOOLBAR: {
     edit: insertLineBreak,
     shortcut: { key: "Enter", shift: true },
   },
-  { label: "H", title: "Heading", edit: prefixLines(() => "# ") },
+  { label: "H", title: "Heading (#, ##, ###)", edit: cycleHeading },
   {
     label: "Quote",
     title: "Quote",
