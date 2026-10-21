@@ -84,6 +84,7 @@ if [ "$dry_run" -eq 1 ]; then
   exit 0
 fi
 
+rm -rf node_modules ./*/node_modules || exit 1
 git clean -xdff -e "$KEEP_ROOT" -e "$KEEP_WORKSPACE" >/dev/null || exit 1
 
 if [ -n "$db_removals" ] && ! compose_down >/dev/null 2>&1; then
