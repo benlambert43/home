@@ -22,7 +22,7 @@ const NewPost = async () => {
     >
       <h1 className="text-4xl font-bold">New Blog Post</h1>
       <div>
-        <NewPostForm />
+        <NewPostForm authorUsername={user.username} />
       </div>
     </PageColumn>
   );

@@ -1,29 +1,34 @@
-import { postFullSizeImageHref, postImageHref } from "@/app/blog/links";
 import PostFullSizeImageLink from "@/app/blog/PostFullSizeImageLink";
+import { PostMarkdownImage } from "@/app/blog/PostMarkdown";
 import { postImageSizing } from "@/app/blog/postImageSizes";
-import { PostSummary } from "@home/shared";
 import Image from "next/image";
 
-const PostHeaderImage = ({ post }: { post: PostSummary }) => {
-  const image = post.headerImage;
-  const alt = post.headerImageAlt ?? "";
-
+const PostHeaderImage = ({
+  image,
+  alt,
+}: {
+  image?: PostMarkdownImage;
+  alt: string;
+}) => {
   if (!image) return null;
 
-  return (
-    <PostFullSizeImageLink
-      href={postFullSizeImageHref(post.slug, image.name)}
+  const rendered = (
+    <Image
+      src={image.src}
       alt={alt}
-    >
-      <Image
-        src={postImageHref(post.slug, image.name)}
-        alt={alt}
-        width={image.width}
-        height={image.height}
-        loading="eager"
-        fetchPriority="high"
-        {...postImageSizing(image)}
-      />
+      width={image.width}
+      height={image.height}
+      loading="eager"
+      fetchPriority="high"
+      {...postImageSizing(image)}
+    />
+  );
+
+  if (image.fullSizeHref === undefined) return rendered;
+
+  return (
+    <PostFullSizeImageLink href={image.fullSizeHref} alt={alt}>
+      {rendered}
     </PostFullSizeImageLink>
   );
 };
