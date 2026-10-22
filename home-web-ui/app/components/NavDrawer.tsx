@@ -1,7 +1,6 @@
 "use client";
 
 import Dialog from "@/app/components/Dialog";
-import GuardedLink from "@/app/components/GuardedLink";
 import NavDrawerNotifications from "@/app/components/NavDrawerNotifications";
 import {
   ACCOUNT_LINKS,
@@ -20,6 +19,7 @@ import {
 } from "@/app/ui/navStyles";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/16/solid";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 
@@ -49,7 +49,7 @@ const DrawerLink = ({
   const current = isCurrentPath(pathname, href);
 
   return (
-    <GuardedLink
+    <Link
       href={href}
       aria-current={current ? "page" : undefined}
       className={current ? CURRENT_LINK_CLASSES : NAV_DRAWER_LINK_CLASSES}
@@ -57,7 +57,7 @@ const DrawerLink = ({
     >
       <Icon className="size-6" />
       {label}
-    </GuardedLink>
+    </Link>
   );
 };
 
@@ -128,13 +128,13 @@ const NavDrawer = () => {
                 height={24}
                 className="size-6 rounded-full"
               />
-              <GuardedLink
+              <Link
                 href="/"
                 className={NAV_TEXT_LINK_CLASSES}
                 onNavigate={close}
               >
                 benlambert.tech
-              </GuardedLink>
+              </Link>
             </div>
             <button
               type="button"

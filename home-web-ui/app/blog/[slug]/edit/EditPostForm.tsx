@@ -32,7 +32,6 @@ import {
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
-import { useUnsavedPostChanges } from "@/app/blog/postForm/useUnsavedPostChanges";
 import {
   readFormValues,
   treeifyFormError,
@@ -87,8 +86,6 @@ const EditPostForm = ({
   } = usePostImageUpload();
   const editorRef = useRef<MarkdownEditorHandle>(null);
   const formRef = useRef<HTMLFormElement>(null);
-
-  useUnsavedPostChanges(formRef, post, images);
 
   const errors = submitted ?? state;
   const busy = pending || uploading;

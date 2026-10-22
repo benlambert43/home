@@ -25,10 +25,6 @@ import {
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
-import {
-  EMPTY_POST_FIELDS,
-  useUnsavedPostChanges,
-} from "@/app/blog/postForm/useUnsavedPostChanges";
 import ReturnToBlogPosts from "@/app/blog/ReturnToBlogPosts";
 import {
   CreatePostFormState,
@@ -62,8 +58,6 @@ const NewPostForm = ({ authorUsername }: { authorUsername: string }) => {
   } = usePostImageUpload();
   const editorRef = useRef<MarkdownEditorHandle>(null);
   const formRef = useRef<HTMLFormElement>(null);
-
-  useUnsavedPostChanges(formRef, EMPTY_POST_FIELDS, images);
 
   const errors = submitted ?? state;
   const busy = pending || uploading;
