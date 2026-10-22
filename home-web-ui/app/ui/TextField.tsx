@@ -1,5 +1,5 @@
 import { FIELD_CLASSES, FIELD_WIDTHS, FieldWidth } from "@/app/ui/fieldStyles";
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useId } from "react";
 
 type TextFieldProps = {
   name: string;
@@ -15,16 +15,20 @@ const TextField = ({
   label,
   width = "wide",
   ...input
-}: TextFieldProps) => (
-  <div className={FIELD_WIDTHS[width].wrapper}>
-    <label htmlFor={name}>{label}</label>
-    <input
-      id={name}
-      name={name}
-      className={`${FIELD_WIDTHS[width].field} ${FIELD_CLASSES}`}
-      {...input}
-    />
-  </div>
-);
+}: TextFieldProps) => {
+  const id = useId();
+
+  return (
+    <div className={FIELD_WIDTHS[width].wrapper}>
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        name={name}
+        className={`${FIELD_WIDTHS[width].field} ${FIELD_CLASSES}`}
+        {...input}
+      />
+    </div>
+  );
+};
 
 export default TextField;

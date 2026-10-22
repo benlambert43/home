@@ -12,6 +12,7 @@ import {
   ChangeEvent,
   KeyboardEvent,
   Ref,
+  useId,
   useImperativeHandle,
   useRef,
   useState,
@@ -304,6 +305,7 @@ const MarkdownEditor = ({
   onAddImages?: (files: File[]) => Promise<string[]>;
   ref?: Ref<MarkdownEditorHandle>;
 }) => {
+  const id = useId();
   const [content, setContent] = useState(defaultValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -408,7 +410,7 @@ const MarkdownEditor = ({
 
   return (
     <div className={FIELD_WIDTHS.full.wrapper}>
-      <label htmlFor={name}>{label}</label>
+      <label htmlFor={id}>{label}</label>
 
       <div className={`${FIELD_WIDTHS.full.field} grid grid-cols-1 gap-2`}>
         <div className="flex flex-row flex-wrap items-center gap-2">
@@ -449,7 +451,7 @@ const MarkdownEditor = ({
         </div>
 
         <textarea
-          id={name}
+          id={id}
           name={name}
           ref={textareaRef}
           rows={rows}

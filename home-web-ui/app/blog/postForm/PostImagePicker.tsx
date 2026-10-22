@@ -16,7 +16,7 @@ import TextField from "@/app/ui/TextField";
 import { PhotoIcon } from "@heroicons/react/16/solid";
 import { MAX_POST_HEADER_IMAGE_ALT_CHARACTERS } from "@home/shared";
 import Image from "next/image";
-import { ReactNode, useRef } from "react";
+import { ReactNode, useId, useRef } from "react";
 
 const THUMBNAIL_PIXELS = 64;
 
@@ -24,17 +24,12 @@ const KILOBYTE = 1000;
 
 const MEGABYTE = 1000 * KILOBYTE;
 
-const HEADER_IMAGE_INPUT = "headerImage";
-
-const INLINE_IMAGES_INPUT = "inlineImages";
-
 const fileSize = (bytes: number) =>
   bytes >= MEGABYTE
     ? `${(bytes / MEGABYTE).toFixed(1)} MB`
     : `${Math.max(1, Math.round(bytes / KILOBYTE))} KB`;
 
 const PostImageField = ({
-  input,
   label,
   action,
   multiple = false,
@@ -42,7 +37,6 @@ const PostImageField = ({
   onPick,
   children,
 }: {
-  input: string;
   label: string;
   action: string;
   multiple?: boolean;
@@ -50,11 +44,12 @@ const PostImageField = ({
   onPick: (files: File[]) => void;
   children?: ReactNode;
 }) => {
+  const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className={FIELD_WIDTHS.wide.wrapper}>
-      <label htmlFor={input}>{label}</label>
+      <label htmlFor={id}>{label}</label>
 
       <Button
         type="button"
@@ -73,7 +68,7 @@ const PostImageField = ({
       </Button>
 
       <input
-        id={input}
+        id={id}
         ref={inputRef}
         type="file"
         hidden
@@ -196,7 +191,6 @@ const PostImagePicker = ({
   return (
     <div className="flex flex-col gap-4">
       <PostImageField
-        input={HEADER_IMAGE_INPUT}
         label="Header image"
         action={headerImage ? "Replace image" : "Choose image"}
         disabled={disabled}
@@ -226,7 +220,6 @@ const PostImagePicker = ({
       )}
 
       <PostImageField
-        input={INLINE_IMAGES_INPUT}
         label="Images"
         action="Add images"
         multiple

@@ -56,6 +56,7 @@ const PostPreview = ({
       images.headerImage && postFormMarkdownImage(images.headerImage)
     }
     images={postFormMarkdownImages(images)}
+    preview
   />
 );
 

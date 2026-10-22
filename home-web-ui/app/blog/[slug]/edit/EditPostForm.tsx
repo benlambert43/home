@@ -128,6 +128,7 @@ const EditPostForm = ({
     }
 
     if (allPostFormImages(pendingPostImages(images)).length > 0) {
+      setPreview(undefined);
       const uploaded = await upload(images);
 
       if (!uploaded.ok) {

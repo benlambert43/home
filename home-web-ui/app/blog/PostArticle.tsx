@@ -13,29 +13,35 @@ const PostArticle = ({
   post,
   headerImage,
   images,
+  preview = false,
 }: {
   post: PostArticleDetails;
   headerImage?: PostMarkdownImage;
   images: PostMarkdownImage[];
-}) => (
-  <article className="flex flex-col gap-4">
-    <header className="flex flex-col gap-4">
-      <h1
-        className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
-          bg-linear-to-r bg-clip-text text-5xl leading-tight font-medium
-          text-transparent sm:text-6xl"
-      >
-        {post.title}
-      </h1>
-      <PostByline post={post} />
-      <PostHeaderImage image={headerImage} alt={post.headerImageAlt ?? ""} />
-    </header>
-    <PostMarkdown
-      content={post.content}
-      images={images}
-      headingIds={postHeadingIds(post.content)}
-    />
-  </article>
-);
+  preview?: boolean;
+}) => {
+  const Title = preview ? "div" : "h1";
+
+  return (
+    <article className="flex flex-col gap-4">
+      <header className="flex flex-col gap-4">
+        <Title
+          className="from-portrait-dusk via-portrait-haze to-portrait-sky w-fit
+            bg-linear-to-r bg-clip-text text-5xl leading-tight font-medium
+            text-transparent sm:text-6xl"
+        >
+          {post.title}
+        </Title>
+        <PostByline post={post} />
+        <PostHeaderImage image={headerImage} alt={post.headerImageAlt ?? ""} />
+      </header>
+      <PostMarkdown
+        content={post.content}
+        images={images}
+        headingIds={postHeadingIds(post.content)}
+      />
+    </article>
+  );
+};
 
 export default PostArticle;
