@@ -1,4 +1,3 @@
-import GuardedLink from "@/app/components/GuardedLink";
 import NavDrawer from "@/app/components/NavDrawer";
 import {
   NavLink,
@@ -15,26 +14,23 @@ import {
   NAV_ICON_LINK_CLASSES,
   NAV_TEXT_LINK_CLASSES,
 } from "@/app/ui/navStyles";
+import Link from "next/link";
 
 const SignIn = () => {
   return (
     <div className="min-w-12">
-      <GuardedLink href={SIGN_IN_LINK.href} className={NAV_TEXT_LINK_CLASSES}>
+      <Link href={SIGN_IN_LINK.href} className={NAV_TEXT_LINK_CLASSES}>
         {SIGN_IN_LINK.label}
-      </GuardedLink>
+      </Link>
     </div>
   );
 };
 
 const AccountIconLink = ({ href, label, Icon }: NavLink) => {
   return (
-    <GuardedLink
-      href={href}
-      aria-label={label}
-      className={NAV_ICON_LINK_CLASSES}
-    >
+    <Link href={href} aria-label={label} className={NAV_ICON_LINK_CLASSES}>
       <Icon className="size-6" />
-    </GuardedLink>
+    </Link>
   );
 };
 
@@ -56,18 +52,14 @@ const Navbar = () => {
       <Notifications>
         <div className="flex items-center gap-4">
           <NavDrawer />
-          <GuardedLink href="/" className={NAV_TEXT_LINK_CLASSES}>
+          <Link href="/" className={NAV_TEXT_LINK_CLASSES}>
             benlambert.tech
-          </GuardedLink>
+          </Link>
           <div className="hidden items-center gap-4 sm:flex">
             {NAV_LINKS.map(({ href, label }) => (
-              <GuardedLink
-                key={href}
-                href={href}
-                className={NAV_TEXT_LINK_CLASSES}
-              >
+              <Link key={href} href={href} className={NAV_TEXT_LINK_CLASSES}>
                 {label}
-              </GuardedLink>
+              </Link>
             ))}
           </div>
         </div>

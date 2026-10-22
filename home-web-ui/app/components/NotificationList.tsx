@@ -1,4 +1,3 @@
-import { useNavigationGuard } from "@/app/components/NavigationGuardProvider";
 import { NotificationContext } from "@/app/components/Notifications";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
@@ -16,7 +15,6 @@ const toRoute = (referenceLink: string) => {
 
 const NotificationList = ({ onNavigate }: { onNavigate: () => void }) => {
   const { notifications } = useContext(NotificationContext);
-  const { confirmNavigation } = useNavigationGuard();
   const router = useRouter();
 
   return (
@@ -34,8 +32,6 @@ const NotificationList = ({ onNavigate }: { onNavigate: () => void }) => {
               if (n.referenceLink.length === 0) return;
 
               const route = toRoute(n.referenceLink);
-
-              if (route.startsWith("/") && !confirmNavigation(route)) return;
 
               router.push(route);
               onNavigate();

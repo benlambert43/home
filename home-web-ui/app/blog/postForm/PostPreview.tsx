@@ -5,7 +5,6 @@ import {
   postFormMarkdownImages,
   PostFormImages,
 } from "@/app/blog/postForm/postFormImages";
-import { fieldValue } from "@/app/blog/postForm/useUnsavedPostChanges";
 import { createPostFormSchema, normalizePostContent } from "@home/shared";
 
 export type PostPreviewFields = Pick<
@@ -15,6 +14,15 @@ export type PostPreviewFields = Pick<
 
 const { title: titleField, headerImageAlt: headerImageAltField } =
   createPostFormSchema.shape;
+
+const fieldValue = (form: HTMLFormElement, name: string) => {
+  const field = form.elements.namedItem(name);
+
+  return field instanceof HTMLInputElement ||
+    field instanceof HTMLTextAreaElement
+    ? field.value
+    : "";
+};
 
 export const readPostPreviewFields = (
   form: HTMLFormElement,

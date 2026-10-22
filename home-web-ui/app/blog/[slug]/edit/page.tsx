@@ -44,6 +44,7 @@ const EditPost = async ({
       <h1 className="text-4xl font-bold">Edit Blog Post</h1>
       <div>
         <EditPostForm
+          key={result.post.revision}
           post={result.post}
           usedImageNames={result.usedImageNames}
           page={page}

@@ -9,7 +9,6 @@ type ConfirmationModalProps = {
   title: string;
   children?: ReactNode;
   confirmLabel?: string;
-  cancelLabel?: string;
   confirmColor?: ButtonColor;
   pending?: boolean;
   onConfirm: () => void;
@@ -21,7 +20,6 @@ const ConfirmationModal = ({
   title,
   children,
   confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
   confirmColor = "normal",
   pending = false,
   onConfirm,
@@ -40,7 +38,7 @@ const ConfirmationModal = ({
           disabled={pending}
           onClick={onCancel}
         >
-          {cancelLabel}
+          Cancel
         </Button>
         <Button
           type="button"

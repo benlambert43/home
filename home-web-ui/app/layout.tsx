@@ -3,7 +3,6 @@ import AnimationsPausedProvider from "@/app/components/AnimationsPausedProvider"
 import AnimationsScope from "@/app/components/AnimationsScope";
 import Footer from "@/app/components/Footer";
 import Navbar from "@/app/components/Navbar";
-import NavigationGuardProvider from "@/app/components/NavigationGuardProvider";
 import SessionProvider from "@/app/components/SessionProvider";
 import { siteMetadata, siteViewport } from "@/app/lib/metadata";
 import { ReactNode } from "react";
@@ -22,11 +21,9 @@ const RootLayout = ({ children }: Readonly<{ children: ReactNode }>) => (
       <AnimationsPausedProvider>
         <SessionProvider>
           <AnimationsScope className="flex min-h-screen flex-col pt-4 pb-8">
-            <NavigationGuardProvider>
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </NavigationGuardProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
           </AnimationsScope>
         </SessionProvider>
       </AnimationsPausedProvider>

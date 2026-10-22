@@ -1,4 +1,4 @@
-import GuardedLink from "@/app/components/GuardedLink";
+import Link from "next/link";
 import { HTMLAttributeAnchorTarget, MouseEventHandler, ReactNode } from "react";
 
 type ButtonSize = "large" | "small";
@@ -64,7 +64,7 @@ const Button = ({
   if (props.type === "link") {
     const { href, target, rel } = props.linkProps;
     return (
-      <GuardedLink
+      <Link
         href={href}
         target={target}
         rel={rel}
@@ -72,7 +72,7 @@ const Button = ({
         className={className}
       >
         {children}
-      </GuardedLink>
+      </Link>
     );
   }
 
