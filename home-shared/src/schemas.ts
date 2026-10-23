@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { disallowedPostMarkdown, normalizePostContent } from "./markdown";
+import { normalizePostContent, postMarkdownProblems } from "./markdown";
 import {
   DEFAULT_POST_PAGE_SIZE,
   MAX_POST_CONTENT_CHARACTERS,
@@ -170,25 +170,24 @@ const postHeaderImageAltField = z
     message: "Header image alt text contains characters that are not allowed.",
   });
 
-const postContentField = z
-  .string()
-  .transform(normalizePostContent)
-  .refine((content) => content.length > 0, {
-    message: "Please write some post content.",
-  })
-  .refine((content) => content.length <= MAX_POST_CONTENT_CHARACTERS, {
-    message: `Post content must be ${MAX_POST_CONTENT_CHARACTERS.toLocaleString("en-US")} characters or fewer.`,
-  })
-  .refine((content) => !hasDisallowedContentCharacters(content), {
-    message: "Post content contains characters that are not allowed.",
-  })
-  .superRefine((content, context) => {
-    const problem = disallowedPostMarkdown(content);
-
-    if (problem !== undefined) {
-      context.addIssue({ code: "custom", message: problem });
-    }
-  });
+export const postContentField = (imageReferences?: string[]) =>
+  z
+    .string()
+    .transform(normalizePostContent)
+    .refine((content) => content.length > 0, {
+      message: "Please write some post content.",
+    })
+    .refine((content) => content.length <= MAX_POST_CONTENT_CHARACTERS, {
+      message: `Post content must be ${MAX_POST_CONTENT_CHARACTERS.toLocaleString("en-US")} characters or fewer.`,
+    })
+    .refine((content) => !hasDisallowedContentCharacters(content), {
+      message: "Post content contains characters that are not allowed.",
+    })
+    .superRefine((content, context) => {
+      for (const message of postMarkdownProblems(content, imageReferences)) {
+        context.addIssue({ code: "custom", message });
+      }
+    });
 
 const POST_IMAGE_NAME_PATTERN = new RegExp(
   `^[a-zA-Z0-9][a-zA-Z0-9_-]*\\.(${Object.keys(POST_IMAGE_EXTENSION_CONTENT_TYPES).join("|")})$`,
@@ -243,7 +242,7 @@ export const postUploadImageParamsSchema = postUploadParamsSchema.extend({
 
 export const createPostBodySchema = z.object({
   title: postTitleField,
-  content: postContentField,
+  content: postContentField(),
   headerImageAlt: postHeaderImageAltField.optional(),
   uploadId: postUploadIdField.optional(),
 });
@@ -256,7 +255,7 @@ export const createPostFormSchema = createPostBodySchema.pick({
 
 export const updatePostBodySchema = z.object({
   title: postTitleField,
-  content: postContentField,
+  content: postContentField(),
   revision: postRevisionField,
   headerImage: z.null().optional(),
   headerImageAlt: postHeaderImageAltField.optional(),
