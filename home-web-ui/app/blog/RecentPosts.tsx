@@ -83,12 +83,9 @@ const RecentPostListSkeleton = () => (
 );
 
 const RecentPosts = () => (
-  <section className="flex flex-col gap-4">
-    <h2 className="text-2xl">Recent Activity</h2>
-    <Suspense fallback={<RecentPostListSkeleton />}>
-      <RecentPostList />
-    </Suspense>
-  </section>
+  <Suspense fallback={<RecentPostListSkeleton />}>
+    <RecentPostList />
+  </Suspense>
 );
 
 export default RecentPosts;
