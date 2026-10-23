@@ -1,42 +1,18 @@
 import { pageMetadata } from "@/app/lib/metadata";
-import RouteMap from "@/app/projects/adventures/RouteMap";
-import BirdWire from "@/app/projects/lifelist/BirdWire";
 import ProjectPage from "@/app/projects/ProjectPage";
-import Terminal from "@/app/projects/software/Terminal";
+import { PROJECTS } from "@/app/projects/projects";
 import { ArrowRightIcon } from "@heroicons/react/16/solid";
 import Link from "next/link";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties } from "react";
 
 export const metadata = pageMetadata("projects", {
   canonicalPath: "/projects",
 });
 
-const SECTIONS: { href: string; title: string; preview: ReactNode }[] = [
-  {
-    href: "/projects/software",
-    title: "Software",
-    preview: (
-      <div className="absolute inset-x-4 top-4">
-        <Terminal />
-      </div>
-    ),
-  },
-  {
-    href: "/projects/lifelist",
-    title: "Life List",
-    preview: <BirdWire className="size-full" />,
-  },
-  {
-    href: "/projects/adventures",
-    title: "Adventures",
-    preview: <RouteMap className="size-full" />,
-  },
-];
-
 const Projects = () => (
   <ProjectPage title="Projects" index>
     <ul className="grid gap-5 md:grid-cols-3">
-      {SECTIONS.map(({ href, title, preview }, order) => (
+      {PROJECTS.map(({ href, title, preview }, order) => (
         <li
           key={href}
           className="animated:motion-safe:animate-rise"
