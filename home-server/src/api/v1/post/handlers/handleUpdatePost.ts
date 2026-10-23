@@ -4,7 +4,6 @@ import { ApiError } from "../../http/apiError";
 import {
   ApiMessage,
   imageNameTaken,
-  imageReferenceNotOnPost,
   inlineImageNotOnPost,
 } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
@@ -22,7 +21,7 @@ import {
   StoredPostRevision,
 } from "../../types/db";
 import { Decoded } from "../../types/decoded";
-import { unmatchedImageReference } from "../postImageReferences";
+import { postImageProblems } from "../postImageReferences";
 import {
   collectPostUploadImages,
   discardPostUpload,
@@ -144,8 +143,10 @@ const updatePost = async (
     inlineImages: inlineImages.value,
   });
 
-  const unmatched = unmatchedImageReference(body.content, images);
-  if (unmatched) return refusedPostWrite(imageReferenceNotOnPost(unmatched));
+  const imageProblems = postImageProblems(body.content, images);
+  if (imageProblems.length > 0) {
+    return refusedPostWrite(imageProblems.join(" "));
+  }
 
   const revision = await writePostRevision(post.fingerprint, {
     content: body.content,

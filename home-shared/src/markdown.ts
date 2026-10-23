@@ -54,15 +54,64 @@ const flattenTokens = (tokens: Token[]) => {
   return flattened;
 };
 
-const tokenProblem = (token: MarkedToken) => {
+const missingImageMessage = (reference: string) =>
+  `Post content shows an image that is not added to the post: ${reference}`;
+
+type LocatedToken = { token: MarkedToken; offset: number };
+
+type LocatedProblem = { offset: number; message: string };
+
+const childTokens = (token: MarkedToken): Token[] => {
+  if (token.type === "list") return token.items;
+
+  if (token.type === "table") {
+    const cells = [token.header, ...token.rows].reduce(
+      (all, row) => [...all, ...row],
+      [],
+    );
+
+    return cells.reduce<Token[]>((all, cell) => [...all, ...cell.tokens], []);
+  }
+
+  return "tokens" in token ? (token.tokens ?? []) : [];
+};
+
+const locateTokens = (
+  content: string,
+  tokens: Token[],
+  start: number,
+  located: LocatedToken[] = [],
+) => {
+  let cursor = start;
+
+  for (const token of tokens) {
+    const found = content.indexOf(token.raw, cursor);
+    const offset = found === -1 ? cursor : found;
+    if (found !== -1) cursor = found + token.raw.length;
+
+    located.push({ token: token as MarkedToken, offset });
+    locateTokens(content, childTokens(token as MarkedToken), offset, located);
+  }
+
+  return located;
+};
+
+const tokenProblem = (
+  token: MarkedToken,
+  imageReferences: Set<string> | undefined,
+) => {
   if (token.type === "html") return HTML_MESSAGE;
 
   if (token.type === "checkbox") return TASK_LIST_MESSAGE;
 
   if (token.type === "image") {
-    return token.href.startsWith(POST_IMAGE_REFERENCE_PREFIX)
+    if (!token.href.startsWith(POST_IMAGE_REFERENCE_PREFIX)) {
+      return EXTERNAL_IMAGE_MESSAGE;
+    }
+
+    return imageReferences === undefined || imageReferences.has(token.href)
       ? undefined
-      : EXTERNAL_IMAGE_MESSAGE;
+      : missingImageMessage(token.href);
   }
 
   if (token.type !== "link") return undefined;
@@ -74,44 +123,56 @@ const tokenProblem = (token: MarkedToken) => {
   return ALLOWED_LINK.test(token.href) ? undefined : LINK_MESSAGE;
 };
 
-const headingProblem = (tokens: MarkedToken[]) => {
+const headingProblems = (tokens: LocatedToken[]) => {
+  const problems: LocatedProblem[] = [];
   let previousDepth = 0;
 
-  for (const token of tokens) {
+  for (const { token, offset } of tokens) {
     if (token.type !== "heading") continue;
 
-    if (token.depth > MAX_POST_HEADING_DEPTH) return DEEP_HEADING_MESSAGE;
-
-    if (token.depth > previousDepth + 1) {
-      return previousDepth === 0
-        ? FIRST_HEADING_MESSAGE
-        : SKIPPED_HEADING_MESSAGE;
+    if (token.depth > MAX_POST_HEADING_DEPTH) {
+      problems.push({ offset, message: DEEP_HEADING_MESSAGE });
+    } else if (token.depth > previousDepth + 1) {
+      problems.push({
+        offset,
+        message:
+          previousDepth === 0 ? FIRST_HEADING_MESSAGE : SKIPPED_HEADING_MESSAGE,
+      });
     }
 
     previousDepth = token.depth;
   }
 
-  return undefined;
+  return problems;
 };
 
-export const disallowedPostMarkdown = (content: string) => {
-  const tokens = flattenTokens(markdown.lexer(content));
+const lineNumber = (content: string, offset: number) =>
+  content.slice(0, offset).split("\n").length;
 
-  for (const token of tokens) {
-    const problem = tokenProblem(token);
-    if (problem !== undefined) return problem;
+export const postMarkdownProblems = (
+  content: string,
+  imageReferences?: string[],
+) => {
+  const tokens = locateTokens(content, markdown.lexer(content), 0);
+  const references = imageReferences && new Set(imageReferences);
+  const problems: LocatedProblem[] = [];
+
+  for (const { token, offset } of tokens) {
+    const message = tokenProblem(token, references);
+    if (message !== undefined) problems.push({ offset, message });
   }
 
-  return headingProblem(tokens);
+  return [
+    ...new Set(
+      [...problems, ...headingProblems(tokens)]
+        .sort((a, b) => a.offset - b.offset)
+        .map(
+          ({ offset, message }) =>
+            `Line ${lineNumber(content, offset)}: ${message}`,
+        ),
+    ),
+  ];
 };
-
-export const postImageReferences = (content: string) => [
-  ...new Set(
-    flattenTokens(markdown.lexer(content))
-      .filter((token) => token.type === "image")
-      .map((token) => token.href),
-  ),
-];
 
 export const isExternalPostLink = (href: string) => EXTERNAL_LINK.test(href);
 

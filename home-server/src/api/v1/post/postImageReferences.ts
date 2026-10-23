@@ -1,15 +1,8 @@
-import { postImageReference, postImageReferences } from "@home/shared";
+import { postImageReference, postMarkdownProblems } from "@home/shared";
 import { StoredPostFile } from "../types/db";
 
-export const unmatchedImageReference = (
-  content: string,
-  images: StoredPostFile[],
-) => {
-  const references = new Set(
+export const postImageProblems = (content: string, images: StoredPostFile[]) =>
+  postMarkdownProblems(
+    content,
     images.map((image) => postImageReference(image.name)),
   );
-
-  return postImageReferences(content).find(
-    (reference) => !references.has(reference),
-  );
-};

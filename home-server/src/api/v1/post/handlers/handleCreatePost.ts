@@ -4,7 +4,7 @@ import {
   CreatePostResponse,
   UserNoPassword,
 } from "@home/shared";
-import { ApiMessage, imageReferenceNotOnPost } from "../../http/messages";
+import { ApiMessage } from "../../http/messages";
 import { PostModel } from "../../model/postModel";
 import { fingerprint } from "../../fileOperations/fingerprint";
 import {
@@ -13,7 +13,7 @@ import {
 } from "../../fileOperations/postStorage";
 import { requireLatestRevision, revisionImages } from "../../types/db";
 import { serializePost } from "../../types/serialize";
-import { unmatchedImageReference } from "../postImageReferences";
+import { postImageProblems } from "../postImageReferences";
 import {
   collectPostUploadImages,
   discardPostUpload,
@@ -65,11 +65,10 @@ const createPost = async (
   body: CreatePostRequestBody,
   images: PostUploadImages,
 ): Promise<PostWrite<CreatePostResponse>> => {
-  const unmatched = unmatchedImageReference(
-    body.content,
-    revisionImages(images),
-  );
-  if (unmatched) return refusedPostWrite(imageReferenceNotOnPost(unmatched));
+  const imageProblems = postImageProblems(body.content, revisionImages(images));
+  if (imageProblems.length > 0) {
+    return refusedPostWrite(imageProblems.join(" "));
+  }
 
   const post = await savePost(author, body, images);
   const created: PostWrite<CreatePostResponse> = {

@@ -18,10 +18,9 @@ import PostPreview, {
 } from "@/app/blog/postForm/PostPreview";
 import {
   allPostFormImages,
-  missingImagesMessage,
   pendingPostImages,
+  postFormImageReferences,
   PostFormImage,
-  unmatchedImageReferences,
 } from "@/app/blog/postForm/postFormImages";
 import { usePostFormImages } from "@/app/blog/postForm/usePostFormImages";
 import { usePostImageUpload } from "@/app/blog/postForm/usePostImageUpload";
@@ -35,7 +34,7 @@ import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import SegmentedToggle from "@/app/ui/SegmentedToggle";
 import TextField from "@/app/ui/TextField";
-import { createPostFormSchema } from "@home/shared";
+import { createPostFormSchema, postContentField } from "@home/shared";
 import {
   startTransition,
   SubmitEvent,
@@ -78,21 +77,13 @@ const NewPostForm = ({ authorUsername }: { authorUsername: string }) => {
     setSubmitted(undefined);
 
     const values = readFormValues(formData, POST_FORM_FIELDS);
-    const validatedFields = createPostFormSchema.safeParse(values);
+    const validatedFields = createPostFormSchema
+      .extend({ content: postContentField(postFormImageReferences(images)) })
+      .safeParse(values);
 
     if (!validatedFields.success) {
       setPreview(undefined);
       setSubmitted({ values, ...treeifyFormError(validatedFields.error) });
-      return;
-    }
-
-    const unmatched = unmatchedImageReferences(
-      validatedFields.data.content,
-      images,
-    );
-
-    if (unmatched.length > 0) {
-      setSubmitted({ values, errors: [missingImagesMessage(unmatched)] });
       return;
     }
 

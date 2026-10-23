@@ -91,9 +91,6 @@ export const imageNotInUpload = (name: string) =>
 export const imageNameTaken = (name: string) =>
   `This post has already used the image name ${name}. Please rename the new image and try again.`;
 
-export const imageReferenceNotOnPost = (reference: string) =>
-  `The post content refers to ${reference}, which is not an image on this post.`;
-
 export const imageAlreadyUploaded = (name: string) =>
   `${name} has already been uploaded.`;
 

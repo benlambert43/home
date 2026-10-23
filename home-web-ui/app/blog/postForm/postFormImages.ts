@@ -7,7 +7,6 @@ import {
   Post,
   PostImage,
   postImageReference,
-  postImageReferences,
   toPostImageName,
   uniquePostImageName,
   UpdatePostRequestBody,
@@ -255,18 +254,5 @@ export const postFormMarkdownImages = (
   images: PostFormImages,
 ): PostMarkdownImage[] => allPostFormImages(images).map(postFormMarkdownImage);
 
-export const unmatchedImageReferences = (
-  content: string,
-  images: PostFormImages,
-) => {
-  const references = new Set(
-    allPostFormImages(images).map((image) => postImageReference(image.name)),
-  );
-
-  return postImageReferences(content).filter(
-    (reference) => !references.has(reference),
-  );
-};
-
-export const missingImagesMessage = (references: string[]) =>
-  `The post links ${references.length === 1 ? "an image" : "images"} it does not have: ${references.join(", ")}`;
+export const postFormImageReferences = (images: PostFormImages) =>
+  allPostFormImages(images).map((image) => postImageReference(image.name));
