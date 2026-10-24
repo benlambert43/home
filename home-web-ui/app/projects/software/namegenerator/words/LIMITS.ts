@@ -1,0 +1,11 @@
+export const BATCH_SIZE = 12;
+export const MAX_ATTEMPTS = BATCH_SIZE * 50;
+export const MAX_PROJECT_LETTERS = 13;
+export const MAX_PROJECT_SYLLABLES = 4;
+export const MIN_COINED_LETTERS = 5;
+export const MAX_COINED_LETTERS = 9;
+export const MAX_COINED_SYLLABLES = 3;
+export const MIN_BLEND_PART_LETTERS = 3;
+export const MAX_USERNAME_LETTERS = 15;
+export const MAX_USERNAME_SYLLABLES = 5;
+export const SEAM_LETTERS = 3;

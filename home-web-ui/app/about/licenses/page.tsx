@@ -69,6 +69,24 @@ const OPEN_SOURCE_PROJECTS = [
     href: "https://github.com/colinhacks/zod/blob/main/LICENSE",
   },
   {
+    name: "unique-names-generator",
+    license: "MIT License",
+    copyright: "Copyright (c) 2018-2022 AndreaSonny.",
+    href: "https://github.com/andreasonny83/unique-names-generator/blob/main/LICENSE",
+  },
+  {
+    name: "human-id",
+    license: "MIT License",
+    copyright: "Copyright (c) 2018 RienNeVaPlus.",
+    href: "https://github.com/RienNeVaPlus/human-id/blob/master/LICENSE",
+  },
+  {
+    name: "obscenity",
+    license: "MIT License",
+    copyright: "Copyright (c) 2025 Joseph Liu.",
+    href: "https://github.com/jo3-l/obscenity/blob/main/LICENSE.md",
+  },
+  {
     name: "react-google-recaptcha",
     license: "MIT License",
     copyright: "Copyright (c) 2015 Hugo Dozois.",
@@ -107,7 +125,7 @@ const OPEN_SOURCE_PROJECTS = [
 ];
 
 const SourceAndLicenses = () => (
-  <Notice title="Source and Licenses" updated="2026-10-04">
+  <Notice title="Source and Licenses" updated="2026-10-24">
     <p>
       benlambert.tech is open source. This page explains how the site's own code
       is licensed, what the license does not cover, and which open-source
