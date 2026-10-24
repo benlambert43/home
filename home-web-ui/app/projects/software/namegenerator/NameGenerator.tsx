@@ -23,7 +23,10 @@ import {
   generateBatch,
   normalizeKeyword,
 } from "@/app/projects/software/namegenerator/words/generateNames";
-import { BATCH_SIZE } from "@/app/projects/software/namegenerator/words/LIMITS";
+import {
+  BATCH_SIZE,
+  MAX_PINS,
+} from "@/app/projects/software/namegenerator/words/LIMITS";
 import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
 import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
@@ -106,10 +109,10 @@ const CASE_OPTIONS = labelled(CASES, {
 
 const COPIED_MS = 1500;
 
-const generateLabel = (keyword: string | undefined) =>
-  keyword === undefined
+const generateLabel = (pinned: readonly string[]) =>
+  pinned.length === 0
     ? `Generate ${BATCH_SIZE} new names`
-    : `Generate names from “${keyword}”`;
+    : `Generate names from ${pinned.map((word) => `“${word}”`).join(" and ")}`;
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="flex flex-col gap-1.5">
@@ -124,12 +127,14 @@ const IconButton = ({
   label,
   title,
   disabled = false,
+  compact = false,
   onClick,
   children,
 }: {
   label: string;
   title: string;
   disabled?: boolean;
+  compact?: boolean;
   onClick: () => void;
   children: ReactNode;
 }) => (
@@ -139,10 +144,10 @@ const IconButton = ({
     title={title}
     disabled={disabled}
     onClick={onClick}
-    className="shrink-0 rounded-md p-2 text-slate-400 hover:cursor-pointer
+    className={`shrink-0 rounded-md text-slate-400 hover:cursor-pointer
       hover:bg-slate-700 hover:text-slate-100 focus:outline-slate-100
       disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent
-      disabled:hover:text-slate-400"
+      disabled:hover:text-slate-400 ${compact ? "p-1" : "p-2"}`}
   >
     {children}
   </button>
@@ -184,57 +189,142 @@ const CopyButton = ({ text }: { text: string }) => {
 
 const RESULTS_GRID_CLASSES = "grid gap-3 sm:grid-cols-2";
 
-const ROW_CLASSES =
-  "flex h-14 items-center gap-2 rounded-xl bg-slate-800/60 py-2.5 pr-2.5 pl-4 ring-1";
+const ROW_CLASSES = "rounded-xl bg-slate-800/60 py-2.5 pr-2.5 pl-4 ring-1";
 
 const NAME_TEXT_CLASSES =
   "min-w-0 grow truncate font-mono text-lg text-slate-50 sm:text-xl";
 
+const PIN_CHIP_CLASSES = "bg-sky-500/20 text-sky-100 ring-1 ring-sky-400/70";
+
+const WordChip = ({
+  word,
+  pinned,
+  pinsFull,
+  onToggle,
+}: {
+  word: string;
+  pinned: boolean;
+  pinsFull: boolean;
+  onToggle: () => void;
+}) => (
+  <button
+    type="button"
+    aria-pressed={pinned}
+    disabled={!pinned && pinsFull}
+    title={
+      pinned
+        ? "Unpin this word"
+        : pinsFull
+          ? `Only ${MAX_PINS} words can be pinned`
+          : "Pin this word for the next names"
+    }
+    onClick={onToggle}
+    className={`rounded-full px-2.5 py-0.5 text-xs font-medium
+      hover:cursor-pointer focus:outline-slate-100 disabled:cursor-default
+      disabled:opacity-40 ${
+        pinned
+          ? PIN_CHIP_CLASSES
+          : `bg-slate-700/60 text-slate-300 ring-1 ring-slate-600
+            hover:bg-slate-600 hover:text-slate-50`
+      }`}
+  >
+    {word}
+  </button>
+);
+
 const NameRow = ({
+  name,
   display,
   order,
   animate,
   favorite,
   favoritesFull,
+  pinned,
   onToggleFavorite,
+  onTogglePin,
 }: {
+  name: GeneratedName;
   display: string;
   order: number;
   animate: boolean;
   favorite: boolean;
   favoritesFull: boolean;
+  pinned: readonly string[];
   onToggleFavorite: () => void;
-}) => (
-  <li
-    className={`${ROW_CLASSES} ring-slate-700/80 ${
-      animate ? "animated:motion-safe:animate-rise" : ""
-    }`}
-    style={{ "--rise-order": order * 0.4 } as CSSProperties}
-  >
-    <code className={NAME_TEXT_CLASSES}>{display}</code>
-    <span className="flex shrink-0 items-center">
-      <IconButton
-        label={
-          favorite
-            ? `Remove ${display} from favorites`
-            : `Add ${display} to favorites`
-        }
-        title={
-          favorite
-            ? "Remove from favorites"
-            : favoritesFull
-              ? `Favorites are full (${MAX_FAVORITES})`
-              : "Add to favorites"
-        }
-        disabled={!favorite && favoritesFull}
-        onClick={onToggleFavorite}
+  onTogglePin: (word: string) => void;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <li
+      className={`group ${ROW_CLASSES} flex flex-col ring-slate-700/80 ${
+        animate ? "animated:motion-safe:animate-rise" : ""
+      }`}
+      style={{ "--rise-order": order * 0.4 } as CSSProperties}
+    >
+      <div className="flex min-h-9 items-center gap-2">
+        <code
+          className={`${NAME_TEXT_CLASSES} hover:cursor-pointer`}
+          title="Show the words in this name"
+          onClick={() => {
+            setExpanded((open) => !open);
+          }}
+        >
+          {display}
+        </code>
+        <span className="flex shrink-0 items-center">
+          <IconButton
+            label={
+              favorite
+                ? `Remove ${display} from favorites`
+                : `Add ${display} to favorites`
+            }
+            title={
+              favorite
+                ? "Remove from favorites"
+                : favoritesFull
+                  ? `Favorites are full (${MAX_FAVORITES})`
+                  : "Add to favorites"
+            }
+            disabled={!favorite && favoritesFull}
+            onClick={onToggleFavorite}
+          >
+            <StarIcon
+              className={`size-5 ${favorite ? "text-amber-400" : ""}`}
+            />
+          </IconButton>
+          <CopyButton text={display} />
+        </span>
+      </div>
+      <div
+        data-expanded={expanded}
+        className="grid grid-rows-[0fr] group-focus-within:grid-rows-[1fr]
+          group-hover:grid-rows-[1fr] data-[expanded=true]:grid-rows-[1fr]
+          motion-safe:transition-[grid-template-rows] motion-safe:duration-200"
       >
-        <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
-      </IconButton>
-      <CopyButton text={display} />
-    </span>
-  </li>
-);
+        <div className="overflow-hidden">
+          <ul
+            aria-label={`Words in ${display}`}
+            className="flex flex-wrap gap-1.5 pt-2"
+          >
+            {name.parts.map((word) => (
+              <li key={word}>
+                <WordChip
+                  word={word}
+                  pinned={pinned.includes(word)}
+                  pinsFull={pinned.length >= MAX_PINS}
+                  onToggle={() => {
+                    onTogglePin(word);
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </li>
+  );
+};
 
 const FavoritesList = () => {
   const { favorites, remove } = useFavorites();
@@ -255,7 +345,11 @@ const FavoritesList = () => {
               className="h-14 rounded-xl border border-dashed border-slate-700"
             />
           ) : (
-            <li key={text} className={`${ROW_CLASSES} ring-amber-400/40`}>
+            <li
+              key={text}
+              className={`${ROW_CLASSES} flex h-14 items-center gap-2
+                ring-amber-400/40`}
+            >
               <code className={NAME_TEXT_CLASSES}>{text}</code>
               <span className="flex shrink-0 items-center">
                 <CopyButton text={text} />
@@ -288,12 +382,25 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
   const wordInput = useRef<HTMLInputElement>(null);
   const { favorites, add, remove, full } = useFavorites();
 
-  const { mode, style, length, theme, keyword, seed } = state;
+  const { mode, style, length, theme, keyword, pins, seed } = state;
   const { format, separator, digits, casing } = state;
+  const pinKey = pins.join(",");
+  const pinned = keyword === undefined ? pins : [keyword, ...pins];
 
   const batch = useMemo(
-    () => generateBatch({ mode, style, length, theme, keyword }, seed),
-    [mode, style, length, theme, keyword, seed],
+    () =>
+      generateBatch(
+        {
+          mode,
+          style,
+          length,
+          theme,
+          keyword,
+          pins: pinKey === "" ? [] : pinKey.split(","),
+        },
+        seed,
+      ),
+    [mode, style, length, theme, keyword, pinKey, seed],
   );
 
   const update = (changes: Partial<GeneratorState>) => {
@@ -315,13 +422,29 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
 
   const applyKeyword = () => {
     const next = normalizeKeyword(draft);
-    if (next !== keyword) update({ keyword: next });
+    if (next === keyword) return;
+    update({
+      keyword: next,
+      pins:
+        next === undefined
+          ? pins
+          : pins.filter((pin) => pin !== next).slice(0, MAX_PINS - 1),
+    });
   };
 
-  const clearKeyword = () => {
+  const removeKeyword = () => {
     setDraft("");
     if (keyword !== undefined) update({ keyword: undefined });
-    wordInput.current?.focus();
+  };
+
+  const togglePin = (word: string) => {
+    if (word === keyword) {
+      removeKeyword();
+    } else if (pins.includes(word)) {
+      update({ pins: pins.filter((pin) => pin !== word) });
+    } else if (pinned.length < MAX_PINS) {
+      update({ pins: [...pins, word] });
+    }
   };
 
   const unusableDraft =
@@ -347,47 +470,86 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
           onChange={change("mode")}
         />
       </Field>
-      <Field label="Start from a word (optional)">
-        <div className="relative w-full max-w-78">
-          <input
-            ref={wordInput}
-            type="text"
-            value={draft}
-            onChange={(event) => {
-              setDraft(event.target.value);
-            }}
-            onBlur={applyKeyword}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                applyKeyword();
-              }
-            }}
-            placeholder="harbor"
-            maxLength={32}
-            autoComplete="off"
-            spellCheck={false}
-            aria-label="Start from a word"
-            className={`w-full pr-11 ${FIELD_CLASSES}`}
-          />
-          {draft !== "" && (
-            <span className="absolute inset-y-0 right-1 flex items-center">
-              <IconButton
-                label="Clear the word"
-                title="Clear"
-                onClick={clearKeyword}
-              >
-                <XMarkIcon className="size-5" />
-              </IconButton>
-            </span>
+      <div className="flex flex-wrap gap-x-8 gap-y-4">
+        <Field label="Start from a word (optional)">
+          <div className="relative w-full max-w-78">
+            <input
+              ref={wordInput}
+              type="text"
+              value={draft}
+              onChange={(event) => {
+                setDraft(event.target.value);
+              }}
+              onBlur={applyKeyword}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyKeyword();
+                }
+              }}
+              placeholder="harbor"
+              maxLength={32}
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="Start from a word"
+              className={`w-full pr-11 ${FIELD_CLASSES}`}
+            />
+            {draft !== "" && (
+              <span className="absolute inset-y-0 right-1 flex items-center">
+                <IconButton
+                  label="Clear the word"
+                  title="Clear"
+                  onClick={() => {
+                    removeKeyword();
+                    wordInput.current?.focus();
+                  }}
+                >
+                  <XMarkIcon className="size-5" />
+                </IconButton>
+              </span>
+            )}
+          </div>
+          {unusableDraft && (
+            <p className="text-sm text-slate-400">
+              Use 2 to 12 letters; other characters are dropped.
+            </p>
           )}
-        </div>
-        {unusableDraft && (
-          <p className="text-sm text-slate-400">
-            Use 2 to 12 letters; other characters are dropped.
-          </p>
-        )}
-      </Field>
+        </Field>
+        <Field label={`Pinned words (up to ${MAX_PINS})`}>
+          {pinned.length === 0 ? (
+            <p className="max-w-78 text-sm text-slate-400">
+              Hover over a name and click one of its words to keep that word in
+              the next names. The start word takes one of the slots.
+            </p>
+          ) : (
+            <ul aria-label="Pinned words" className="flex flex-wrap gap-2">
+              {pinned.map((word) => (
+                <li
+                  key={word}
+                  className={`flex items-center gap-1 rounded-full py-0.5 pr-1
+                    pl-3 text-sm ${PIN_CHIP_CLASSES}`}
+                >
+                  {word}
+                  <IconButton
+                    label={`Unpin ${word}`}
+                    title={
+                      word === keyword
+                        ? "Unpin and clear the start word"
+                        : "Unpin"
+                    }
+                    compact
+                    onClick={() => {
+                      togglePin(word);
+                    }}
+                  >
+                    <XMarkIcon className="size-4" />
+                  </IconButton>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Field>
+      </div>
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         <Field label="Length">
           <SegmentedToggle
@@ -458,7 +620,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
       <div className="flex flex-col gap-6">
         {batch.length === 0 ? (
           <p className="text-slate-300">
-            Nothing fits that word with these settings. Try another length or
+            Nothing fits these words with these settings. Try another length or
             style.
           </p>
         ) : (
@@ -470,15 +632,18 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
               return (
                 <NameRow
                   key={name.id}
+                  name={name}
                   display={text}
                   order={index}
                   animate={generation > 0}
                   favorite={favorite}
                   favoritesFull={full}
+                  pinned={pinned}
                   onToggleFavorite={() => {
                     if (favorite) remove(text);
                     else add(text);
                   }}
+                  onTogglePin={togglePin}
                 />
               );
             })}
@@ -494,7 +659,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
           >
             <span className="flex items-center justify-center gap-2">
               <ArrowPathIcon className="size-5" />
-              {generateLabel(keyword)}
+              {generateLabel(pinned)}
             </span>
           </Button>
         </div>

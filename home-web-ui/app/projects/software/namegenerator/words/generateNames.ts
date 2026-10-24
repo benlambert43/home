@@ -9,7 +9,6 @@ import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAN
 import {
   CROSS_THEME_CHANCE,
   KEYWORD_FIRST_CHANCE,
-  KEYWORD_MODIFIER_CHANCE,
   PROJECT_ALLITERATION_CHANCE,
   PROJECT_NOUN_CHANCE,
   SUFFIX_SHARE,
@@ -26,6 +25,7 @@ import {
   MAX_ALLITERATIVE_PER_BATCH,
   MAX_ATTEMPTS,
   MAX_KEYWORD_LETTERS,
+  MAX_PINS,
   MIN_BLEND_PART_LETTERS,
   MIN_KEYWORD_LETTERS,
   MIN_ROOT_OVERLAP,
@@ -55,6 +55,7 @@ import { TECH_TAILS } from "@/app/projects/software/namegenerator/words/TECH_TAI
 import {
   GeneratedName,
   GenerateOptions,
+  Mode,
   NameLength,
   ProjectFormat,
   ProjectRecipe,
@@ -227,20 +228,6 @@ const fits = (parts: string[], window: LengthWindow) => {
   );
 };
 
-const aroundKeyword = (
-  window: LengthWindow,
-  keyword: string,
-  partners = 1,
-): LengthWindow => ({
-  minLetters: Math.min(window.minLetters, keyword.length),
-  maxLetters: Math.max(
-    window.maxLetters,
-    keyword.length + KEYWORD_WINDOW_SLACK * partners,
-  ),
-  maxSyllables: Math.max(window.maxSyllables, syllableCount(keyword) + 1),
-  idealSyllables: Math.max(window.idealSyllables, syllableCount(keyword) + 1),
-});
-
 const NOUN_WORDS = new Set(NOUNS);
 
 const coined = (word: string, sources: string[], window: LengthWindow) =>
@@ -289,7 +276,7 @@ const blend = (first: string, second: string, window: LengthWindow) => {
 const assemble = (
   parts: string[],
   window: LengthWindow,
-  sources: string[] = parts,
+  sources: string[],
 ): Candidate | undefined => {
   if (new Set(parts).size !== parts.length || !fits(parts, window)) {
     return undefined;
@@ -304,9 +291,18 @@ const assemble = (
   return {
     parts,
     sources,
-    alliterative: parts[0][0] === parts[1][0],
+    alliterative: parts.length > 1 && parts[0][0] === parts[1][0],
     window,
   };
+};
+
+const shuffle = <T>(items: readonly T[]) => {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index--) {
+    const other = randomIndex(index + 1);
+    [copy[index], copy[other]] = [copy[other], copy[index]];
+  }
+  return copy;
 };
 
 const compound = (
@@ -320,29 +316,25 @@ const compound = (
     ? nouns.filter((noun) => noun[0] === modifier[0])
     : [];
   const noun = pick(alliterative.length > 0 ? alliterative : nouns);
-  return assemble([modifier, noun], window);
+  const parts = [modifier, noun];
+  return assemble(parts, window, parts);
 };
 
-const blendKeyword = (
-  keyword: string,
+const blendWord = (
+  word: string,
   noun: string,
   window: LengthWindow,
-  keywordFirst: boolean,
+  wordFirst: boolean,
 ) => {
-  const keywordSyllables = syllables(keyword);
+  const wordSyllables = syllables(word);
   const nounSyllables = syllables(noun);
   if (nounSyllables.length < 2) return undefined;
 
-  const keywordHead =
-    keywordSyllables.length >= 2 ? keywordSyllables[0] : keyword;
-  const keywordTail =
-    keywordSyllables.length >= 2
-      ? keywordSyllables[keywordSyllables.length - 1]
-      : keyword;
-  const start = keywordFirst ? keywordHead : nounSyllables[0];
-  const end = keywordFirst
-    ? nounSyllables[nounSyllables.length - 1]
-    : keywordTail;
+  const wordHead = wordSyllables.length >= 2 ? wordSyllables[0] : word;
+  const wordTail =
+    wordSyllables.length >= 2 ? wordSyllables[wordSyllables.length - 1] : word;
+  const start = wordFirst ? wordHead : nounSyllables[0];
+  const end = wordFirst ? nounSyllables[nounSyllables.length - 1] : wordTail;
 
   if (
     start.length < MIN_BLEND_PART_LETTERS ||
@@ -352,8 +344,8 @@ const blendKeyword = (
     return undefined;
   }
 
-  const word = start + end;
-  return coined(word, [keyword, noun], window) ? word : undefined;
+  const made = start + end;
+  return coined(made, [word, noun], window) ? made : undefined;
 };
 
 const blendableOf = (nouns: readonly string[]) =>
@@ -402,16 +394,16 @@ const pickNoun = (pools: Pools) => {
     : pick(pools.animals);
 };
 
+const pickUsernameNoun = (pools: Pools) =>
+  chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+    ? pick(pools.animals)
+    : pick(pools.nouns);
+
 const pickStem = (pools: Pools) =>
   crossing(pools) ? pick(pools.crossNouns) : pick(pools.nouns);
 
 const pickBlendable = (pools: Pools) =>
   crossing(pools) ? pick(pools.crossBlendable) : pick(pools.blendable);
-
-const pickAdjective = (pools: Pools) =>
-  crossing(pools) && pools.crossAdjectives.length > 0
-    ? pick(pools.crossAdjectives)
-    : pick(pools.adjectives);
 
 const pickModifier = (pools: Pools) =>
   crossing(pools) && pools.crossAdjectives.length > 0
@@ -420,8 +412,17 @@ const pickModifier = (pools: Pools) =>
 
 type Coined = { word: string; sources: string[] };
 
-const coinedWord = (pools: Pools, window: LengthWindow): Coined | undefined => {
-  if (chance(SUFFIX_SHARE)) {
+type CoinedRecipe = "suffix" | "blend" | "either";
+
+const coinWithSuffix = (recipe: CoinedRecipe) =>
+  recipe === "suffix" || (recipe === "either" && chance(SUFFIX_SHARE));
+
+const coinedWord = (
+  pools: Pools,
+  window: LengthWindow,
+  recipe: CoinedRecipe,
+): Coined | undefined => {
+  if (coinWithSuffix(recipe)) {
     const stem = pickStem(pools);
     const word = suffixed(stem, pick(BRAND_SUFFIXES), window);
     return word ? { word, sources: [stem] } : undefined;
@@ -433,210 +434,253 @@ const coinedWord = (pools: Pools, window: LengthWindow): Coined | undefined => {
   return word ? { word, sources: [first, second] } : undefined;
 };
 
-const coinedCandidate = (
-  { word, sources }: Coined,
+const coinedFromWord = (
+  base: string,
+  pools: Pools,
   window: LengthWindow,
-): Candidate => ({ parts: [word], sources, alliterative: false, window });
+  recipe: CoinedRecipe,
+): Coined | undefined => {
+  if (base.length < MIN_BLEND_PART_LETTERS) return undefined;
+
+  if (coinWithSuffix(recipe)) {
+    const word = suffixed(base, pick(BRAND_SUFFIXES), window);
+    return word ? { word, sources: [] } : undefined;
+  }
+
+  const noun = pickBlendable(pools);
+  const word = blendWord(base, noun, window, chance(KEYWORD_FIRST_CHANCE));
+  return word ? { word, sources: [noun] } : undefined;
+};
 
 const hybridWindow = (length: NameLength) =>
   COINED_WINDOWS[length === "long" ? "medium" : "short"];
 
-const tripleParts = (pools: Pools): string[] => {
-  switch (randomIndex(3)) {
-    case 0:
-      return [pickAdjective(pools), pick(COLORS), pickNoun(pools)];
-    case 1:
-      return [pickAdjective(pools), pickNoun(pools), pick(TECH_TAILS)];
-    default:
-      return [pick(COLORS), pickNoun(pools), pick(TECH_TAILS)];
+type Slot = "modifier" | "color" | "noun" | "stem" | "tail" | "coined";
+
+const PAIR_TEMPLATES: Slot[][] = [
+  ["modifier", "noun"],
+  ["stem", "tail"],
+];
+
+const TRIPLE_TEMPLATES: Slot[][] = [
+  ["modifier", "color", "noun"],
+  ["modifier", "noun", "tail"],
+  ["color", "noun", "tail"],
+];
+
+const templateFor = (recipe: ProjectRecipe): Slot[] => {
+  switch (recipe) {
+    case "compound":
+      return ["modifier", "noun"];
+    case "techCompound":
+      return ["stem", "tail"];
+    case "triple":
+      return pick(TRIPLE_TEMPLATES);
+    case "suffix":
+    case "blend":
+      return ["coined"];
+    case "hybridPair":
+      return chance(KEYWORD_FIRST_CHANCE)
+        ? ["modifier", "coined"]
+        : ["coined", "tail"];
+    case "hybridTriple":
+      return ["modifier", "coined", "tail"];
   }
+};
+
+const coinedRecipeFor = (recipe: ProjectRecipe): CoinedRecipe =>
+  recipe === "suffix" ? "suffix" : recipe === "blend" ? "blend" : "either";
+
+const realSlotsOf = (template: Slot[]) =>
+  template.flatMap((slot, index) => (slot === "coined" ? [] : [index]));
+
+const fillSlot = (slot: Exclude<Slot, "coined">, pools: Pools, mode: Mode) => {
+  switch (slot) {
+    case "modifier":
+      return pickModifier(pools);
+    case "color":
+      return pick(COLORS);
+    case "noun":
+      return mode === "project" ? pickNoun(pools) : pickUsernameNoun(pools);
+    case "stem":
+      return pickStem(pools);
+    case "tail":
+      return pick(TECH_TAILS);
+  }
+};
+
+const aroundWords = (
+  window: LengthWindow,
+  words: readonly string[],
+  partners: number,
+): LengthWindow => {
+  if (words.length === 0) return window;
+  const letters = words.join("").length;
+  const spoken = words.reduce((total, word) => total + syllableCount(word), 0);
+
+  return {
+    minLetters: Math.min(window.minLetters, letters),
+    maxLetters: Math.max(
+      window.maxLetters,
+      letters + KEYWORD_WINDOW_SLACK * partners,
+    ),
+    maxSyllables: Math.max(window.maxSyllables, spoken + partners),
+    idealSyllables: Math.max(window.idealSyllables, spoken + partners),
+  };
+};
+
+const windowFor = (
+  mode: Mode,
+  length: NameLength,
+  parts: number,
+  required: readonly string[],
+) => {
+  const base =
+    mode === "username"
+      ? USERNAME_WINDOWS[length]
+      : parts === 1
+        ? COINED_WINDOWS[length]
+        : parts === 2
+          ? PROJECT_WINDOWS[length]
+          : TRIPLE_WINDOWS[length];
+  return aroundWords(base, required, parts - required.length);
+};
+
+const isWord = (part: string | undefined): part is string => part !== undefined;
+
+const buildFromTemplate = (
+  { mode, length }: GenerateOptions,
+  pools: Pools,
+  template: Slot[],
+  required: readonly string[],
+  recipe: ProjectRecipe,
+): Candidate | undefined => {
+  if (template.length === 1 && template[0] === "coined") {
+    if (required.length > 1) return undefined;
+    const window = windowFor(mode, length, 1, required);
+    const made =
+      required.length === 1
+        ? coinedFromWord(required[0], pools, window, coinedRecipeFor(recipe))
+        : coinedWord(pools, window, coinedRecipeFor(recipe));
+    return made
+      ? {
+          parts: [made.word],
+          sources: made.sources,
+          alliterative: false,
+          window,
+        }
+      : undefined;
+  }
+
+  const realSlots = realSlotsOf(template);
+  if (required.length > realSlots.length) return undefined;
+
+  const parts: (string | undefined)[] = template.map(() => undefined);
+  const placements = shuffle(realSlots).slice(0, required.length);
+  shuffle(required).forEach((word, index) => {
+    parts[placements[index]] = word;
+  });
+
+  const sources: string[] = [];
+  for (let index = 0; index < template.length; index++) {
+    if (parts[index] !== undefined) continue;
+    const slot = template[index];
+
+    if (slot === "coined") {
+      const made = coinedWord(
+        pools,
+        hybridWindow(length),
+        coinedRecipeFor(recipe),
+      );
+      if (!made) return undefined;
+      parts[index] = made.word;
+      sources.push(...made.sources);
+    } else {
+      parts[index] = fillSlot(slot, pools, mode);
+    }
+  }
+
+  const words = parts.filter(isWord);
+  const window = windowFor(mode, length, words.length, required);
+  return assemble(words, window, [
+    ...words.filter((word) => !required.includes(word)),
+    ...sources,
+  ]);
+};
+
+const roomyTemplate = (template: Slot[], required: readonly string[]) => {
+  const needed = required.length;
+  const capacity =
+    template.length === 1 && template[0] === "coined"
+      ? 1
+      : realSlotsOf(template).length;
+  if (needed <= capacity) return template;
+  return needed <= 2 ? pick(PAIR_TEMPLATES) : pick(TRIPLE_TEMPLATES);
 };
 
 const projectCandidate = (
-  { style, length }: GenerateOptions,
+  options: GenerateOptions,
   pools: Pools,
+  required: readonly string[],
 ): Candidate | undefined => {
-  const window = PROJECT_WINDOWS[length];
-  const tripleWindow = TRIPLE_WINDOWS[length];
-  const coinedWindow = COINED_WINDOWS[length];
+  const recipe = pickWeighted(RECIPE_WEIGHTS[options.style]);
 
-  switch (pickWeighted(RECIPE_WEIGHTS[style])) {
-    case "compound": {
-      const cross = crossing(pools);
-      return compound(
-        cross && pools.crossAdjectives.length > 0
-          ? pools.crossAdjectives
-          : pools.modifiers,
-        cross
-          ? pools.crossNouns
-          : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
-            ? pools.nouns
-            : pools.animals,
-        PROJECT_ALLITERATION_CHANCE,
-        window,
-      );
-    }
-    case "techCompound":
-      return assemble([pickStem(pools), pick(TECH_TAILS)], window);
-    case "triple":
-      return assemble(tripleParts(pools), tripleWindow);
-    case "suffix": {
-      const stem = pickStem(pools);
-      const word = suffixed(stem, pick(BRAND_SUFFIXES), coinedWindow);
-      return word
-        ? coinedCandidate({ word, sources: [stem] }, coinedWindow)
-        : undefined;
-    }
-    case "blend": {
-      const first = pickBlendable(pools);
-      const second = pickBlendable(pools);
-      const word =
-        first === second ? undefined : blend(first, second, coinedWindow);
-      return word
-        ? coinedCandidate({ word, sources: [first, second] }, coinedWindow)
-        : undefined;
-    }
-    case "hybridPair": {
-      const made = coinedWord(pools, hybridWindow(length));
-      if (!made) return undefined;
-      const parts = chance(KEYWORD_FIRST_CHANCE)
-        ? [pickModifier(pools), made.word]
-        : [made.word, pick(TECH_TAILS)];
-      return assemble(parts, window, [...parts, ...made.sources]);
-    }
-    case "hybridTriple": {
-      const made = coinedWord(pools, hybridWindow(length));
-      if (!made) return undefined;
-      const parts = [pickModifier(pools), made.word, pick(TECH_TAILS)];
-      return assemble(parts, tripleWindow, [...parts, ...made.sources]);
-    }
+  if (recipe === "compound" && required.length === 0) {
+    const cross = crossing(pools);
+    return compound(
+      cross && pools.crossAdjectives.length > 0
+        ? pools.crossAdjectives
+        : pools.modifiers,
+      cross
+        ? pools.crossNouns
+        : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
+          ? pools.nouns
+          : pools.animals,
+      PROJECT_ALLITERATION_CHANCE,
+      PROJECT_WINDOWS[options.length],
+    );
   }
+
+  const coinable = required.every(
+    (word) => word.length >= MIN_BLEND_PART_LETTERS,
+  );
+  const template = templateFor(recipe);
+  const usable =
+    template[0] === "coined" && template.length === 1 && !coinable
+      ? pick(PAIR_TEMPLATES)
+      : template;
+
+  return buildFromTemplate(
+    options,
+    pools,
+    roomyTemplate(usable, required),
+    required,
+    recipe,
+  );
 };
 
 const usernameCandidate = (
-  { length }: GenerateOptions,
+  options: GenerateOptions,
   pools: Pools,
-): Candidate | undefined =>
-  compound(
-    pools.modifiers,
-    chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
-      ? pools.animals
-      : pools.nouns,
-    USERNAME_ALLITERATION_CHANCE,
-    USERNAME_WINDOWS[length],
+  required: readonly string[],
+): Candidate | undefined => {
+  if (required.length === 0) {
+    return compound(
+      pools.modifiers,
+      chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+        ? pools.animals
+        : pools.nouns,
+      USERNAME_ALLITERATION_CHANCE,
+      USERNAME_WINDOWS[options.length],
+    );
+  }
+  return buildFromTemplate(
+    options,
+    pools,
+    ["modifier", "noun"],
+    required,
+    "compound",
   );
-
-const withKeyword = (parts: string[], keyword: string) =>
-  parts.filter((part) => part !== keyword);
-
-const keywordProjectCandidate = (
-  { style, length }: GenerateOptions,
-  pools: Pools,
-  keyword: string,
-): Candidate | undefined => {
-  const window = aroundKeyword(PROJECT_WINDOWS[length], keyword);
-  const tripleWindow = aroundKeyword(TRIPLE_WINDOWS[length], keyword, 2);
-  const coinedWindow = aroundKeyword(COINED_WINDOWS[length], keyword);
-  const recipe = pickWeighted(RECIPE_WEIGHTS[style]);
-  const coinable = keyword.length >= MIN_BLEND_PART_LETTERS;
-  const needsCoining =
-    recipe === "suffix" ||
-    recipe === "blend" ||
-    recipe === "hybridPair" ||
-    recipe === "hybridTriple";
-  const effective: ProjectRecipe =
-    coinable || !needsCoining
-      ? recipe
-      : chance(KEYWORD_FIRST_CHANCE)
-        ? "compound"
-        : "techCompound";
-
-  switch (effective) {
-    case "compound": {
-      const parts = chance(KEYWORD_MODIFIER_CHANCE)
-        ? [pickModifier(pools), keyword]
-        : [keyword, pickStem(pools)];
-      return assemble(parts, window, withKeyword(parts, keyword));
-    }
-    case "techCompound": {
-      const parts = [keyword, pick(TECH_TAILS)];
-      return assemble(parts, window, withKeyword(parts, keyword));
-    }
-    case "triple": {
-      const parts = chance(KEYWORD_FIRST_CHANCE)
-        ? [pickModifier(pools), keyword, pick(TECH_TAILS)]
-        : [keyword, pickNoun(pools), pick(TECH_TAILS)];
-      return assemble(parts, tripleWindow, withKeyword(parts, keyword));
-    }
-    case "suffix": {
-      const word = suffixed(keyword, pick(BRAND_SUFFIXES), coinedWindow);
-      return word
-        ? coinedCandidate({ word, sources: [] }, coinedWindow)
-        : undefined;
-    }
-    case "blend": {
-      const noun = pickBlendable(pools);
-      const word = blendKeyword(
-        keyword,
-        noun,
-        coinedWindow,
-        chance(KEYWORD_FIRST_CHANCE),
-      );
-      return word
-        ? coinedCandidate({ word, sources: [noun] }, coinedWindow)
-        : undefined;
-    }
-    case "hybridPair": {
-      const word = suffixed(
-        keyword,
-        pick(BRAND_SUFFIXES),
-        hybridWindow(length),
-      );
-      if (!word) return undefined;
-      const parts = chance(KEYWORD_FIRST_CHANCE)
-        ? [pickModifier(pools), word]
-        : [word, pick(TECH_TAILS)];
-      return assemble(parts, window, parts);
-    }
-    case "hybridTriple": {
-      const word = suffixed(
-        keyword,
-        pick(BRAND_SUFFIXES),
-        hybridWindow(length),
-      );
-      if (!word) return undefined;
-      const parts = [pickModifier(pools), word, pick(TECH_TAILS)];
-      return assemble(parts, tripleWindow, parts);
-    }
-  }
-};
-
-const keywordUsernameCandidate = (
-  { length }: GenerateOptions,
-  pools: Pools,
-  keyword: string,
-): Candidate | undefined => {
-  const window = aroundKeyword(USERNAME_WINDOWS[length], keyword);
-  const parts = chance(KEYWORD_MODIFIER_CHANCE)
-    ? [pick(pools.modifiers), keyword]
-    : [
-        keyword,
-        chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
-          ? pick(pools.animals)
-          : pick(pools.nouns),
-      ];
-  return assemble(parts, window, withKeyword(parts, keyword));
-};
-
-const nextCandidate = (options: GenerateOptions, pools: Pools) => {
-  if (options.keyword === undefined) {
-    return options.mode === "project"
-      ? projectCandidate(options, pools)
-      : usernameCandidate(options, pools);
-  }
-  return options.mode === "project"
-    ? keywordProjectCandidate(options, pools, options.keyword)
-    : keywordUsernameCandidate(options, pools, options.keyword);
 };
 
 const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
@@ -666,46 +710,67 @@ const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
   );
 };
 
+const orderlessKey = (parts: readonly string[]) => [...parts].sort().join("+");
+
+const requiredWords = ({ keyword, pins = [] }: GenerateOptions) =>
+  [...new Set([keyword, ...pins].filter(isWord))].slice(0, MAX_PINS);
+
 const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   const pools = poolsFor(options);
-  const pool: { candidate: Candidate; score: number }[] = [];
-  const seen = new Set<string>();
-
-  for (
-    let attempt = 0;
-    attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
-    attempt++
-  ) {
-    const candidate = nextCandidate(options, pools);
-    if (!candidate) continue;
-
-    const key = candidate.parts.join("");
-    if (seen.has(key)) continue;
-
-    seen.add(key);
-    pool.push({ candidate, score: scoreCandidate(candidate) });
-  }
-
-  pool.sort((left, right) => right.score - left.score);
-
+  const required = requiredWords(options);
   const names: GeneratedName[] = [];
+  const seen = new Set<string>();
   const used = new Set<string>();
   let alliterative = 0;
+  const sizes =
+    required.length === 0
+      ? [0]
+      : Array.from(
+          { length: required.length },
+          (_, index) => required.length - index,
+        );
 
-  for (const { candidate } of pool) {
+  for (const size of sizes) {
     if (names.length >= BATCH_SIZE) break;
-    if (candidate.sources.some((source) => used.has(source))) continue;
-    if (candidate.alliterative) {
-      if (alliterative >= MAX_ALLITERATIVE_PER_BATCH) continue;
-      alliterative += 1;
+    const pool: { candidate: Candidate; score: number }[] = [];
+
+    for (
+      let attempt = 0;
+      attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
+      attempt++
+    ) {
+      const subset =
+        size === required.length ? required : shuffle(required).slice(0, size);
+      const candidate =
+        options.mode === "project"
+          ? projectCandidate(options, pools, subset)
+          : usernameCandidate(options, pools, subset);
+      if (!candidate) continue;
+
+      const key = orderlessKey(candidate.parts);
+      if (seen.has(key)) continue;
+
+      seen.add(key);
+      pool.push({ candidate, score: scoreCandidate(candidate) });
     }
 
-    candidate.sources.forEach((source) => used.add(source));
-    names.push({
-      id: `${candidate.parts.join("")}-${names.length}`,
-      parts: candidate.parts,
-      number: randomIndex(10000),
-    });
+    pool.sort((left, right) => right.score - left.score);
+
+    for (const { candidate } of pool) {
+      if (names.length >= BATCH_SIZE) break;
+      if (candidate.sources.some((source) => used.has(source))) continue;
+      if (candidate.alliterative) {
+        if (alliterative >= MAX_ALLITERATIVE_PER_BATCH) continue;
+        alliterative += 1;
+      }
+
+      candidate.sources.forEach((source) => used.add(source));
+      names.push({
+        id: `${candidate.parts.join("")}-${names.length}`,
+        parts: candidate.parts,
+        number: randomIndex(10000),
+      });
+    }
   }
 
   return names;

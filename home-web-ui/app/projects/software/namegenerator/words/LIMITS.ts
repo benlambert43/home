@@ -17,6 +17,7 @@ export const SEAM_LETTERS = 3;
 export const MIN_KEYWORD_LETTERS = 2;
 export const MAX_KEYWORD_LETTERS = 12;
 export const KEYWORD_WINDOW_SLACK = 4;
+export const MAX_PINS = 2;
 
 export const PROJECT_WINDOWS: Record<NameLength, LengthWindow> = {
   short: { minLetters: 4, maxLetters: 9, maxSyllables: 3, idealSyllables: 2 },

@@ -23,6 +23,7 @@ export type GenerateOptions = {
   length: NameLength;
   theme: Theme;
   keyword?: string;
+  pins?: readonly string[];
 };
 
 export type UsernameOptions = {

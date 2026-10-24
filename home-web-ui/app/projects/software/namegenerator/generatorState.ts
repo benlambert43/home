@@ -1,4 +1,5 @@
 import { normalizeKeyword } from "@/app/projects/software/namegenerator/words/generateNames";
+import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import { decodeSeed } from "@/app/projects/software/namegenerator/words/random";
 import {
   Mode,
@@ -17,6 +18,7 @@ export type GeneratorSettings = {
   length: NameLength;
   theme: Theme;
   keyword?: string;
+  pins: string[];
   format: ProjectFormat;
   separator: UsernameSeparator;
   digits: UsernameDigits;
@@ -56,6 +58,7 @@ export const DEFAULT_SETTINGS: GeneratorSettings = {
   style: "mix",
   length: "medium",
   theme: "any",
+  pins: [],
   format: "pascal",
   separator: "none",
   digits: "none",
@@ -68,6 +71,7 @@ const PARAMS = {
   length: "length",
   theme: "theme",
   keyword: "word",
+  pins: "pins",
   format: "format",
   separator: "separator",
   digits: "digits",
@@ -86,11 +90,29 @@ const choose = <T extends string>(
     ? (value as T)
     : fallback;
 
+export const parsePins = (
+  value: string | string[] | undefined,
+  keyword: string | undefined,
+) =>
+  typeof value === "string"
+    ? [
+        ...new Set(
+          value
+            .split(",")
+            .map((pin) => normalizeKeyword(pin))
+            .filter(
+              (pin): pin is string => pin !== undefined && pin !== keyword,
+            ),
+        ),
+      ].slice(0, MAX_PINS - (keyword === undefined ? 0 : 1))
+    : [];
+
 export const parseGeneratorState = (
   params: SearchParamValues,
   fallbackSeed: string,
 ): GeneratorState => {
   const word = params[PARAMS.keyword];
+  const keyword = typeof word === "string" ? normalizeKeyword(word) : undefined;
   const seed = params[PARAMS.seed];
 
   return {
@@ -98,7 +120,8 @@ export const parseGeneratorState = (
     style: choose(params[PARAMS.style], STYLES, DEFAULT_SETTINGS.style),
     length: choose(params[PARAMS.length], LENGTHS, DEFAULT_SETTINGS.length),
     theme: choose(params[PARAMS.theme], THEMES, DEFAULT_SETTINGS.theme),
-    keyword: typeof word === "string" ? normalizeKeyword(word) : undefined,
+    keyword,
+    pins: parsePins(params[PARAMS.pins], keyword),
     format: choose(params[PARAMS.format], FORMATS, DEFAULT_SETTINGS.format),
     separator: choose(
       params[PARAMS.separator],
@@ -120,6 +143,7 @@ export const generatorSearch = (state: GeneratorState) => {
       state.mode === DEFAULT_SETTINGS.mode ? undefined : state.mode,
     ],
     [PARAMS.keyword, state.keyword],
+    [PARAMS.pins, state.pins.length > 0 ? state.pins.join(",") : undefined],
     [
       PARAMS.length,
       state.length === DEFAULT_SETTINGS.length ? undefined : state.length,
