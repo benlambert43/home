@@ -9,6 +9,7 @@ import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAN
 import {
   CROSS_THEME_CHANCE,
   KEYWORD_FIRST_CHANCE,
+  MASHUP_CHANCE,
   PROJECT_ALLITERATION_CHANCE,
   PROJECT_NOUN_CHANCE,
   SUFFIX_SHARE,
@@ -28,6 +29,7 @@ import {
   MAX_PINS,
   MIN_BLEND_PART_LETTERS,
   MIN_KEYWORD_LETTERS,
+  MIN_MASHUP_PART_LETTERS,
   MIN_PARTNER_LETTERS,
   MIN_ROOT_OVERLAP,
   POOL_SIZE,
@@ -87,6 +89,7 @@ type Pools = {
   crossAdjectives: string[];
   crossNouns: string[];
   crossBlendable: string[];
+  mashups: string[];
 };
 
 let nextRandom: () => number = Math.random;
@@ -350,10 +353,67 @@ const blendWord = (
   return coined(made, [word, noun], window) ? made : undefined;
 };
 
+const vowelRuns = (word: string) => [...word.matchAll(/[aeiouy]+/g)];
+
+const partSized = (part: string, word: string) =>
+  part.length >= MIN_MASHUP_PART_LETTERS && part.length < word.length;
+
+const headsOf = (word: string) => {
+  const [first] = vowelRuns(word);
+  if (first === undefined) return [];
+  const toVowel = word.slice(0, (first.index ?? 0) + first[0].length);
+  const cluster = word.slice(toVowel.length).match(/^[^aeiouy]+/)?.[0] ?? "";
+  return [...new Set([toVowel, toVowel + cluster])].filter((head) =>
+    partSized(head, word),
+  );
+};
+
+const tailsOf = (word: string) =>
+  [
+    ...new Set(
+      vowelRuns(word)
+        .slice(-2)
+        .flatMap((run) => {
+          const fromVowel = word.slice(run.index ?? 0);
+          const cluster =
+            word.slice(0, run.index ?? 0).match(/[^aeiouy]+$/)?.[0] ?? "";
+          return [fromVowel, cluster + fromVowel];
+        }),
+    ),
+  ].filter((tail) => partSized(tail, word));
+
+const mashupsOf = (first: string, second: string) => {
+  const joins = [
+    ...headsOf(first).flatMap((head) =>
+      tailsOf(second).map((tail) => [head, tail]),
+    ),
+    ...headsOf(second).flatMap((head) =>
+      tailsOf(first).map((tail) => [head, tail]),
+    ),
+  ]
+    .filter(
+      ([head, tail]) =>
+        head[head.length - 1] !== tail[0] && smoothJunction(head, tail),
+    )
+    .map(([head, tail]) => head + tail);
+
+  return [...new Set(joins)].filter(
+    (word) =>
+      word !== first &&
+      word !== second &&
+      syllableCount(word) >= 2 &&
+      !NOUN_WORDS.has(word) &&
+      clean(word),
+  );
+};
+
 const blendableOf = (nouns: readonly string[]) =>
   nouns.filter((noun) => syllables(noun).length >= 2);
 
-const poolsFor = ({ mode, style, theme }: GenerateOptions): Pools => {
+const poolsFor = (
+  { mode, style, theme }: GenerateOptions,
+  required: readonly string[],
+): Pools => {
   const general = mode === "project" ? PROJECT_ADJECTIVES : USERNAME_ADJECTIVES;
   const themed =
     mode === "project"
@@ -383,6 +443,7 @@ const poolsFor = ({ mode, style, theme }: GenerateOptions): Pools => {
     crossAdjectives: otherThemes.flatMap((other) => themed[other]),
     crossNouns,
     crossBlendable: blendableOf(crossNouns),
+    mashups: required.length === 2 ? mashupsOf(required[0], required[1]) : [],
   };
 };
 
@@ -470,6 +531,11 @@ const TRIPLE_TEMPLATES: Slot[][] = [
   ["color", "noun", "tail"],
 ];
 
+const HYBRID_TRIPLE_TEMPLATES: Slot[][] = [
+  ["modifier", "coined", "tail"],
+  ["modifier", "coined", "noun"],
+];
+
 const templateFor = (recipe: ProjectRecipe): Slot[] => {
   switch (recipe) {
     case "compound":
@@ -486,7 +552,7 @@ const templateFor = (recipe: ProjectRecipe): Slot[] => {
         ? ["modifier", "coined"]
         : ["coined", "tail"];
     case "hybridTriple":
-      return ["modifier", "coined", "tail"];
+      return pick(HYBRID_TRIPLE_TEMPLATES);
   }
 };
 
@@ -553,6 +619,13 @@ const windowFor = (
 
 const isWord = (part: string | undefined): part is string => part !== undefined;
 
+const mashupsFor = (template: Slot[], pools: Pools, length: NameLength) => {
+  if (!template.includes("coined")) return [];
+  const window =
+    template.length === 1 ? COINED_WINDOWS[length] : hybridWindow(length);
+  return pools.mashups.filter((word) => fits([word], window));
+};
+
 const buildFromTemplate = (
   { mode, length }: GenerateOptions,
   pools: Pools,
@@ -560,7 +633,19 @@ const buildFromTemplate = (
   required: readonly string[],
   recipe: ProjectRecipe,
 ): Candidate | undefined => {
+  const mashups =
+    required.length === 2 ? mashupsFor(template, pools, length) : [];
+
   if (template.length === 1 && template[0] === "coined") {
+    if (mashups.length > 0) {
+      const word = pick(mashups);
+      return {
+        parts: [word],
+        sources: [word],
+        alliterative: false,
+        window: COINED_WINDOWS[length],
+      };
+    }
     if (required.length > 1) return undefined;
     const window = windowFor(mode, length, 1, required);
     const made =
@@ -578,11 +663,16 @@ const buildFromTemplate = (
   }
 
   const realSlots = realSlotsOf(template);
-  if (required.length > realSlots.length) return undefined;
+  const mashing =
+    mashups.length > 0 &&
+    (required.length > realSlots.length || chance(MASHUP_CHANCE));
+  const placed = mashing ? [] : required;
+  if (placed.length > realSlots.length) return undefined;
 
   const parts: (string | undefined)[] = template.map(() => undefined);
-  const placements = shuffle(realSlots).slice(0, required.length);
-  shuffle(required).forEach((word, index) => {
+  if (mashing) parts[template.indexOf("coined")] = pick(mashups);
+  const placements = shuffle(realSlots).slice(0, placed.length);
+  shuffle(placed).forEach((word, index) => {
     parts[placements[index]] = word;
   });
 
@@ -606,19 +696,27 @@ const buildFromTemplate = (
   }
 
   const words = parts.filter(isWord);
-  const window = windowFor(mode, length, words.length, required);
+  if (mashing && words.some((word) => required.includes(word))) {
+    return undefined;
+  }
+  const window = windowFor(mode, length, words.length, placed);
   return assemble(words, window, [
-    ...words.filter((word) => !required.includes(word)),
+    ...words.filter((word) => !placed.includes(word)),
     ...sources,
   ]);
 };
 
 const orderlessKey = (parts: readonly string[]) => [...parts].sort().join("+");
 
-const capacityOf = (template: Slot[]) =>
-  template.length === 1 && template[0] === "coined"
-    ? 1
-    : realSlotsOf(template).length;
+const capacityOf = (template: Slot[], pools: Pools, length: NameLength) => {
+  const real =
+    template.length === 1 && template[0] === "coined"
+      ? 1
+      : realSlotsOf(template).length;
+  return mashupsFor(template, pools, length).length > 0
+    ? Math.max(real, 2)
+    : real;
+};
 
 type Picked = {
   candidate: Candidate;
@@ -640,7 +738,10 @@ const fitRequired = (
   required: readonly string[],
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
-  const most = Math.min(capacityOf(template), required.length);
+  const most = Math.min(
+    capacityOf(template, pools, options.length),
+    required.length,
+  );
   const least = Math.min(1, required.length);
 
   for (let size = most; size >= least; size--) {
@@ -813,8 +914,8 @@ const takeFromShelves = (
 };
 
 const collectBatch = (options: GenerateOptions): GeneratedName[] => {
-  const pools = poolsFor(options);
   const required = requiredWords(options);
+  const pools = poolsFor(options, required);
   const names: GeneratedName[] = [];
   const seen = new Set<string>();
   const used = new Set<string>();

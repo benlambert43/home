@@ -11,6 +11,7 @@ export const BATCH_SIZE = 12;
 export const POOL_SIZE = BATCH_SIZE * 4;
 export const MAX_ATTEMPTS = POOL_SIZE * 40;
 export const MIN_BLEND_PART_LETTERS = 3;
+export const MIN_MASHUP_PART_LETTERS = 2;
 export const MAX_ALLITERATIVE_PER_BATCH = 4;
 export const MIN_ROOT_OVERLAP = 3;
 export const SEAM_LETTERS = 3;
