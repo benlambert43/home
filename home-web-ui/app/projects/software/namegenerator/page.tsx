@@ -1,6 +1,9 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import { pageMetadata } from "@/app/lib/metadata";
+import { SearchParams } from "@/app/lib/searchParams";
+import { parseGeneratorState } from "@/app/projects/software/namegenerator/generatorState";
 import NameGenerator from "@/app/projects/software/namegenerator/NameGenerator";
+import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
 import ProjectPage from "@/app/projects/ProjectPage";
 
 const PATH = "/projects/software/namegenerator";
@@ -18,15 +21,20 @@ export const metadata = {
 
 export const instant = false;
 
-const NameGeneratorPage = async () => {
+const NameGeneratorPage = async ({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) => {
   await requireBffSessionUser(PATH);
+  const initial = parseGeneratorState(await searchParams, randomSeed());
 
   return (
     <ProjectPage
       title="Name Generator"
       backLink={{ href: "/projects/software", label: "Software" }}
     >
-      <NameGenerator />
+      <NameGenerator initial={initial} />
     </ProjectPage>
   );
 };

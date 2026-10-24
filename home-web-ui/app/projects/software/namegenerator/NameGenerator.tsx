@@ -1,6 +1,22 @@
 "use client";
 
-import { useHydrated } from "@/app/lib/useHydrated";
+import {
+  MAX_FAVORITES,
+  useFavorites,
+} from "@/app/projects/software/namegenerator/favorites";
+import {
+  CASES,
+  DIGITS,
+  FORMATS,
+  GeneratorSettings,
+  GeneratorState,
+  generatorSearch,
+  LENGTHS,
+  MODES,
+  SEPARATORS,
+  STYLES,
+  THEMES,
+} from "@/app/projects/software/namegenerator/generatorState";
 import {
   formatProjectName,
   formatUsername,
@@ -8,88 +24,90 @@ import {
   normalizeKeyword,
 } from "@/app/projects/software/namegenerator/words/generateNames";
 import { BATCH_SIZE } from "@/app/projects/software/namegenerator/words/LIMITS";
-import {
-  GeneratedName,
-  GenerateOptions,
-  Mode,
-  NameLength,
-  ProjectFormat,
-  ProjectStyle,
-  Theme,
-  UsernameCase,
-  UsernameDigits,
-  UsernameSeparator,
-} from "@/app/projects/software/namegenerator/words/types";
+import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
+import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
 import SegmentedToggle from "@/app/ui/SegmentedToggle";
 import { FIELD_CLASSES } from "@/app/ui/fieldStyles";
-
 import {
   ArrowPathIcon,
   CheckIcon,
   ClipboardDocumentIcon,
+  StarIcon,
+  XMarkIcon,
 } from "@heroicons/react/16/solid";
-import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import {
+  CSSProperties,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 type Option<T extends string> = { value: T; label: string };
 
-const MODES: Option<Mode>[] = [
-  { value: "project", label: "Project name" },
-  { value: "username", label: "Username" },
-];
+const labelled = <T extends string>(
+  values: readonly T[],
+  labels: Record<T, string>,
+): Option<T>[] => values.map((value) => ({ value, label: labels[value] }));
 
-const STYLES: Option<ProjectStyle>[] = [
-  { value: "compound", label: "Two words" },
-  { value: "invented", label: "Invented word" },
-  { value: "mix", label: "Mix of both" },
-];
+const MODE_OPTIONS = labelled(MODES, {
+  project: "Project name",
+  username: "Username",
+});
 
-const FORMATS: Option<ProjectFormat>[] = [
-  { value: "pascal", label: "PascalCase" },
-  { value: "kebab", label: "kebab-case" },
-  { value: "lower", label: "lowercase" },
-];
+const STYLE_OPTIONS = labelled(STYLES, {
+  compound: "Two words",
+  invented: "Invented word",
+  mix: "Mix of both",
+});
 
-const LENGTHS: Option<NameLength>[] = [
-  { value: "short", label: "Short" },
-  { value: "medium", label: "Medium" },
-  { value: "long", label: "Long" },
-];
+const FORMAT_OPTIONS = labelled(FORMATS, {
+  pascal: "PascalCase",
+  kebab: "kebab-case",
+  lower: "lowercase",
+});
 
-const THEMES: Option<Theme>[] = [
-  { value: "any", label: "Any" },
-  { value: "nature", label: "Nature" },
-  { value: "space", label: "Space" },
-  { value: "workshop", label: "Workshop" },
-  { value: "mythology", label: "Mythology" },
-  { value: "kitchen", label: "Kitchen" },
-  { value: "tech", label: "Tech" },
-];
+const LENGTH_OPTIONS = labelled(LENGTHS, {
+  short: "Short",
+  medium: "Medium",
+  long: "Long",
+});
 
-const SEPARATORS: Option<UsernameSeparator>[] = [
-  { value: "none", label: "None" },
-  { value: "underscore", label: "Underscore" },
-  { value: "hyphen", label: "Hyphen" },
-];
+const THEME_OPTIONS = labelled(THEMES, {
+  any: "Any",
+  nature: "Nature",
+  space: "Space",
+  workshop: "Workshop",
+  mythology: "Mythology",
+  kitchen: "Kitchen",
+  tech: "Tech",
+});
 
-const DIGITS: Option<UsernameDigits>[] = [
-  { value: "none", label: "None" },
-  { value: "two", label: "2 digits" },
-  { value: "four", label: "4 digits" },
-];
+const SEPARATOR_OPTIONS = labelled(SEPARATORS, {
+  none: "None",
+  underscore: "Underscore",
+  hyphen: "Hyphen",
+});
 
-const CASES: Option<UsernameCase>[] = [
-  { value: "lower", label: "lowercase" },
-  { value: "capital", label: "PascalCase" },
-];
+const DIGIT_OPTIONS = labelled(DIGITS, {
+  none: "None",
+  two: "2 digits",
+  four: "4 digits",
+});
+
+const CASE_OPTIONS = labelled(CASES, {
+  lower: "lowercase",
+  capital: "PascalCase",
+});
 
 const COPIED_MS = 1500;
 
-const DEFAULT_GENERATE_LABEL = `Generate ${BATCH_SIZE} new names`;
-
 const generateLabel = (keyword: string | undefined) =>
   keyword === undefined
-    ? DEFAULT_GENERATE_LABEL
+    ? `Generate ${BATCH_SIZE} new names`
     : `Generate names from “${keyword}”`;
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
@@ -101,21 +119,32 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   </div>
 );
 
-const GenerateButton = ({
+const IconButton = ({
   label,
-  onClick,
+  title,
   disabled = false,
+  onClick,
+  children,
 }: {
   label: string;
-  onClick?: () => void;
+  title: string;
   disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
 }) => (
-  <Button type="button" size="large" disabled={disabled} onClick={onClick}>
-    <span className="flex items-center justify-center gap-2">
-      <ArrowPathIcon className="size-5" />
-      {label}
-    </span>
-  </Button>
+  <button
+    type="button"
+    aria-label={label}
+    title={title}
+    disabled={disabled}
+    onClick={onClick}
+    className="shrink-0 rounded-md p-2 text-slate-400 hover:cursor-pointer
+      hover:bg-slate-700 hover:text-slate-100 focus:outline-slate-100
+      disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent
+      disabled:hover:text-slate-400"
+  >
+    {children}
+  </button>
 );
 
 const CopyButton = ({ text }: { text: string }) => {
@@ -136,115 +165,159 @@ const CopyButton = ({ text }: { text: string }) => {
   };
 
   return (
-    <button
-      type="button"
-      aria-label={copied ? `Copied ${text}` : `Copy ${text}`}
+    <IconButton
+      label={copied ? `Copied ${text}` : `Copy ${text}`}
       title="Copy to clipboard"
       onClick={() => {
         void copy();
       }}
-      className="shrink-0 rounded-md p-2 text-slate-400 hover:cursor-pointer
-        hover:bg-slate-700 hover:text-slate-100 focus:outline-slate-100"
     >
       {copied ? (
         <CheckIcon className="size-5 text-emerald-400" />
       ) : (
         <ClipboardDocumentIcon className="size-5" />
       )}
-    </button>
+    </IconButton>
   );
 };
 
 const RESULTS_GRID_CLASSES = "grid gap-3 sm:grid-cols-2";
 
-const NameRow = ({ display, order }: { display: string; order: number }) => (
+const ROW_CLASSES =
+  "flex h-14 items-center gap-2 rounded-xl bg-slate-800/60 py-2.5 pr-2.5 pl-4 ring-1";
+
+const NAME_TEXT_CLASSES =
+  "min-w-0 grow truncate font-mono text-lg text-slate-50 sm:text-xl";
+
+const NameRow = ({
+  display,
+  order,
+  animate,
+  favorite,
+  favoritesFull,
+  onToggleFavorite,
+}: {
+  display: string;
+  order: number;
+  animate: boolean;
+  favorite: boolean;
+  favoritesFull: boolean;
+  onToggleFavorite: () => void;
+}) => (
   <li
-    className="animated:motion-safe:animate-rise flex items-center gap-3
-      rounded-xl bg-slate-800/60 py-2.5 pr-2.5 pl-4 ring-1 ring-slate-700/80"
+    className={`${ROW_CLASSES} ring-slate-700/80 ${
+      animate ? "animated:motion-safe:animate-rise" : ""
+    }`}
     style={{ "--rise-order": order * 0.4 } as CSSProperties}
   >
-    <code
-      className="min-w-0 grow truncate font-mono text-lg text-slate-50
-        sm:text-xl"
-    >
-      {display}
-    </code>
-    <CopyButton text={display} />
+    <code className={NAME_TEXT_CLASSES}>{display}</code>
+    <span className="flex shrink-0 items-center">
+      <IconButton
+        label={
+          favorite
+            ? `Remove ${display} from favorites`
+            : `Add ${display} to favorites`
+        }
+        title={
+          favorite
+            ? "Remove from favorites"
+            : favoritesFull
+              ? `Favorites are full (${MAX_FAVORITES})`
+              : "Add to favorites"
+        }
+        disabled={!favorite && favoritesFull}
+        onClick={onToggleFavorite}
+      >
+        <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
+      </IconButton>
+      <CopyButton text={display} />
+    </span>
   </li>
 );
 
-const Results = ({
-  options,
-  display,
-}: {
-  options: GenerateOptions;
-  display: (name: GeneratedName) => string;
-}) => {
-  const [batch, setBatch] = useState(() => generateBatch(options));
+const FavoritesList = () => {
+  const { favorites, remove } = useFavorites();
 
   return (
-    <div className="flex flex-col gap-6">
-      {batch.length === 0 ? (
-        <p className="text-slate-300">
-          Nothing fits that word with these settings. Try another length or
-          style.
-        </p>
-      ) : (
-        <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
-          {batch.map((name, index) => (
-            <NameRow key={name.id} display={display(name)} order={index} />
-          ))}
-        </ul>
-      )}
-      <div className="flex justify-center">
-        <GenerateButton
-          label={generateLabel(options.keyword)}
-          onClick={() => {
-            setBatch(generateBatch(options));
-          }}
-        />
-      </div>
+    <div className="flex flex-col gap-3 border-t border-slate-800 pt-6">
+      <h2 className="text-xs font-medium tracking-wide text-slate-400 uppercase">
+        Favorites ({favorites.length} of {MAX_FAVORITES})
+      </h2>
+      <ul aria-label="Favorite names" className={RESULTS_GRID_CLASSES}>
+        {Array.from({ length: MAX_FAVORITES }, (_, index) => {
+          const text = favorites[index];
+
+          return text === undefined ? (
+            <li
+              key={index}
+              aria-hidden
+              className="h-14 rounded-xl border border-dashed border-slate-700"
+            />
+          ) : (
+            <li key={text} className={`${ROW_CLASSES} ring-amber-400/40`}>
+              <code className={NAME_TEXT_CLASSES}>{text}</code>
+              <span className="flex shrink-0 items-center">
+                <CopyButton text={text} />
+                <IconButton
+                  label={`Remove ${text} from favorites`}
+                  title="Remove from favorites"
+                  onClick={() => {
+                    remove(text);
+                  }}
+                >
+                  <XMarkIcon className="size-5" />
+                </IconButton>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-sm text-slate-400">
+        Star a name to keep it here. Favorites are saved in this browser only.
+      </p>
     </div>
   );
 };
 
-const ResultsPlaceholder = () => (
-  <div className="flex flex-col gap-6">
-    <ul aria-hidden className={RESULTS_GRID_CLASSES}>
-      {Array.from({ length: BATCH_SIZE }, (_, index) => (
-        <li
-          key={index}
-          className="animated:motion-safe:animate-pulse h-13 rounded-xl
-            bg-slate-800/60 ring-1 ring-slate-700/80"
-        />
-      ))}
-    </ul>
-    <div className="flex justify-center">
-      <GenerateButton label={DEFAULT_GENERATE_LABEL} disabled />
-    </div>
-  </div>
-);
+const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
+  const pathname = usePathname();
+  const [state, setState] = useState(initial);
+  const [draft, setDraft] = useState(initial.keyword ?? "");
+  const [generation, setGeneration] = useState(0);
+  const { favorites, add, remove, full } = useFavorites();
 
-const NameGenerator = () => {
-  const [mode, setMode] = useState<Mode>("project");
-  const [style, setStyle] = useState<ProjectStyle>("mix");
-  const [length, setLength] = useState<NameLength>("medium");
-  const [theme, setTheme] = useState<Theme>("any");
-  const [format, setFormat] = useState<ProjectFormat>("pascal");
-  const [separator, setSeparator] = useState<UsernameSeparator>("none");
-  const [digits, setDigits] = useState<UsernameDigits>("none");
-  const [casing, setCasing] = useState<UsernameCase>("lower");
-  const [draft, setDraft] = useState("");
-  const [keyword, setKeyword] = useState<string>();
-  const hydrated = useHydrated();
+  const { mode, style, length, theme, keyword, seed } = state;
+  const { format, separator, digits, casing } = state;
 
-  const options: GenerateOptions = { mode, style, length, theme, keyword };
-  const unusableDraft =
-    draft.trim() !== "" && normalizeKeyword(draft) === undefined;
+  const batch = useMemo(
+    () => generateBatch({ mode, style, length, theme, keyword }, seed),
+    [mode, style, length, theme, keyword, seed],
+  );
+
+  const update = (changes: Partial<GeneratorState>) => {
+    const next = { ...state, ...changes };
+    setState(next);
+    setGeneration((count) => count + 1);
+    window.history.replaceState(
+      null,
+      "",
+      `${pathname}${generatorSearch(next)}`,
+    );
+  };
+
+  const change =
+    <Key extends keyof GeneratorSettings>(key: Key) =>
+    (value: GeneratorSettings[Key]) => {
+      update({ [key]: value });
+    };
 
   const applyKeyword = () => {
-    setKeyword(normalizeKeyword(draft));
+    const next = normalizeKeyword(draft);
+    if (next !== keyword) update({ keyword: next });
   };
+
+  const unusableDraft =
+    draft.trim() !== "" && normalizeKeyword(draft) === undefined;
 
   const display = (name: GeneratedName) =>
     mode === "project"
@@ -261,9 +334,9 @@ const NameGenerator = () => {
       <Field label="Name type">
         <SegmentedToggle
           label="Name type"
-          options={MODES}
+          options={MODE_OPTIONS}
           value={mode}
-          onChange={setMode}
+          onChange={change("mode")}
         />
       </Field>
       <Field label="Start from a word (optional)">
@@ -297,17 +370,17 @@ const NameGenerator = () => {
         <Field label="Length">
           <SegmentedToggle
             label="Length"
-            options={LENGTHS}
+            options={LENGTH_OPTIONS}
             value={length}
-            onChange={setLength}
+            onChange={change("length")}
           />
         </Field>
         <Field label="Theme">
           <SegmentedToggle
             label="Theme"
-            options={THEMES}
+            options={THEME_OPTIONS}
             value={theme}
-            onChange={setTheme}
+            onChange={change("theme")}
           />
         </Field>
       </div>
@@ -317,17 +390,17 @@ const NameGenerator = () => {
             <Field label="Style">
               <SegmentedToggle
                 label="Style"
-                options={STYLES}
+                options={STYLE_OPTIONS}
                 value={style}
-                onChange={setStyle}
+                onChange={change("style")}
               />
             </Field>
             <Field label="Format">
               <SegmentedToggle
                 label="Format"
-                options={FORMATS}
+                options={FORMAT_OPTIONS}
                 value={format}
-                onChange={setFormat}
+                onChange={change("format")}
               />
             </Field>
           </>
@@ -336,39 +409,75 @@ const NameGenerator = () => {
             <Field label="Separator">
               <SegmentedToggle
                 label="Separator"
-                options={SEPARATORS}
+                options={SEPARATOR_OPTIONS}
                 value={separator}
-                onChange={setSeparator}
+                onChange={change("separator")}
               />
             </Field>
             <Field label="Digits">
               <SegmentedToggle
                 label="Digits"
-                options={DIGITS}
+                options={DIGIT_OPTIONS}
                 value={digits}
-                onChange={setDigits}
+                onChange={change("digits")}
               />
             </Field>
             <Field label="Case">
               <SegmentedToggle
                 label="Case"
-                options={CASES}
+                options={CASE_OPTIONS}
                 value={casing}
-                onChange={setCasing}
+                onChange={change("casing")}
               />
             </Field>
           </>
         )}
       </div>
-      {hydrated ? (
-        <Results
-          key={`${mode}-${style}-${length}-${theme}-${keyword ?? ""}`}
-          options={options}
-          display={display}
-        />
-      ) : (
-        <ResultsPlaceholder />
-      )}
+      <div className="flex flex-col gap-6">
+        {batch.length === 0 ? (
+          <p className="text-slate-300">
+            Nothing fits that word with these settings. Try another length or
+            style.
+          </p>
+        ) : (
+          <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
+            {batch.map((name, index) => {
+              const text = display(name);
+              const favorite = favorites.includes(text);
+
+              return (
+                <NameRow
+                  key={name.id}
+                  display={text}
+                  order={index}
+                  animate={generation > 0}
+                  favorite={favorite}
+                  favoritesFull={full}
+                  onToggleFavorite={() => {
+                    if (favorite) remove(text);
+                    else add(text);
+                  }}
+                />
+              );
+            })}
+          </ul>
+        )}
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            size="large"
+            onClick={() => {
+              update({ seed: randomSeed() });
+            }}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <ArrowPathIcon className="size-5" />
+              {generateLabel(keyword)}
+            </span>
+          </Button>
+        </div>
+      </div>
+      <FavoritesList />
     </section>
   );
 };

@@ -37,6 +37,7 @@ import {
   NOUNS_BY_THEME,
 } from "@/app/projects/software/namegenerator/words/NOUNS";
 import { ONSETS } from "@/app/projects/software/namegenerator/words/ONSETS";
+import { createRandom } from "@/app/projects/software/namegenerator/words/random";
 import { RECIPE_WEIGHTS } from "@/app/projects/software/namegenerator/words/RECIPE_WEIGHTS";
 import {
   DOUBLE_LETTER_PENALTY,
@@ -75,16 +76,18 @@ type Pools = {
   blendable: string[];
 };
 
-const randomIndex = (length: number) => Math.floor(Math.random() * length);
+let nextRandom: () => number = Math.random;
+
+const randomIndex = (length: number) => Math.floor(nextRandom() * length);
 
 const pick = <T>(items: readonly T[]) => items[randomIndex(items.length)];
 
-const chance = (probability: number) => Math.random() < probability;
+const chance = (probability: number) => nextRandom() < probability;
 
 const pickWeighted = <T extends string>(weights: Record<T, number>): T => {
   const entries = Object.entries(weights) as [T, number][];
   let roll =
-    Math.random() * entries.reduce((total, [, weight]) => total + weight, 0);
+    nextRandom() * entries.reduce((total, [, weight]) => total + weight, 0);
 
   for (const [value, weight] of entries) {
     roll -= weight;
@@ -474,7 +477,7 @@ const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
     SCORE_WEIGHTS.syllables * syllableScore +
     SCORE_WEIGHTS.balance * balanceScore +
     SCORE_WEIGHTS.alliteration * (alliterative ? 1 : 0) +
-    SCORE_WEIGHTS.jitter * Math.random()
+    SCORE_WEIGHTS.jitter * nextRandom()
   );
 };
 
@@ -561,7 +564,7 @@ const nextCandidate = (options: GenerateOptions, pools: Pools) => {
     : keywordUsernameCandidate(options, pools, options.keyword);
 };
 
-export const generateBatch = (options: GenerateOptions): GeneratedName[] => {
+const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   const pools = poolsFor(options);
   const pool: { candidate: Candidate; score: number }[] = [];
   const seen = new Set<string>();
@@ -604,6 +607,18 @@ export const generateBatch = (options: GenerateOptions): GeneratedName[] => {
   }
 
   return names;
+};
+
+export const generateBatch = (
+  options: GenerateOptions,
+  seed: number,
+): GeneratedName[] => {
+  nextRandom = createRandom(seed);
+  try {
+    return collectBatch(options);
+  } finally {
+    nextRandom = Math.random;
+  }
 };
 
 const capitalize = (word: string) =>
