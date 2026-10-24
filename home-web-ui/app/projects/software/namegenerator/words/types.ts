@@ -5,6 +5,17 @@ export type ProjectFormat = "pascal" | "kebab" | "lower";
 export type UsernameSeparator = "none" | "underscore" | "hyphen";
 export type UsernameDigits = "none" | "two" | "four";
 export type UsernameCase = "lower" | "capital";
+export type NameLength = "short" | "medium" | "long";
+export type ThemeName =
+  "nature" | "space" | "workshop" | "mythology" | "kitchen" | "tech";
+export type Theme = "any" | ThemeName;
+
+export type GenerateOptions = {
+  mode: Mode;
+  style: ProjectStyle;
+  length: NameLength;
+  theme: Theme;
+};
 
 export type UsernameOptions = {
   separator: UsernameSeparator;

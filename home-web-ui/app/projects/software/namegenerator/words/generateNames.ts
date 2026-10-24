@@ -1,6 +1,8 @@
 import {
   PROJECT_ADJECTIVES,
+  PROJECT_ADJECTIVES_BY_THEME,
   USERNAME_ADJECTIVES,
+  USERNAME_ADJECTIVES_BY_THEME,
 } from "@/app/projects/software/namegenerator/words/ADJECTIVES";
 import { ANIMALS } from "@/app/projects/software/namegenerator/words/ANIMALS";
 import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
@@ -14,20 +16,28 @@ import { CODA_ONSET_PAIRS } from "@/app/projects/software/namegenerator/words/CO
 import { COLORS } from "@/app/projects/software/namegenerator/words/COLORS";
 import {
   BATCH_SIZE,
+  COINED_WINDOWS,
+  LengthWindow,
+  MAX_ALLITERATIVE_PER_BATCH,
   MAX_ATTEMPTS,
-  MAX_COINED_LETTERS,
-  MAX_COINED_SYLLABLES,
-  MAX_PROJECT_LETTERS,
-  MAX_PROJECT_SYLLABLES,
-  MAX_USERNAME_LETTERS,
-  MAX_USERNAME_SYLLABLES,
   MIN_BLEND_PART_LETTERS,
-  MIN_COINED_LETTERS,
+  MIN_ROOT_OVERLAP,
+  POOL_SIZE,
+  PROJECT_WINDOWS,
   SEAM_LETTERS,
+  USERNAME_WINDOWS,
 } from "@/app/projects/software/namegenerator/words/LIMITS";
-import { NOUNS } from "@/app/projects/software/namegenerator/words/NOUNS";
+import {
+  NOUNS,
+  NOUNS_BY_THEME,
+} from "@/app/projects/software/namegenerator/words/NOUNS";
 import { ONSETS } from "@/app/projects/software/namegenerator/words/ONSETS";
 import { RECIPE_WEIGHTS } from "@/app/projects/software/namegenerator/words/RECIPE_WEIGHTS";
+import {
+  DOUBLE_LETTER_PENALTY,
+  IDEAL_VOWEL_RATIO,
+  SCORE_WEIGHTS,
+} from "@/app/projects/software/namegenerator/words/SCORE_WEIGHTS";
 import {
   PROJECT_JOINERS,
   USERNAME_SEPARATORS,
@@ -35,9 +45,8 @@ import {
 import { TECH_TAILS } from "@/app/projects/software/namegenerator/words/TECH_TAILS";
 import {
   GeneratedName,
-  Mode,
+  GenerateOptions,
   ProjectFormat,
-  ProjectStyle,
   UsernameDigits,
   UsernameOptions,
 } from "@/app/projects/software/namegenerator/words/types";
@@ -47,7 +56,19 @@ import {
   RegExpMatcher,
 } from "obscenity";
 
-type Candidate = { parts: string[]; sources: string[] };
+type Candidate = {
+  parts: string[];
+  sources: string[];
+  alliterative: boolean;
+  window: LengthWindow;
+};
+
+type Pools = {
+  modifiers: string[];
+  nouns: string[];
+  animals: string[];
+  blendable: string[];
+};
 
 const randomIndex = (length: number) => Math.floor(Math.random() * length);
 
@@ -79,6 +100,9 @@ const syllableCount = (word: string) => {
   const vowelGroups = spoken.replace(/^y/, "").match(/[aeiouy]+/g) ?? [];
   return Math.max(1, vowelGroups.length);
 };
+
+const totalSyllables = (parts: string[]) =>
+  parts.reduce((total, part) => total + syllableCount(part), 0);
 
 const syllables = (word: string) => {
   const runs = letterRuns(word);
@@ -150,6 +174,10 @@ const smoothJunction = (left: string, right: string) => {
   return smoothCluster(trailing + leading);
 };
 
+const sharesRoot = (left: string, right: string) =>
+  right.startsWith(left.slice(0, MIN_ROOT_OVERLAP)) ||
+  left.startsWith(right.slice(0, MIN_ROOT_OVERLAP));
+
 const joinable = (left: string, right: string) => {
   const last = left[left.length - 1];
   const first = right[0];
@@ -160,22 +188,25 @@ const joinable = (left: string, right: string) => {
   );
 };
 
-const fits = (parts: string[], maxLetters: number, maxSyllables: number) =>
-  parts.join("").length <= maxLetters &&
-  parts.reduce((total, part) => total + syllableCount(part), 0) <= maxSyllables;
+const fits = (parts: string[], window: LengthWindow) => {
+  const letters = parts.join("").length;
+  return (
+    letters >= window.minLetters &&
+    letters <= window.maxLetters &&
+    totalSyllables(parts) <= window.maxSyllables
+  );
+};
 
 const NOUN_WORDS = new Set(NOUNS);
 
-const coined = (word: string, sources: string[]) =>
-  word.length >= MIN_COINED_LETTERS &&
-  word.length <= MAX_COINED_LETTERS &&
+const coined = (word: string, sources: string[], window: LengthWindow) =>
+  fits([word], window) &&
   syllableCount(word) >= 2 &&
-  syllableCount(word) <= MAX_COINED_SYLLABLES &&
   !NOUN_WORDS.has(word) &&
   !sources.includes(word) &&
   clean(word);
 
-const suffixed = (stem: string, suffix: string) => {
+const suffixed = (stem: string, suffix: string, window: LengthWindow) => {
   const base = stem.replace(/[aeiouy]+$/, "");
   const lastLetter = base[base.length - 1];
 
@@ -189,10 +220,10 @@ const suffixed = (stem: string, suffix: string) => {
   }
 
   const word = base + suffix;
-  return coined(word, [stem]) ? word : undefined;
+  return coined(word, [stem], window) ? word : undefined;
 };
 
-const blend = (first: string, second: string) => {
+const blend = (first: string, second: string, window: LengthWindow) => {
   const head = syllables(first);
   const tail = syllables(second);
   if (head.length < 2 || tail.length < 2) return undefined;
@@ -208,103 +239,198 @@ const blend = (first: string, second: string) => {
   }
 
   const word = start + end;
-  return coined(word, [first, second]) ? word : undefined;
+  return coined(word, [first, second], window) ? word : undefined;
 };
 
 const compound = (
   modifiers: readonly string[],
   nouns: readonly string[],
   alliterationChance: number,
+  window: LengthWindow,
 ): Candidate | undefined => {
   const modifier = pick(modifiers);
   const alliterative = chance(alliterationChance)
     ? nouns.filter((noun) => noun[0] === modifier[0])
     : [];
   const noun = pick(alliterative.length > 0 ? alliterative : nouns);
+  const parts = [modifier, noun];
 
-  if (noun === modifier || !joinable(modifier, noun)) return undefined;
-  return { parts: [modifier, noun], sources: [modifier, noun] };
+  if (
+    noun === modifier ||
+    sharesRoot(modifier, noun) ||
+    !joinable(modifier, noun) ||
+    !fits(parts, window)
+  ) {
+    return undefined;
+  }
+  return {
+    parts,
+    sources: parts,
+    alliterative: modifier[0] === noun[0],
+    window,
+  };
 };
 
-const PROJECT_MODIFIERS = [...PROJECT_ADJECTIVES, ...COLORS];
-const USERNAME_MODIFIERS = [...USERNAME_ADJECTIVES, ...COLORS];
-const BLENDABLE_NOUNS = NOUNS.filter((stem) => syllables(stem).length >= 2);
+const poolsFor = ({ mode, theme }: GenerateOptions): Pools => {
+  const general = mode === "project" ? PROJECT_ADJECTIVES : USERNAME_ADJECTIVES;
+  const themed =
+    mode === "project"
+      ? PROJECT_ADJECTIVES_BY_THEME
+      : USERNAME_ADJECTIVES_BY_THEME;
+  const themedAdjectives =
+    theme === "any" ? Object.values(themed).flat() : themed[theme];
+  const nouns = theme === "any" ? NOUNS : NOUNS_BY_THEME[theme];
 
-const projectCandidate = (style: ProjectStyle): Candidate | undefined => {
-  const recipe = pickWeighted(RECIPE_WEIGHTS[style]);
+  return {
+    modifiers: [...new Set([...general, ...themedAdjectives, ...COLORS])],
+    nouns,
+    animals: theme === "any" || theme === "nature" ? ANIMALS : [],
+    blendable: nouns.filter((noun) => syllables(noun).length >= 2),
+  };
+};
 
-  switch (recipe) {
-    case "compound": {
-      const candidate = compound(
-        PROJECT_MODIFIERS,
-        chance(PROJECT_NOUN_CHANCE) ? NOUNS : ANIMALS,
+const projectCandidate = (
+  { style, length }: GenerateOptions,
+  pools: Pools,
+): Candidate | undefined => {
+  const window = PROJECT_WINDOWS[length];
+  const coinedWindow = COINED_WINDOWS[length];
+
+  switch (pickWeighted(RECIPE_WEIGHTS[style])) {
+    case "compound":
+      return compound(
+        pools.modifiers,
+        chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
+          ? pools.nouns
+          : pools.animals,
         PROJECT_ALLITERATION_CHANCE,
+        window,
       );
-      return candidate &&
-        fits(candidate.parts, MAX_PROJECT_LETTERS, MAX_PROJECT_SYLLABLES)
-        ? candidate
-        : undefined;
-    }
     case "techCompound": {
-      const head = pick(NOUNS);
+      const head = pick(pools.nouns);
       const tail = pick(TECH_TAILS);
       const parts = [head, tail];
       return head !== tail &&
+        !sharesRoot(head, tail) &&
         joinable(head, tail) &&
-        fits(parts, MAX_PROJECT_LETTERS, MAX_PROJECT_SYLLABLES)
-        ? { parts, sources: parts }
+        fits(parts, window)
+        ? {
+            parts,
+            sources: parts,
+            alliterative: head[0] === tail[0],
+            window,
+          }
         : undefined;
     }
     case "suffix": {
-      const stem = pick(NOUNS);
-      const word = suffixed(stem, pick(BRAND_SUFFIXES));
-      return word ? { parts: [word], sources: [stem] } : undefined;
+      const stem = pick(pools.nouns);
+      const word = suffixed(stem, pick(BRAND_SUFFIXES), coinedWindow);
+      return word
+        ? {
+            parts: [word],
+            sources: [stem],
+            alliterative: false,
+            window: coinedWindow,
+          }
+        : undefined;
     }
     case "blend": {
-      const first = pick(BLENDABLE_NOUNS);
-      const second = pick(BLENDABLE_NOUNS);
-      const word = first === second ? undefined : blend(first, second);
-      return word ? { parts: [word], sources: [first, second] } : undefined;
+      const first = pick(pools.blendable);
+      const second = pick(pools.blendable);
+      const word =
+        first === second ? undefined : blend(first, second, coinedWindow);
+      return word
+        ? {
+            parts: [word],
+            sources: [first, second],
+            alliterative: false,
+            window: coinedWindow,
+          }
+        : undefined;
     }
   }
 };
 
-const usernameCandidate = (): Candidate | undefined => {
-  const candidate = compound(
-    USERNAME_MODIFIERS,
-    chance(USERNAME_ANIMAL_CHANCE) ? ANIMALS : NOUNS,
+const usernameCandidate = (
+  { length }: GenerateOptions,
+  pools: Pools,
+): Candidate | undefined =>
+  compound(
+    pools.modifiers,
+    chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+      ? pools.animals
+      : pools.nouns,
     USERNAME_ALLITERATION_CHANCE,
+    USERNAME_WINDOWS[length],
   );
-  return candidate &&
-    fits(candidate.parts, MAX_USERNAME_LETTERS, MAX_USERNAME_SYLLABLES)
-    ? candidate
-    : undefined;
+
+const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
+  const letters = parts.join("");
+  const center = (window.minLetters + window.maxLetters) / 2;
+  const reach = (window.maxLetters - window.minLetters) / 2 + 1;
+  const lengthScore =
+    1 - Math.min(1, Math.abs(letters.length - center) / reach);
+  const syllableScore =
+    1 -
+    Math.min(1, Math.abs(totalSyllables(parts) - window.idealSyllables) / 3);
+  const vowels = letters.match(/[aeiouy]/g)?.length ?? 0;
+  const doubles = letters.match(/([a-z])\1/g)?.length ?? 0;
+  const balanceScore = Math.max(
+    0,
+    1 -
+      Math.min(1, Math.abs(vowels / letters.length - IDEAL_VOWEL_RATIO) * 3) -
+      doubles * DOUBLE_LETTER_PENALTY,
+  );
+
+  return (
+    SCORE_WEIGHTS.length * lengthScore +
+    SCORE_WEIGHTS.syllables * syllableScore +
+    SCORE_WEIGHTS.balance * balanceScore +
+    SCORE_WEIGHTS.alliteration * (alliterative ? 1 : 0) +
+    SCORE_WEIGHTS.jitter * Math.random()
+  );
 };
 
-export const generateBatch = (
-  mode: Mode,
-  style: ProjectStyle,
-): GeneratedName[] => {
-  const names: GeneratedName[] = [];
-  const used = new Set<string>();
+export const generateBatch = (options: GenerateOptions): GeneratedName[] => {
+  const pools = poolsFor(options);
+  const pool: { candidate: Candidate; score: number }[] = [];
+  const seen = new Set<string>();
 
   for (
     let attempt = 0;
-    attempt < MAX_ATTEMPTS && names.length < BATCH_SIZE;
+    attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
     attempt++
   ) {
     const candidate =
-      mode === "project" ? projectCandidate(style) : usernameCandidate();
+      options.mode === "project"
+        ? projectCandidate(options, pools)
+        : usernameCandidate(options, pools);
     if (!candidate) continue;
 
     const key = candidate.parts.join("");
-    if (used.has(key) || candidate.sources.some((source) => used.has(source)))
-      continue;
+    if (seen.has(key)) continue;
 
-    used.add(key);
+    seen.add(key);
+    pool.push({ candidate, score: scoreCandidate(candidate) });
+  }
+
+  pool.sort((left, right) => right.score - left.score);
+
+  const names: GeneratedName[] = [];
+  const used = new Set<string>();
+  let alliterative = 0;
+
+  for (const { candidate } of pool) {
+    if (names.length >= BATCH_SIZE) break;
+    if (candidate.sources.some((source) => used.has(source))) continue;
+    if (candidate.alliterative) {
+      if (alliterative >= MAX_ALLITERATIVE_PER_BATCH) continue;
+      alliterative += 1;
+    }
+
     candidate.sources.forEach((source) => used.add(source));
     names.push({
-      id: `${key}-${attempt}`,
+      id: `${candidate.parts.join("")}-${names.length}`,
       parts: candidate.parts,
       number: randomIndex(10000),
     });

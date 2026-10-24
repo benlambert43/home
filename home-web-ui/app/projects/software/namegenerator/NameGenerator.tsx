@@ -9,9 +9,12 @@ import {
 import { BATCH_SIZE } from "@/app/projects/software/namegenerator/words/LIMITS";
 import {
   GeneratedName,
+  GenerateOptions,
   Mode,
+  NameLength,
   ProjectFormat,
   ProjectStyle,
+  Theme,
   UsernameCase,
   UsernameDigits,
   UsernameSeparator,
@@ -43,6 +46,22 @@ const FORMATS: Option<ProjectFormat>[] = [
   { value: "pascal", label: "PascalCase" },
   { value: "kebab", label: "kebab-case" },
   { value: "lower", label: "lowercase" },
+];
+
+const LENGTHS: Option<NameLength>[] = [
+  { value: "short", label: "Short" },
+  { value: "medium", label: "Medium" },
+  { value: "long", label: "Long" },
+];
+
+const THEMES: Option<Theme>[] = [
+  { value: "any", label: "Any" },
+  { value: "nature", label: "Nature" },
+  { value: "space", label: "Space" },
+  { value: "workshop", label: "Workshop" },
+  { value: "mythology", label: "Mythology" },
+  { value: "kitchen", label: "Kitchen" },
+  { value: "tech", label: "Tech" },
 ];
 
 const SEPARATORS: Option<UsernameSeparator>[] = [
@@ -144,15 +163,13 @@ const NameRow = ({ display, order }: { display: string; order: number }) => (
 );
 
 const Results = ({
-  mode,
-  style,
+  options,
   display,
 }: {
-  mode: Mode;
-  style: ProjectStyle;
+  options: GenerateOptions;
   display: (name: GeneratedName) => string;
 }) => {
-  const [batch, setBatch] = useState(() => generateBatch(mode, style));
+  const [batch, setBatch] = useState(() => generateBatch(options));
 
   return (
     <div className="flex flex-col gap-6">
@@ -164,7 +181,7 @@ const Results = ({
       <div className="flex justify-center">
         <GenerateButton
           onClick={() => {
-            setBatch(generateBatch(mode, style));
+            setBatch(generateBatch(options));
           }}
         />
       </div>
@@ -192,11 +209,15 @@ const ResultsPlaceholder = () => (
 const NameGenerator = () => {
   const [mode, setMode] = useState<Mode>("project");
   const [style, setStyle] = useState<ProjectStyle>("mix");
+  const [length, setLength] = useState<NameLength>("medium");
+  const [theme, setTheme] = useState<Theme>("any");
   const [format, setFormat] = useState<ProjectFormat>("pascal");
   const [separator, setSeparator] = useState<UsernameSeparator>("none");
   const [digits, setDigits] = useState<UsernameDigits>("none");
   const [casing, setCasing] = useState<UsernameCase>("lower");
   const hydrated = useHydrated();
+
+  const options: GenerateOptions = { mode, style, length, theme };
 
   const display = (name: GeneratedName) =>
     mode === "project"
@@ -218,6 +239,24 @@ const NameGenerator = () => {
           onChange={setMode}
         />
       </Field>
+      <div className="flex flex-wrap gap-x-8 gap-y-4">
+        <Field label="Length">
+          <SegmentedToggle
+            label="Length"
+            options={LENGTHS}
+            value={length}
+            onChange={setLength}
+          />
+        </Field>
+        <Field label="Theme">
+          <SegmentedToggle
+            label="Theme"
+            options={THEMES}
+            value={theme}
+            onChange={setTheme}
+          />
+        </Field>
+      </div>
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         {mode === "project" ? (
           <>
@@ -269,9 +308,8 @@ const NameGenerator = () => {
       </div>
       {hydrated ? (
         <Results
-          key={`${mode}-${style}`}
-          mode={mode}
-          style={style}
+          key={`${mode}-${style}-${length}-${theme}`}
+          options={options}
           display={display}
         />
       ) : (

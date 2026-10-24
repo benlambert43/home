@@ -81,6 +81,12 @@ const OPEN_SOURCE_PROJECTS = [
     href: "https://github.com/RienNeVaPlus/human-id/blob/master/LICENSE",
   },
   {
+    name: "afinn-165",
+    license: "MIT License",
+    copyright: "Copyright (c) 2016 Titus Wormer.",
+    href: "https://github.com/words/afinn-165/blob/main/license",
+  },
+  {
     name: "obscenity",
     license: "MIT License",
     copyright: "Copyright (c) 2025 Joseph Liu.",
