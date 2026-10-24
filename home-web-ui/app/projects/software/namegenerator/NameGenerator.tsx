@@ -66,7 +66,7 @@ const STYLE_OPTIONS = labelled(STYLES, {
   compound: "Two words",
   triple: "Three words",
   invented: "Invented word",
-  mix: "Mix of styles",
+  mix: "Mix of Styles",
 });
 
 const FORMAT_OPTIONS = labelled(FORMATS, {
@@ -489,7 +489,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                   applyKeyword();
                 }
               }}
-              placeholder="harbor"
+              placeholder="hydrogen"
               maxLength={32}
               autoComplete="off"
               spellCheck={false}
@@ -512,16 +512,13 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
             )}
           </div>
           {unusableDraft && (
-            <p className="text-sm text-slate-400">
-              Use 2 to 12 letters; other characters are dropped.
-            </p>
+            <p className="text-sm text-slate-400">Use 2 to 12 letters.</p>
           )}
         </Field>
         <Field label={`Pinned words (up to ${MAX_PINS})`}>
           {pinned.length === 0 ? (
             <p className="max-w-78 text-sm text-slate-400">
-              Hover over a name and click one of its words to keep that word in
-              the next names. The start word takes one of the slots.
+              Save a word here for the next round of name generation.
             </p>
           ) : (
             <ul aria-label="Pinned words" className="flex flex-wrap gap-2">
@@ -580,12 +577,6 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 value={style}
                 onChange={change("style")}
               />
-              {style === "any" && (
-                <p className="text-sm text-slate-400">
-                  Any treats the theme, length and pinned words as loose
-                  suggestions.
-                </p>
-              )}
             </Field>
             <Field label="Format">
               <SegmentedToggle

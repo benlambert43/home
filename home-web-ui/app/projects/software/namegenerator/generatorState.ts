@@ -61,14 +61,14 @@ export const CASES: readonly UsernameCase[] = ["lower", "capital"];
 
 export const DEFAULT_SETTINGS: GeneratorSettings = {
   mode: "project",
-  style: "mix",
-  length: "medium",
+  style: "any",
+  length: "any",
   theme: "any",
   pins: [],
   format: "pascal",
   separator: "none",
   digits: "none",
-  casing: "lower",
+  casing: "capital",
 };
 
 const PARAMS = {
