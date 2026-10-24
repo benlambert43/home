@@ -57,7 +57,7 @@ export const SEPARATORS: readonly UsernameSeparator[] = [
   "hyphen",
 ];
 export const DIGITS: readonly UsernameDigits[] = ["none", "two", "four"];
-export const CASES: readonly UsernameCase[] = ["lower", "capital"];
+export const CASES: readonly UsernameCase[] = ["capital", "lower"];
 
 export const DEFAULT_SETTINGS: GeneratorSettings = {
   mode: "project",

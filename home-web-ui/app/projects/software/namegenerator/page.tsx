@@ -5,6 +5,7 @@ import { parseGeneratorState } from "@/app/projects/software/namegenerator/gener
 import NameGenerator from "@/app/projects/software/namegenerator/NameGenerator";
 import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
 import ProjectPage from "@/app/projects/ProjectPage";
+import { connection } from "next/server";
 
 const PATH = "/projects/software/namegenerator";
 
@@ -37,6 +38,7 @@ const NameGeneratorPage = async ({
 }) => {
   const params = await searchParams;
   await requireBffSessionUser(returnPath(params));
+  await connection();
   const initial = parseGeneratorState(params, randomSeed());
 
   return (

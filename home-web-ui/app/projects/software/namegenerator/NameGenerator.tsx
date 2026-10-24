@@ -7,6 +7,7 @@ import {
 } from "@/app/projects/software/namegenerator/favorites";
 import {
   CASES,
+  DEFAULT_SETTINGS,
   DIGITS,
   FORMATS,
   GeneratorSettings,
@@ -24,10 +25,7 @@ import {
   generateBatch,
   normalizeKeyword,
 } from "@/app/projects/software/namegenerator/words/generateNames";
-import {
-  BATCH_SIZE,
-  MAX_PINS,
-} from "@/app/projects/software/namegenerator/words/LIMITS";
+import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
 import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
@@ -106,8 +104,8 @@ const DIGIT_OPTIONS = labelled(DIGITS, {
 });
 
 const CASE_OPTIONS = labelled(CASES, {
-  lower: "lowercase",
   capital: "PascalCase",
+  lower: "lowercase",
 });
 
 const COPIED_MS = 1500;
@@ -118,11 +116,14 @@ const PIN_LIST = new Intl.ListFormat("en", { type: "disjunction" });
 
 const generateLabel = (pinned: readonly string[]) =>
   pinned.length === 0
-    ? `Generate ${BATCH_SIZE} new names`
-    : `Generate names from ${PIN_LIST.format(pinned.map((word) => `“${word}”`))}`;
+    ? "Generate"
+    : `Generate names from ${PIN_LIST.format(pinned)}`;
+
+const FIELDS_GRID_CLASSES =
+  "grid grid-cols-[repeat(auto-fill,minmax(min(24.5rem,100%),1fr))] gap-x-8 gap-y-5";
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex flex-col gap-1.5">
+  <div className="flex min-w-0 flex-col gap-1.5">
     <span className="text-xs font-medium tracking-wide text-slate-400 uppercase">
       {label}
     </span>
@@ -130,18 +131,24 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   </div>
 );
 
+const ICON_BUTTON_PADDING = {
+  small: "p-1",
+  medium: "p-1.5",
+  large: "p-2",
+};
+
 const IconButton = ({
   label,
   title,
   disabled = false,
-  compact = false,
+  size = "large",
   onClick,
   children,
 }: {
   label: string;
   title: string;
   disabled?: boolean;
-  compact?: boolean;
+  size?: keyof typeof ICON_BUTTON_PADDING;
   onClick: () => void;
   children: ReactNode;
 }) => (
@@ -154,7 +161,7 @@ const IconButton = ({
     className={`shrink-0 rounded-md text-slate-400 hover:cursor-pointer
       hover:bg-slate-700 hover:text-slate-100 focus:outline-slate-100
       disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent
-      disabled:hover:text-slate-400 ${compact ? "p-1" : "p-2"}`}
+      disabled:hover:text-slate-400 ${ICON_BUTTON_PADDING[size]}`}
   >
     {children}
   </button>
@@ -180,6 +187,7 @@ const CopyButton = ({ text }: { text: string }) => {
   return (
     <IconButton
       label={copied ? `Copied ${text}` : `Copy ${text}`}
+      size="medium"
       title="Copy to clipboard"
       onClick={() => {
         void copy();
@@ -194,12 +202,15 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-const RESULTS_GRID_CLASSES = "grid gap-3 sm:grid-cols-2";
+const RESULTS_GRID_CLASSES = "grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3";
 
-const ROW_CLASSES = "rounded-xl bg-slate-800/60 py-2.5 pr-2.5 pl-4 ring-1";
+const ROW_CLASSES =
+  "@container rounded-xl bg-slate-800/60 py-2 pr-2 pl-3 ring-1";
 
-const NAME_TEXT_CLASSES =
-  "min-w-0 grow truncate font-mono text-lg text-slate-50 sm:text-xl";
+const ROW_HEADER_CLASSES = "flex min-h-8 flex-wrap items-center gap-x-2";
+
+const NAME_TEXT_CLASSES = `min-w-0 grow font-mono text-sm break-all
+  text-slate-50 @3xs:text-base @xs:text-lg`;
 
 const PIN_CHIP_CLASSES = "bg-sky-500/20 text-sky-100 ring-1 ring-sky-400/70";
 
@@ -250,7 +261,7 @@ const WordChips = ({
   pinned: readonly string[];
   onTogglePin: (word: string) => void;
 }) => (
-  <ul aria-label={label} className="flex flex-wrap gap-1.5 pt-2">
+  <ul aria-label={label} className="flex flex-wrap gap-1.5 pt-1.5">
     {parts.map((word) => (
       <li key={word}>
         <WordChip
@@ -293,9 +304,9 @@ const NameRow = ({
     }`}
     style={{ "--rise-order": order * 0.4 } as CSSProperties}
   >
-    <div className="flex min-h-9 items-center gap-2">
+    <div className={ROW_HEADER_CLASSES}>
       <code className={NAME_TEXT_CLASSES}>{display}</code>
-      <span className="flex shrink-0 items-center">
+      <span className="-ml-1.5 flex shrink-0 items-center">
         <IconButton
           label={
             favorite
@@ -310,6 +321,7 @@ const NameRow = ({
                 : "Add to favorites"
           }
           disabled={!favorite && favoritesFull}
+          size="medium"
           onClick={onToggleFavorite}
         >
           <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
@@ -350,7 +362,7 @@ const FavoritesList = ({
             <li
               key={index}
               aria-hidden
-              className="min-h-21 rounded-xl border border-dashed
+              className="min-h-18.5 rounded-xl border border-dashed
                 border-slate-700"
             />
           );
@@ -363,13 +375,14 @@ const FavoritesList = ({
             key={text}
             className={`${ROW_CLASSES} flex flex-col ring-amber-400/40`}
           >
-            <div className="flex min-h-9 items-center gap-2">
+            <div className={ROW_HEADER_CLASSES}>
               <code className={NAME_TEXT_CLASSES}>{text}</code>
-              <span className="flex shrink-0 items-center">
+              <span className="-ml-1.5 flex shrink-0 items-center">
                 <CopyButton text={text} />
                 <IconButton
                   label={`Remove ${text} from favorites`}
                   title="Remove from favorites"
+                  size="medium"
                   onClick={() => {
                     onRemove(text);
                   }}
@@ -477,8 +490,15 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
     });
   };
 
-  const unusableDraft =
-    draft.trim() !== "" && normalizeKeyword(draft) === undefined;
+  const atDefaults =
+    draft === "" &&
+    generatorSearch({ ...state, seed: "" }) ===
+      generatorSearch({ ...DEFAULT_SETTINGS, seed: "" });
+
+  const reset = () => {
+    setDraft("");
+    update({ ...DEFAULT_SETTINGS, keyword: undefined, seed: randomSeed() });
+  };
 
   const display = (name: GeneratedName) =>
     mode === "project"
@@ -488,21 +508,33 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
   return (
     <section
       aria-label="Name generator"
-      className="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-2xl
+      className="@container relative flex w-full flex-col gap-6 rounded-2xl
         bg-slate-900 p-5 shadow-xl ring-1 shadow-slate-950/50 ring-slate-700
         sm:p-8"
     >
-      <Field label="Name type">
-        <SegmentedToggle
-          label="Name type"
-          options={MODE_OPTIONS}
-          value={mode}
-          onChange={change("mode")}
-        />
-      </Field>
-      <div className="flex flex-wrap gap-x-8 gap-y-4">
+      <span className="absolute top-1 right-1 sm:top-2 sm:right-2">
+        <IconButton
+          label="Reset settings"
+          title="Reset settings (keeps favorites)"
+          disabled={atDefaults}
+          size="small"
+          onClick={reset}
+        >
+          <span className="block px-1 text-xs">Reset</span>
+        </IconButton>
+      </span>
+      <div className={FIELDS_GRID_CLASSES}>
+        <Field label="Name type">
+          <SegmentedToggle
+            label="Name type"
+            options={MODE_OPTIONS}
+            value={mode}
+            fill
+            onChange={change("mode")}
+          />
+        </Field>
         <Field label="Start from a word (optional)">
-          <div className="relative w-full max-w-78">
+          <div className="relative w-full">
             <input
               ref={wordInput}
               type="text"
@@ -539,13 +571,10 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
               </span>
             )}
           </div>
-          {unusableDraft && (
-            <p className="text-sm text-slate-400">Use 2 to 12 letters.</p>
-          )}
         </Field>
         <Field label={`Pinned words (up to ${MAX_PINS})`}>
           {pinned.length === 0 ? (
-            <p className="max-w-78 text-sm text-slate-400">
+            <p className="text-sm text-slate-400">
               Save a word here for the next round of name generation.
             </p>
           ) : (
@@ -564,7 +593,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                         ? "Unpin and clear the start word"
                         : "Unpin"
                     }
-                    compact
+                    size="small"
                     onClick={() => {
                       togglePin(word);
                     }}
@@ -576,13 +605,12 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
             </ul>
           )}
         </Field>
-      </div>
-      <div className="flex flex-wrap gap-x-8 gap-y-4">
         <Field label="Length">
           <SegmentedToggle
             label="Length"
             options={LENGTH_OPTIONS}
             value={length}
+            fill
             onChange={change("length")}
           />
         </Field>
@@ -591,11 +619,10 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
             label="Theme"
             options={THEME_OPTIONS}
             value={theme}
+            fill
             onChange={change("theme")}
           />
         </Field>
-      </div>
-      <div className="flex flex-wrap gap-x-8 gap-y-4">
         {mode === "project" ? (
           <>
             <Field label="Style">
@@ -603,6 +630,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 label="Style"
                 options={STYLE_OPTIONS}
                 value={style}
+                fill
                 onChange={change("style")}
               />
             </Field>
@@ -611,6 +639,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 label="Format"
                 options={FORMAT_OPTIONS}
                 value={format}
+                fill
                 onChange={change("format")}
               />
             </Field>
@@ -622,6 +651,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 label="Separator"
                 options={SEPARATOR_OPTIONS}
                 value={separator}
+                fill
                 onChange={change("separator")}
               />
             </Field>
@@ -630,6 +660,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 label="Digits"
                 options={DIGIT_OPTIONS}
                 value={digits}
+                fill
                 onChange={change("digits")}
               />
             </Field>
@@ -638,6 +669,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 label="Case"
                 options={CASE_OPTIONS}
                 value={casing}
+                fill
                 onChange={change("casing")}
               />
             </Field>
