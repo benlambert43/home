@@ -94,7 +94,7 @@ type Pools = {
   crossAdjectives: string[];
   crossNouns: string[];
   crossBlendable: string[];
-  mashups: string[];
+  mashups: Map<string, string[]>;
 };
 
 let nextRandom: () => number = Math.random;
@@ -412,6 +412,15 @@ const mashupsOf = (first: string, second: string) => {
   );
 };
 
+const orderlessKey = (parts: readonly string[]) => [...parts].sort().join("+");
+
+const subsetsOf = (words: readonly string[], size: number): string[][] => {
+  if (size === 0) return [[]];
+  return words.flatMap((word, index) =>
+    subsetsOf(words.slice(index + 1), size - 1).map((rest) => [word, ...rest]),
+  );
+};
+
 const blendableOf = (nouns: readonly string[]) =>
   nouns.filter((noun) => syllables(noun).length >= 2);
 
@@ -448,7 +457,12 @@ const poolsFor = (
     crossAdjectives: otherThemes.flatMap((other) => themed[other]),
     crossNouns,
     crossBlendable: blendableOf(crossNouns),
-    mashups: required.length === 2 ? mashupsOf(required[0], required[1]) : [],
+    mashups: new Map(
+      subsetsOf(required, 2).map((pair) => [
+        orderlessKey(pair),
+        mashupsOf(pair[0], pair[1]),
+      ]),
+    ),
   };
 };
 
@@ -639,11 +653,18 @@ const windowFor = (
 
 const isWord = (part: string | undefined): part is string => part !== undefined;
 
-const mashupsFor = (template: Slot[], pools: Pools, length: NameLength) => {
-  if (!template.includes("coined")) return [];
+const mashupsFor = (
+  template: Slot[],
+  pools: Pools,
+  length: NameLength,
+  words: readonly string[],
+) => {
+  if (words.length !== 2 || !template.includes("coined")) return [];
   const window =
     template.length === 1 ? COINED_WINDOWS[length] : hybridWindow(length);
-  return pools.mashups.filter((word) => fits([word], window));
+  return (pools.mashups.get(orderlessKey(words)) ?? []).filter((word) =>
+    fits([word], window),
+  );
 };
 
 const buildFromTemplate = (
@@ -654,8 +675,7 @@ const buildFromTemplate = (
   recipe: ProjectRecipe,
 ): Candidate | undefined => {
   const { mode, length } = options;
-  const mashups =
-    required.length === 2 ? mashupsFor(template, pools, length) : [];
+  const mashups = mashupsFor(template, pools, length, required);
 
   if (template.length === 1 && template[0] === "coined") {
     if (mashups.length > 0) {
@@ -748,16 +768,26 @@ const buildFromTemplate = (
   ]);
 };
 
-const orderlessKey = (parts: readonly string[]) => [...parts].sort().join("+");
+const capacityOf = (template: Slot[]) =>
+  template.length === 1 && template[0] === "coined"
+    ? 1
+    : realSlotsOf(template).length;
 
-const capacityOf = (template: Slot[], pools: Pools, length: NameLength) => {
-  const real =
-    template.length === 1 && template[0] === "coined"
-      ? 1
-      : realSlotsOf(template).length;
-  return mashupsFor(template, pools, length).length > 0
-    ? Math.max(real, 2)
-    : real;
+const subsetChoices = (
+  template: Slot[],
+  pools: Pools,
+  length: NameLength,
+  required: readonly string[],
+) => {
+  if (required.length === 0) return [[[]]];
+  const capacity = capacityOf(template);
+  const viable = (subset: readonly string[]) =>
+    subset.length <= capacity ||
+    mashupsFor(template, pools, length, subset).length > 0;
+
+  return Array.from({ length: required.length }, (_, index) =>
+    subsetsOf(required, index + 1).filter(viable),
+  ).filter((subsets) => subsets.length > 0);
 };
 
 type Picked = {
@@ -780,27 +810,21 @@ const fitRequired = (
   required: readonly string[],
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
-  const most = Math.min(
-    capacityOf(template, pools, options.length),
-    required.length,
-  );
-  const least = Math.min(1, required.length);
+  const choices = subsetChoices(template, pools, options.length, required);
+  if (choices.length === 0) return undefined;
 
-  for (let size = most; size >= least; size--) {
-    for (let retry = 0; retry < REQUIRED_RETRIES; retry++) {
-      const subset =
-        size === required.length ? required : shuffle(required).slice(0, size);
-      const candidate = buildFromTemplate(
-        options,
-        pools,
-        template,
-        subset,
-        recipe,
-      );
-      if (!candidate) return undefined;
-      if (!seen.has(orderlessKey(candidate.parts))) {
-        return picked(recipe, subset, candidate);
-      }
+  for (let retry = 0; retry < REQUIRED_RETRIES * choices.length; retry++) {
+    const subset = pick(pick(choices));
+    const candidate = buildFromTemplate(
+      options,
+      pools,
+      template,
+      subset,
+      recipe,
+    );
+    if (!candidate) return undefined;
+    if (!seen.has(orderlessKey(candidate.parts))) {
+      return picked(recipe, subset, candidate);
     }
   }
 

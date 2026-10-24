@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Favorite,
   MAX_FAVORITES,
   useFavorites,
 } from "@/app/projects/software/namegenerator/favorites";
@@ -111,10 +112,14 @@ const CASE_OPTIONS = labelled(CASES, {
 
 const COPIED_MS = 1500;
 
+const isWord = (word: string | undefined): word is string => word !== undefined;
+
+const PIN_LIST = new Intl.ListFormat("en", { type: "disjunction" });
+
 const generateLabel = (pinned: readonly string[]) =>
   pinned.length === 0
     ? `Generate ${BATCH_SIZE} new names`
-    : `Generate names from ${pinned.map((word) => `“${word}”`).join(" and ")}`;
+    : `Generate names from ${PIN_LIST.format(pinned.map((word) => `“${word}”`))}`;
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="flex flex-col gap-1.5">
@@ -234,6 +239,33 @@ const WordChip = ({
   </button>
 );
 
+const WordChips = ({
+  label,
+  parts,
+  pinned,
+  onTogglePin,
+}: {
+  label: string;
+  parts: readonly string[];
+  pinned: readonly string[];
+  onTogglePin: (word: string) => void;
+}) => (
+  <ul aria-label={label} className="flex flex-wrap gap-1.5 pt-2">
+    {parts.map((word) => (
+      <li key={word}>
+        <WordChip
+          word={word}
+          pinned={pinned.includes(word)}
+          pinsFull={pinned.length >= MAX_PINS}
+          onToggle={() => {
+            onTogglePin(word);
+          }}
+        />
+      </li>
+    ))}
+  </ul>
+);
+
 const NameRow = ({
   name,
   display,
@@ -254,104 +286,84 @@ const NameRow = ({
   pinned: readonly string[];
   onToggleFavorite: () => void;
   onTogglePin: (word: string) => void;
-}) => {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <li
-      className={`group ${ROW_CLASSES} flex flex-col ring-slate-700/80 ${
-        animate ? "animated:motion-safe:animate-rise" : ""
-      }`}
-      style={{ "--rise-order": order * 0.4 } as CSSProperties}
-    >
-      <div className="flex min-h-9 items-center gap-2">
-        <code
-          className={`${NAME_TEXT_CLASSES} hover:cursor-pointer`}
-          title="Show the words in this name"
-          onClick={() => {
-            setExpanded((open) => !open);
-          }}
+}) => (
+  <li
+    className={`${ROW_CLASSES} flex flex-col ring-slate-700/80 ${
+      animate ? "animated:motion-safe:animate-rise" : ""
+    }`}
+    style={{ "--rise-order": order * 0.4 } as CSSProperties}
+  >
+    <div className="flex min-h-9 items-center gap-2">
+      <code className={NAME_TEXT_CLASSES}>{display}</code>
+      <span className="flex shrink-0 items-center">
+        <IconButton
+          label={
+            favorite
+              ? `Remove ${display} from favorites`
+              : `Add ${display} to favorites`
+          }
+          title={
+            favorite
+              ? "Remove from favorites"
+              : favoritesFull
+                ? `Favorites are full (${MAX_FAVORITES})`
+                : "Add to favorites"
+          }
+          disabled={!favorite && favoritesFull}
+          onClick={onToggleFavorite}
         >
-          {display}
-        </code>
-        <span className="flex shrink-0 items-center">
-          <IconButton
-            label={
-              favorite
-                ? `Remove ${display} from favorites`
-                : `Add ${display} to favorites`
-            }
-            title={
-              favorite
-                ? "Remove from favorites"
-                : favoritesFull
-                  ? `Favorites are full (${MAX_FAVORITES})`
-                  : "Add to favorites"
-            }
-            disabled={!favorite && favoritesFull}
-            onClick={onToggleFavorite}
-          >
-            <StarIcon
-              className={`size-5 ${favorite ? "text-amber-400" : ""}`}
-            />
-          </IconButton>
-          <CopyButton text={display} />
-        </span>
-      </div>
-      <div
-        data-expanded={expanded}
-        className="grid grid-rows-[0fr] group-focus-within:grid-rows-[1fr]
-          group-hover:grid-rows-[1fr] data-[expanded=true]:grid-rows-[1fr]
-          motion-safe:transition-[grid-template-rows] motion-safe:duration-200"
-      >
-        <div className="overflow-hidden">
-          <ul
-            aria-label={`Words in ${display}`}
-            className="flex flex-wrap gap-1.5 pt-2"
-          >
-            {name.parts.map((word) => (
-              <li key={word}>
-                <WordChip
-                  word={word}
-                  pinned={pinned.includes(word)}
-                  pinsFull={pinned.length >= MAX_PINS}
-                  onToggle={() => {
-                    onTogglePin(word);
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </li>
-  );
-};
+          <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
+        </IconButton>
+        <CopyButton text={display} />
+      </span>
+    </div>
+    <WordChips
+      label={`Words in ${display}`}
+      parts={name.parts}
+      pinned={pinned}
+      onTogglePin={onTogglePin}
+    />
+  </li>
+);
 
-const FavoritesList = () => {
-  const { favorites, remove } = useFavorites();
+const FavoritesList = ({
+  favorites,
+  pinned,
+  onRemove,
+  onTogglePin,
+}: {
+  favorites: readonly Favorite[];
+  pinned: readonly string[];
+  onRemove: (text: string) => void;
+  onTogglePin: (word: string) => void;
+}) => (
+  <div className="flex flex-col gap-3 border-t border-slate-800 pt-6">
+    <h2 className="text-xs font-medium tracking-wide text-slate-400 uppercase">
+      Favorites ({favorites.length} of {MAX_FAVORITES})
+    </h2>
+    <ul aria-label="Favorite names" className={RESULTS_GRID_CLASSES}>
+      {Array.from({ length: MAX_FAVORITES }, (_, index) => {
+        const favorite = favorites[index];
 
-  return (
-    <div className="flex flex-col gap-3 border-t border-slate-800 pt-6">
-      <h2 className="text-xs font-medium tracking-wide text-slate-400 uppercase">
-        Favorites ({favorites.length} of {MAX_FAVORITES})
-      </h2>
-      <ul aria-label="Favorite names" className={RESULTS_GRID_CLASSES}>
-        {Array.from({ length: MAX_FAVORITES }, (_, index) => {
-          const text = favorites[index];
-
-          return text === undefined ? (
+        if (favorite === undefined) {
+          return (
             <li
               key={index}
               aria-hidden
-              className="h-14 rounded-xl border border-dashed border-slate-700"
+              className="min-h-21 rounded-xl border border-dashed
+                border-slate-700"
             />
-          ) : (
-            <li
-              key={text}
-              className={`${ROW_CLASSES} flex h-14 items-center gap-2
-                ring-amber-400/40`}
-            >
+          );
+        }
+
+        const { text, parts } = favorite;
+
+        return (
+          <li
+            key={text}
+            className={`${ROW_CLASSES} flex flex-col ring-amber-400/40`}
+          >
+            <div className="flex min-h-9 items-center gap-2">
               <code className={NAME_TEXT_CLASSES}>{text}</code>
               <span className="flex shrink-0 items-center">
                 <CopyButton text={text} />
@@ -359,22 +371,27 @@ const FavoritesList = () => {
                   label={`Remove ${text} from favorites`}
                   title="Remove from favorites"
                   onClick={() => {
-                    remove(text);
+                    onRemove(text);
                   }}
                 >
                   <XMarkIcon className="size-5" />
                 </IconButton>
               </span>
-            </li>
-          );
-        })}
-      </ul>
-      <p className="text-sm text-slate-400">
-        Star a name to keep it here. Favorites are saved in this browser only.
-      </p>
-    </div>
-  );
-};
+            </div>
+            {parts.length > 0 && (
+              <WordChips
+                label={`Words in ${text}`}
+                parts={parts}
+                pinned={pinned}
+                onTogglePin={onTogglePin}
+              />
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+);
 
 const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
   const pathname = usePathname();
@@ -382,7 +399,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
   const [draft, setDraft] = useState(initial.keyword ?? "");
   const [generation, setGeneration] = useState(0);
   const wordInput = useRef<HTMLInputElement>(null);
-  const { favorites, add, remove, full } = useFavorites();
+  const { favorites, has, add, remove, full } = useFavorites();
 
   const { mode, style, length, theme, keyword, pins, seed } = state;
   const { format, separator, digits, casing } = state;
@@ -447,6 +464,17 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
     } else if (pinned.length < MAX_PINS) {
       update({ pins: [...pins, word] });
     }
+  };
+
+  const saveFavorite = (text: string, parts: string[]) => {
+    add({ text, parts });
+    setDraft("");
+    update({
+      keyword: undefined,
+      pins: [
+        ...new Set(parts.map((part) => normalizeKeyword(part)).filter(isWord)),
+      ].slice(0, MAX_PINS),
+    });
   };
 
   const unusableDraft =
@@ -626,7 +654,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
           <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
             {batch.map((name, index) => {
               const text = display(name);
-              const favorite = favorites.includes(text);
+              const favorite = has(text);
 
               return (
                 <NameRow
@@ -640,7 +668,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                   pinned={pinned}
                   onToggleFavorite={() => {
                     if (favorite) remove(text);
-                    else add(text);
+                    else saveFavorite(text, name.parts);
                   }}
                   onTogglePin={togglePin}
                 />
@@ -663,7 +691,12 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
           </Button>
         </div>
       </div>
-      <FavoritesList />
+      <FavoritesList
+        favorites={favorites}
+        pinned={pinned}
+        onRemove={remove}
+        onTogglePin={togglePin}
+      />
     </section>
   );
 };
