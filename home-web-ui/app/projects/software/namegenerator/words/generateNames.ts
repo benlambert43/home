@@ -28,9 +28,11 @@ import {
   MAX_PINS,
   MIN_BLEND_PART_LETTERS,
   MIN_KEYWORD_LETTERS,
+  MIN_PARTNER_LETTERS,
   MIN_ROOT_OVERLAP,
   POOL_SIZE,
   PROJECT_WINDOWS,
+  REQUIRED_RETRIES,
   SEAM_LETTERS,
   TRIPLE_WINDOWS,
   USERNAME_WINDOWS,
@@ -519,7 +521,10 @@ const aroundWords = (
   const spoken = words.reduce((total, word) => total + syllableCount(word), 0);
 
   return {
-    minLetters: Math.min(window.minLetters, letters),
+    minLetters: Math.min(
+      window.minLetters,
+      letters + MIN_PARTNER_LETTERS * partners,
+    ),
     maxLetters: Math.max(
       window.maxLetters,
       letters + KEYWORD_WINDOW_SLACK * partners,
@@ -608,36 +613,82 @@ const buildFromTemplate = (
   ]);
 };
 
-const roomyTemplate = (template: Slot[], required: readonly string[]) => {
-  const needed = required.length;
-  const capacity =
-    template.length === 1 && template[0] === "coined"
-      ? 1
-      : realSlotsOf(template).length;
-  if (needed <= capacity) return template;
-  return needed <= 2 ? pick(PAIR_TEMPLATES) : pick(TRIPLE_TEMPLATES);
+const orderlessKey = (parts: readonly string[]) => [...parts].sort().join("+");
+
+const capacityOf = (template: Slot[]) =>
+  template.length === 1 && template[0] === "coined"
+    ? 1
+    : realSlotsOf(template).length;
+
+type Picked = {
+  candidate: Candidate;
+  recipe: ProjectRecipe;
+  pinned: readonly string[];
+};
+
+const picked = (
+  recipe: ProjectRecipe,
+  pinned: readonly string[],
+  candidate: Candidate | undefined,
+): Picked | undefined => candidate && { candidate, recipe, pinned };
+
+const fitRequired = (
+  options: GenerateOptions,
+  pools: Pools,
+  template: Slot[],
+  recipe: ProjectRecipe,
+  required: readonly string[],
+  seen: ReadonlySet<string>,
+): Picked | undefined => {
+  const most = Math.min(capacityOf(template), required.length);
+  const least = Math.min(1, required.length);
+
+  for (let size = most; size >= least; size--) {
+    for (let retry = 0; retry < REQUIRED_RETRIES; retry++) {
+      const subset =
+        size === required.length ? required : shuffle(required).slice(0, size);
+      const candidate = buildFromTemplate(
+        options,
+        pools,
+        template,
+        subset,
+        recipe,
+      );
+      if (!candidate) return undefined;
+      if (!seen.has(orderlessKey(candidate.parts))) {
+        return picked(recipe, subset, candidate);
+      }
+    }
+  }
+
+  return undefined;
 };
 
 const projectCandidate = (
   options: GenerateOptions,
   pools: Pools,
   required: readonly string[],
-): Candidate | undefined => {
+  seen: ReadonlySet<string>,
+): Picked | undefined => {
   const recipe = pickWeighted(RECIPE_WEIGHTS[options.style]);
 
   if (recipe === "compound" && required.length === 0) {
     const cross = crossing(pools);
-    return compound(
-      cross && pools.crossAdjectives.length > 0
-        ? pools.crossAdjectives
-        : pools.modifiers,
-      cross
-        ? pools.crossNouns
-        : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
-          ? pools.nouns
-          : pools.animals,
-      PROJECT_ALLITERATION_CHANCE,
-      PROJECT_WINDOWS[options.length],
+    return picked(
+      recipe,
+      [],
+      compound(
+        cross && pools.crossAdjectives.length > 0
+          ? pools.crossAdjectives
+          : pools.modifiers,
+        cross
+          ? pools.crossNouns
+          : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
+            ? pools.nouns
+            : pools.animals,
+        PROJECT_ALLITERATION_CHANCE,
+        PROJECT_WINDOWS[options.length],
+      ),
     );
   }
 
@@ -645,17 +696,16 @@ const projectCandidate = (
     (word) => word.length >= MIN_BLEND_PART_LETTERS,
   );
   const template = templateFor(recipe);
-  const usable =
-    template[0] === "coined" && template.length === 1 && !coinable
-      ? pick(PAIR_TEMPLATES)
-      : template;
 
-  return buildFromTemplate(
+  return fitRequired(
     options,
     pools,
-    roomyTemplate(usable, required),
-    required,
+    template[0] === "coined" && template.length === 1 && !coinable
+      ? pick(PAIR_TEMPLATES)
+      : template,
     recipe,
+    required,
+    seen,
   );
 };
 
@@ -663,23 +713,29 @@ const usernameCandidate = (
   options: GenerateOptions,
   pools: Pools,
   required: readonly string[],
-): Candidate | undefined => {
+  seen: ReadonlySet<string>,
+): Picked | undefined => {
   if (required.length === 0) {
-    return compound(
-      pools.modifiers,
-      chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
-        ? pools.animals
-        : pools.nouns,
-      USERNAME_ALLITERATION_CHANCE,
-      USERNAME_WINDOWS[options.length],
+    return picked(
+      "compound",
+      [],
+      compound(
+        pools.modifiers,
+        chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+          ? pools.animals
+          : pools.nouns,
+        USERNAME_ALLITERATION_CHANCE,
+        USERNAME_WINDOWS[options.length],
+      ),
     );
   }
-  return buildFromTemplate(
+  return fitRequired(
     options,
     pools,
     ["modifier", "noun"],
-    required,
     "compound",
+    required,
+    seen,
   );
 };
 
@@ -710,10 +766,51 @@ const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
   );
 };
 
-const orderlessKey = (parts: readonly string[]) => [...parts].sort().join("+");
-
 const requiredWords = ({ keyword, pins = [] }: GenerateOptions) =>
   [...new Set([keyword, ...pins].filter(isWord))].slice(0, MAX_PINS);
+
+type Ranked = Picked & { score: number };
+
+type Shelves = Map<string, Map<ProjectRecipe, Ranked[]>>;
+
+const shelve = (pool: readonly Ranked[]): Shelves => {
+  const shelves: Shelves = new Map();
+  [...pool]
+    .sort((left, right) => right.score - left.score)
+    .forEach((entry) => {
+      const key = orderlessKey(entry.pinned);
+      const byRecipe = shelves.get(key) ?? new Map<ProjectRecipe, Ranked[]>();
+      byRecipe.set(entry.recipe, [
+        ...(byRecipe.get(entry.recipe) ?? []),
+        entry,
+      ]);
+      shelves.set(key, byRecipe);
+    });
+  return shelves;
+};
+
+const takeFromShelves = (
+  shelves: Shelves,
+  weights: Record<ProjectRecipe, number>,
+) => {
+  const key = pick([...shelves.keys()]);
+  const byRecipe = shelves.get(key);
+  if (!byRecipe) {
+    shelves.delete(key);
+    return undefined;
+  }
+
+  const recipe = pickWeighted(
+    Object.fromEntries(
+      [...byRecipe.keys()].map((recipe) => [recipe, weights[recipe]]),
+    ) as Record<ProjectRecipe, number>,
+  );
+  const shelf = byRecipe.get(recipe) ?? [];
+  const entry = shelf.shift();
+  if (shelf.length === 0) byRecipe.delete(recipe);
+  if (byRecipe.size === 0) shelves.delete(key);
+  return entry;
+};
 
 const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   const pools = poolsFor(options);
@@ -721,56 +818,50 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   const names: GeneratedName[] = [];
   const seen = new Set<string>();
   const used = new Set<string>();
+  const pool: Ranked[] = [];
   let alliterative = 0;
-  const sizes =
-    required.length === 0
-      ? [0]
-      : Array.from(
-          { length: required.length },
-          (_, index) => required.length - index,
-        );
 
-  for (const size of sizes) {
-    if (names.length >= BATCH_SIZE) break;
-    const pool: { candidate: Candidate; score: number }[] = [];
+  for (
+    let attempt = 0;
+    attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
+    attempt++
+  ) {
+    const made =
+      options.mode === "project"
+        ? projectCandidate(options, pools, required, seen)
+        : usernameCandidate(options, pools, required, seen);
+    if (!made) continue;
 
-    for (
-      let attempt = 0;
-      attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
-      attempt++
-    ) {
-      const subset =
-        size === required.length ? required : shuffle(required).slice(0, size);
-      const candidate =
-        options.mode === "project"
-          ? projectCandidate(options, pools, subset)
-          : usernameCandidate(options, pools, subset);
-      if (!candidate) continue;
+    const key = orderlessKey(made.candidate.parts);
+    if (seen.has(key)) continue;
 
-      const key = orderlessKey(candidate.parts);
-      if (seen.has(key)) continue;
+    seen.add(key);
+    pool.push({ ...made, score: scoreCandidate(made.candidate) });
+  }
 
-      seen.add(key);
-      pool.push({ candidate, score: scoreCandidate(candidate) });
+  const shelves = shelve(pool);
+
+  for (
+    let draw = 0;
+    draw < MAX_ATTEMPTS && names.length < BATCH_SIZE && shelves.size > 0;
+    draw++
+  ) {
+    const entry = takeFromShelves(shelves, RECIPE_WEIGHTS[options.style]);
+    if (!entry) continue;
+
+    const { candidate } = entry;
+    if (candidate.sources.some((source) => used.has(source))) continue;
+    if (candidate.alliterative) {
+      if (alliterative >= MAX_ALLITERATIVE_PER_BATCH) continue;
+      alliterative += 1;
     }
 
-    pool.sort((left, right) => right.score - left.score);
-
-    for (const { candidate } of pool) {
-      if (names.length >= BATCH_SIZE) break;
-      if (candidate.sources.some((source) => used.has(source))) continue;
-      if (candidate.alliterative) {
-        if (alliterative >= MAX_ALLITERATIVE_PER_BATCH) continue;
-        alliterative += 1;
-      }
-
-      candidate.sources.forEach((source) => used.add(source));
-      names.push({
-        id: `${candidate.parts.join("")}-${names.length}`,
-        parts: candidate.parts,
-        number: randomIndex(10000),
-      });
-    }
+    candidate.sources.forEach((source) => used.add(source));
+    names.push({
+      id: `${candidate.parts.join("")}-${names.length}`,
+      parts: candidate.parts,
+      number: randomIndex(10000),
+    });
   }
 
   return names;
