@@ -4,3 +4,5 @@ export const PROJECT_NOUN_CHANCE = 0.65;
 export const USERNAME_ANIMAL_CHANCE = 0.75;
 export const KEYWORD_MODIFIER_CHANCE = 0.6;
 export const KEYWORD_FIRST_CHANCE = 0.5;
+export const SUFFIX_SHARE = 0.4;
+export const CROSS_THEME_CHANCE = 0.4;

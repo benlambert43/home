@@ -60,8 +60,9 @@ const MODE_OPTIONS = labelled(MODES, {
 
 const STYLE_OPTIONS = labelled(STYLES, {
   compound: "Two words",
+  triple: "Three words",
   invented: "Invented word",
-  mix: "Mix of both",
+  mix: "Mix of styles",
 });
 
 const FORMAT_OPTIONS = labelled(FORMATS, {

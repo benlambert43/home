@@ -21,13 +21,23 @@ export const metadata = {
 
 export const instant = false;
 
+const returnPath = (params: Awaited<SearchParams>) => {
+  const query = new URLSearchParams(
+    Object.entries(params).flatMap(([key, value]) =>
+      typeof value === "string" ? [[key, value]] : [],
+    ),
+  ).toString();
+  return query === "" ? PATH : `${PATH}?${query}`;
+};
+
 const NameGeneratorPage = async ({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) => {
-  await requireBffSessionUser(PATH);
-  const initial = parseGeneratorState(await searchParams, randomSeed());
+  const params = await searchParams;
+  await requireBffSessionUser(returnPath(params));
+  const initial = parseGeneratorState(params, randomSeed());
 
   return (
     <ProjectPage

@@ -1,6 +1,13 @@
 export type Mode = "project" | "username";
-export type ProjectStyle = "compound" | "invented" | "mix";
-export type ProjectRecipe = "compound" | "techCompound" | "suffix" | "blend";
+export type ProjectStyle = "compound" | "triple" | "invented" | "mix";
+export type ProjectRecipe =
+  | "compound"
+  | "techCompound"
+  | "triple"
+  | "suffix"
+  | "blend"
+  | "hybridPair"
+  | "hybridTriple";
 export type ProjectFormat = "pascal" | "kebab" | "lower";
 export type UsernameSeparator = "none" | "underscore" | "hyphen";
 export type UsernameDigits = "none" | "two" | "four";

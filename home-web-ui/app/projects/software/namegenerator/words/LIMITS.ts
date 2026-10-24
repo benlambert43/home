@@ -24,6 +24,17 @@ export const PROJECT_WINDOWS: Record<NameLength, LengthWindow> = {
   long: { minLetters: 11, maxLetters: 17, maxSyllables: 6, idealSyllables: 4 },
 };
 
+export const TRIPLE_WINDOWS: Record<NameLength, LengthWindow> = {
+  short: { minLetters: 8, maxLetters: 12, maxSyllables: 4, idealSyllables: 3 },
+  medium: {
+    minLetters: 11,
+    maxLetters: 17,
+    maxSyllables: 5,
+    idealSyllables: 4,
+  },
+  long: { minLetters: 15, maxLetters: 22, maxSyllables: 7, idealSyllables: 5 },
+};
+
 export const COINED_WINDOWS: Record<NameLength, LengthWindow> = {
   short: { minLetters: 5, maxLetters: 7, maxSyllables: 2, idealSyllables: 2 },
   medium: { minLetters: 6, maxLetters: 9, maxSyllables: 3, idealSyllables: 3 },

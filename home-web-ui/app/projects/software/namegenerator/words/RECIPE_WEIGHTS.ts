@@ -7,7 +7,40 @@ export const RECIPE_WEIGHTS: Record<
   ProjectStyle,
   Record<ProjectRecipe, number>
 > = {
-  compound: { compound: 55, techCompound: 45, suffix: 0, blend: 0 },
-  invented: { compound: 0, techCompound: 0, suffix: 40, blend: 60 },
-  mix: { compound: 35, techCompound: 25, suffix: 15, blend: 25 },
+  compound: {
+    compound: 55,
+    techCompound: 45,
+    triple: 0,
+    suffix: 0,
+    blend: 0,
+    hybridPair: 0,
+    hybridTriple: 0,
+  },
+  triple: {
+    compound: 0,
+    techCompound: 0,
+    triple: 100,
+    suffix: 0,
+    blend: 0,
+    hybridPair: 0,
+    hybridTriple: 0,
+  },
+  invented: {
+    compound: 0,
+    techCompound: 0,
+    triple: 0,
+    suffix: 40,
+    blend: 60,
+    hybridPair: 0,
+    hybridTriple: 0,
+  },
+  mix: {
+    compound: 15,
+    techCompound: 10,
+    triple: 25,
+    suffix: 10,
+    blend: 15,
+    hybridPair: 15,
+    hybridTriple: 10,
+  },
 };

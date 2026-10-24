@@ -26,7 +26,12 @@ export type GeneratorSettings = {
 export type GeneratorState = GeneratorSettings & { seed: string };
 
 export const MODES: readonly Mode[] = ["project", "username"];
-export const STYLES: readonly ProjectStyle[] = ["compound", "invented", "mix"];
+export const STYLES: readonly ProjectStyle[] = [
+  "compound",
+  "triple",
+  "invented",
+  "mix",
+];
 export const LENGTHS: readonly NameLength[] = ["short", "medium", "long"];
 export const THEMES: readonly Theme[] = [
   "any",
