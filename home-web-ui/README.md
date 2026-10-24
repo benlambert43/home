@@ -12,6 +12,11 @@ actions send as the `Authorization` header, and `bffsession`, a JWT signed with
 `BFF_SESSION_SECRET` that carries the user and is what pages read. The browser
 asks `/session` whether it is signed in and an admin.
 
+Pages that need a session send signed-out visitors to `/signin?returnTo=<path>`,
+and the sign-in form carries that path through to the redirect after signing
+in. Only a site-local path other than the sign-in page itself is accepted;
+anything else falls back to `/profile`.
+
 `.env.template` lists the environment: `BASE_API_URL`, `BASE_SITE_URL`,
 `BFF_SESSION_SECRET`, `NEXT_PUBLIC_CAPTCHA_PUBLIC` and `REVALIDATE_SECRET`.
 Every one is required. The Dockerfile also sets `NEXT_PUBLIC_SOURCE_COMMIT`

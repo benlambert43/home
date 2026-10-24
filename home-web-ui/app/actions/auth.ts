@@ -1,6 +1,7 @@
 "use server";
 
 import { getApiSessionToken } from "@/app/auth/getApiSessionToken";
+import { localReturnPath, RETURN_TO } from "@/app/auth/returnPath";
 import { createSession } from "@/app/auth/sessionCookies";
 import { apiFetch, apiRequest, errorMessage } from "@/app/lib/api";
 import {
@@ -33,7 +34,7 @@ import {
   SignInResponse,
   VerifyEmailResponse,
 } from "@home/shared";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 
 const CREATE_ACCOUNT_URL = `${BASE_API_URL}/accountManagement/createAccount`;
 const SIGN_IN_URL = `${BASE_API_URL}/signIn`;
@@ -126,7 +127,7 @@ export const signIn = async (
     return { values, errors: [errorMessage(error)] };
   }
 
-  redirect("/profile");
+  redirect(localReturnPath(formData.get(RETURN_TO)), RedirectType.replace);
 };
 
 export const requestNewEmailVerificationLink = async (

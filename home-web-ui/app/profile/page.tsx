@@ -10,7 +10,7 @@ export const metadata = pageMetadata("profile");
 export const instant = false;
 
 const Profile = async () => {
-  const user = await requireBffSessionUser();
+  const user = await requireBffSessionUser("/profile");
 
   return (
     <PageColumn className="flex flex-col gap-4">

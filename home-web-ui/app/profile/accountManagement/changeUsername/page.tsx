@@ -8,7 +8,9 @@ export const metadata = pageMetadata("profile");
 export const instant = false;
 
 const ChangeUsername = async () => {
-  const user = await requireBffSessionUser();
+  const user = await requireBffSessionUser(
+    "/profile/accountManagement/changeUsername",
+  );
 
   return (
     <PageColumn className="flex flex-col gap-4">
