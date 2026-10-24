@@ -7,6 +7,8 @@ import {
 import { ANIMALS } from "@/app/projects/software/namegenerator/words/ANIMALS";
 import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
 import {
+  KEYWORD_FIRST_CHANCE,
+  KEYWORD_MODIFIER_CHANCE,
   PROJECT_ALLITERATION_CHANCE,
   PROJECT_NOUN_CHANCE,
   USERNAME_ALLITERATION_CHANCE,
@@ -17,10 +19,13 @@ import { COLORS } from "@/app/projects/software/namegenerator/words/COLORS";
 import {
   BATCH_SIZE,
   COINED_WINDOWS,
+  KEYWORD_WINDOW_SLACK,
   LengthWindow,
   MAX_ALLITERATIVE_PER_BATCH,
   MAX_ATTEMPTS,
+  MAX_KEYWORD_LETTERS,
   MIN_BLEND_PART_LETTERS,
+  MIN_KEYWORD_LETTERS,
   MIN_ROOT_OVERLAP,
   POOL_SIZE,
   PROJECT_WINDOWS,
@@ -145,6 +150,18 @@ const profanity = new RegExpMatcher({
 
 const clean = (text: string) => !profanity.hasMatch(text);
 
+export const normalizeKeyword = (raw: string) => {
+  const words = raw.toLowerCase().match(/[a-z]+/g) ?? [];
+  const joined = words.join("");
+  const keyword =
+    joined.length <= MAX_KEYWORD_LETTERS ? joined : (words[0] ?? "");
+  return keyword.length >= MIN_KEYWORD_LETTERS &&
+    keyword.length <= MAX_KEYWORD_LETTERS &&
+    clean(keyword)
+    ? keyword
+    : undefined;
+};
+
 const cleanSeam = (left: string, right: string) =>
   clean(left.slice(-SEAM_LETTERS) + right.slice(0, SEAM_LETTERS));
 
@@ -196,6 +213,19 @@ const fits = (parts: string[], window: LengthWindow) => {
     totalSyllables(parts) <= window.maxSyllables
   );
 };
+
+const aroundKeyword = (
+  window: LengthWindow,
+  keyword: string,
+): LengthWindow => ({
+  minLetters: Math.min(window.minLetters, keyword.length),
+  maxLetters: Math.max(
+    window.maxLetters,
+    keyword.length + KEYWORD_WINDOW_SLACK,
+  ),
+  maxSyllables: Math.max(window.maxSyllables, syllableCount(keyword) + 1),
+  idealSyllables: Math.max(window.idealSyllables, syllableCount(keyword) + 1),
+});
 
 const NOUN_WORDS = new Set(NOUNS);
 
@@ -269,6 +299,63 @@ const compound = (
     alliterative: modifier[0] === noun[0],
     window,
   };
+};
+
+const pair = (
+  left: string,
+  right: string,
+  window: LengthWindow,
+  keyword: string,
+): Candidate | undefined => {
+  const parts = [left, right];
+
+  if (
+    left === right ||
+    sharesRoot(left, right) ||
+    !joinable(left, right) ||
+    !fits(parts, window)
+  ) {
+    return undefined;
+  }
+  return {
+    parts,
+    sources: parts.filter((part) => part !== keyword),
+    alliterative: left[0] === right[0],
+    window,
+  };
+};
+
+const blendKeyword = (
+  keyword: string,
+  noun: string,
+  window: LengthWindow,
+  keywordFirst: boolean,
+) => {
+  const keywordSyllables = syllables(keyword);
+  const nounSyllables = syllables(noun);
+  if (nounSyllables.length < 2) return undefined;
+
+  const keywordHead =
+    keywordSyllables.length >= 2 ? keywordSyllables[0] : keyword;
+  const keywordTail =
+    keywordSyllables.length >= 2
+      ? keywordSyllables[keywordSyllables.length - 1]
+      : keyword;
+  const start = keywordFirst ? keywordHead : nounSyllables[0];
+  const end = keywordFirst
+    ? nounSyllables[nounSyllables.length - 1]
+    : keywordTail;
+
+  if (
+    start.length < MIN_BLEND_PART_LETTERS ||
+    end.length < MIN_BLEND_PART_LETTERS ||
+    !smoothJunction(start, end)
+  ) {
+    return undefined;
+  }
+
+  const word = start + end;
+  return coined(word, [keyword, noun], window) ? word : undefined;
 };
 
 const poolsFor = ({ mode, theme }: GenerateOptions): Pools => {
@@ -391,6 +478,89 @@ const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
   );
 };
 
+const keywordProjectCandidate = (
+  { style, length }: GenerateOptions,
+  pools: Pools,
+  keyword: string,
+): Candidate | undefined => {
+  const window = aroundKeyword(PROJECT_WINDOWS[length], keyword);
+  const coinedWindow = aroundKeyword(COINED_WINDOWS[length], keyword);
+  const recipe = pickWeighted(RECIPE_WEIGHTS[style]);
+  const coinable = keyword.length >= MIN_BLEND_PART_LETTERS;
+
+  switch (
+    coinable || recipe === "compound" || recipe === "techCompound"
+      ? recipe
+      : chance(KEYWORD_FIRST_CHANCE)
+        ? "compound"
+        : "techCompound"
+  ) {
+    case "compound":
+      return chance(KEYWORD_MODIFIER_CHANCE)
+        ? pair(pick(pools.modifiers), keyword, window, keyword)
+        : pair(keyword, pick(pools.nouns), window, keyword);
+    case "techCompound":
+      return pair(keyword, pick(TECH_TAILS), window, keyword);
+    case "suffix": {
+      const word = suffixed(keyword, pick(BRAND_SUFFIXES), coinedWindow);
+      return word
+        ? {
+            parts: [word],
+            sources: [],
+            alliterative: false,
+            window: coinedWindow,
+          }
+        : undefined;
+    }
+    case "blend": {
+      const noun = pick(pools.blendable);
+      const word = blendKeyword(
+        keyword,
+        noun,
+        coinedWindow,
+        chance(KEYWORD_FIRST_CHANCE),
+      );
+      return word
+        ? {
+            parts: [word],
+            sources: [noun],
+            alliterative: false,
+            window: coinedWindow,
+          }
+        : undefined;
+    }
+  }
+};
+
+const keywordUsernameCandidate = (
+  { length }: GenerateOptions,
+  pools: Pools,
+  keyword: string,
+): Candidate | undefined => {
+  const window = aroundKeyword(USERNAME_WINDOWS[length], keyword);
+
+  if (chance(KEYWORD_MODIFIER_CHANCE)) {
+    return pair(pick(pools.modifiers), keyword, window, keyword);
+  }
+
+  const partners =
+    chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+      ? pools.animals
+      : pools.nouns;
+  return pair(keyword, pick(partners), window, keyword);
+};
+
+const nextCandidate = (options: GenerateOptions, pools: Pools) => {
+  if (options.keyword === undefined) {
+    return options.mode === "project"
+      ? projectCandidate(options, pools)
+      : usernameCandidate(options, pools);
+  }
+  return options.mode === "project"
+    ? keywordProjectCandidate(options, pools, options.keyword)
+    : keywordUsernameCandidate(options, pools, options.keyword);
+};
+
 export const generateBatch = (options: GenerateOptions): GeneratedName[] => {
   const pools = poolsFor(options);
   const pool: { candidate: Candidate; score: number }[] = [];
@@ -401,10 +571,7 @@ export const generateBatch = (options: GenerateOptions): GeneratedName[] => {
     attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
     attempt++
   ) {
-    const candidate =
-      options.mode === "project"
-        ? projectCandidate(options, pools)
-        : usernameCandidate(options, pools);
+    const candidate = nextCandidate(options, pools);
     if (!candidate) continue;
 
     const key = candidate.parts.join("");

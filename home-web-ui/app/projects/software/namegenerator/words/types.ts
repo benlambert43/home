@@ -15,6 +15,7 @@ export type GenerateOptions = {
   style: ProjectStyle;
   length: NameLength;
   theme: Theme;
+  keyword?: string;
 };
 
 export type UsernameOptions = {

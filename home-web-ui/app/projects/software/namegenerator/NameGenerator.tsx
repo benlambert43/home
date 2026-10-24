@@ -5,6 +5,7 @@ import {
   formatProjectName,
   formatUsername,
   generateBatch,
+  normalizeKeyword,
 } from "@/app/projects/software/namegenerator/words/generateNames";
 import { BATCH_SIZE } from "@/app/projects/software/namegenerator/words/LIMITS";
 import {
@@ -21,6 +22,7 @@ import {
 } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
 import SegmentedToggle from "@/app/ui/SegmentedToggle";
+import { FIELD_CLASSES } from "@/app/ui/fieldStyles";
 
 import {
   ArrowPathIcon,
@@ -83,6 +85,13 @@ const CASES: Option<UsernameCase>[] = [
 
 const COPIED_MS = 1500;
 
+const DEFAULT_GENERATE_LABEL = `Generate ${BATCH_SIZE} new names`;
+
+const generateLabel = (keyword: string | undefined) =>
+  keyword === undefined
+    ? DEFAULT_GENERATE_LABEL
+    : `Generate names from “${keyword}”`;
+
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="flex flex-col gap-1.5">
     <span className="text-xs font-medium tracking-wide text-slate-400 uppercase">
@@ -93,16 +102,18 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => (
 );
 
 const GenerateButton = ({
+  label,
   onClick,
   disabled = false,
 }: {
+  label: string;
   onClick?: () => void;
   disabled?: boolean;
 }) => (
   <Button type="button" size="large" disabled={disabled} onClick={onClick}>
     <span className="flex items-center justify-center gap-2">
       <ArrowPathIcon className="size-5" />
-      Generate {BATCH_SIZE} new names
+      {label}
     </span>
   </Button>
 );
@@ -173,13 +184,21 @@ const Results = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
-        {batch.map((name, index) => (
-          <NameRow key={name.id} display={display(name)} order={index} />
-        ))}
-      </ul>
+      {batch.length === 0 ? (
+        <p className="text-slate-300">
+          Nothing fits that word with these settings. Try another length or
+          style.
+        </p>
+      ) : (
+        <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
+          {batch.map((name, index) => (
+            <NameRow key={name.id} display={display(name)} order={index} />
+          ))}
+        </ul>
+      )}
       <div className="flex justify-center">
         <GenerateButton
+          label={generateLabel(options.keyword)}
           onClick={() => {
             setBatch(generateBatch(options));
           }}
@@ -201,7 +220,7 @@ const ResultsPlaceholder = () => (
       ))}
     </ul>
     <div className="flex justify-center">
-      <GenerateButton disabled />
+      <GenerateButton label={DEFAULT_GENERATE_LABEL} disabled />
     </div>
   </div>
 );
@@ -215,9 +234,17 @@ const NameGenerator = () => {
   const [separator, setSeparator] = useState<UsernameSeparator>("none");
   const [digits, setDigits] = useState<UsernameDigits>("none");
   const [casing, setCasing] = useState<UsernameCase>("lower");
+  const [draft, setDraft] = useState("");
+  const [keyword, setKeyword] = useState<string>();
   const hydrated = useHydrated();
 
-  const options: GenerateOptions = { mode, style, length, theme };
+  const options: GenerateOptions = { mode, style, length, theme, keyword };
+  const unusableDraft =
+    draft.trim() !== "" && normalizeKeyword(draft) === undefined;
+
+  const applyKeyword = () => {
+    setKeyword(normalizeKeyword(draft));
+  };
 
   const display = (name: GeneratedName) =>
     mode === "project"
@@ -238,6 +265,33 @@ const NameGenerator = () => {
           value={mode}
           onChange={setMode}
         />
+      </Field>
+      <Field label="Start from a word (optional)">
+        <input
+          type="text"
+          value={draft}
+          onChange={(event) => {
+            setDraft(event.target.value);
+          }}
+          onBlur={applyKeyword}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              applyKeyword();
+            }
+          }}
+          placeholder="harbor"
+          maxLength={32}
+          autoComplete="off"
+          spellCheck={false}
+          aria-label="Start from a word"
+          className={`w-full max-w-78 ${FIELD_CLASSES}`}
+        />
+        {unusableDraft && (
+          <p className="text-sm text-slate-400">
+            Use 2 to 12 letters; other characters are dropped.
+          </p>
+        )}
       </Field>
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         <Field label="Length">
@@ -308,7 +362,7 @@ const NameGenerator = () => {
       </div>
       {hydrated ? (
         <Results
-          key={`${mode}-${style}-${length}-${theme}`}
+          key={`${mode}-${style}-${length}-${theme}-${keyword ?? ""}`}
           options={options}
           display={display}
         />
