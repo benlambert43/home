@@ -85,6 +85,52 @@ const SoftwareWindows = () => (
         </footer>
       </article>
     </li>
+    <li className="animated:motion-safe:animate-rise">
+      <article
+        className="flex h-full flex-col overflow-clip rounded-xl bg-slate-900
+          shadow-lg ring-1 shadow-slate-950/40 ring-slate-700 transition-shadow
+          duration-300 hover:shadow-xl hover:ring-slate-500"
+      >
+        <header
+          className="flex items-center gap-3 bg-slate-800/80 px-3 py-2 font-mono
+            text-xs text-slate-400"
+        >
+          <WindowDots />
+          <span className="truncate">benlambert.tech</span>
+          <span
+            className="ml-auto shrink-0 rounded-full bg-slate-700 px-2 py-0.5
+              text-slate-200"
+          >
+            DevTool
+          </span>
+        </header>
+        <div className="flex grow flex-col gap-3 p-4">
+          <h2 className="text-lg font-semibold">
+            Project Name / Username Generator
+          </h2>
+          <p className="text-slate-300">
+            Create unique project names and usernames for your applications.
+          </p>
+        </div>
+        <footer
+          className="flex items-center gap-4 border-t border-slate-800 px-4 py-3
+            text-sm"
+        >
+          <span className="flex items-center gap-1.5 text-slate-400">
+            <span className="size-2 rounded-full bg-emerald-400" />
+            Live
+          </span>
+          <span className="ml-auto flex gap-4">
+            <Link
+              href="/projects/software/namegenerator"
+              className={FOOTER_LINK_CLASSES}
+            >
+              Open <ArrowUpRightIcon className="size-4" />
+            </Link>
+          </span>
+        </footer>
+      </article>
+    </li>
     <li
       className="animated:motion-safe:animate-rise"
       style={{ "--rise-order": 1 } as CSSProperties}
