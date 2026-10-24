@@ -1,8 +1,5 @@
 import { normalizeKeyword } from "@/app/projects/software/namegenerator/words/generateNames";
-import {
-  decodeSeed,
-  encodeSeed,
-} from "@/app/projects/software/namegenerator/words/random";
+import { decodeSeed } from "@/app/projects/software/namegenerator/words/random";
 import {
   Mode,
   NameLength,
@@ -26,7 +23,7 @@ export type GeneratorSettings = {
   casing: UsernameCase;
 };
 
-export type GeneratorState = GeneratorSettings & { seed: number };
+export type GeneratorState = GeneratorSettings & { seed: string };
 
 export const MODES: readonly Mode[] = ["project", "username"];
 export const STYLES: readonly ProjectStyle[] = ["compound", "invented", "mix"];
@@ -86,7 +83,7 @@ const choose = <T extends string>(
 
 export const parseGeneratorState = (
   params: SearchParamValues,
-  fallbackSeed: number,
+  fallbackSeed: string,
 ): GeneratorState => {
   const word = params[PARAMS.keyword];
   const seed = params[PARAMS.seed];
@@ -148,7 +145,7 @@ export const generatorSearch = (state: GeneratorState) => {
       PARAMS.casing,
       state.casing === DEFAULT_SETTINGS.casing ? undefined : state.casing,
     ],
-    [PARAMS.seed, encodeSeed(state.seed)],
+    [PARAMS.seed, state.seed],
   ];
 
   entries.forEach(([key, value]) => {

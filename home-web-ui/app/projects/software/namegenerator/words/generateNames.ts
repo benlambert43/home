@@ -611,7 +611,7 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
 
 export const generateBatch = (
   options: GenerateOptions,
-  seed: number,
+  seed: string,
 ): GeneratedName[] => {
   nextRandom = createRandom(seed);
   try {

@@ -284,6 +284,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
   const [state, setState] = useState(initial);
   const [draft, setDraft] = useState(initial.keyword ?? "");
   const [generation, setGeneration] = useState(0);
+  const wordInput = useRef<HTMLInputElement>(null);
   const { favorites, add, remove, full } = useFavorites();
 
   const { mode, style, length, theme, keyword, seed } = state;
@@ -316,6 +317,12 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
     if (next !== keyword) update({ keyword: next });
   };
 
+  const clearKeyword = () => {
+    setDraft("");
+    if (keyword !== undefined) update({ keyword: undefined });
+    wordInput.current?.focus();
+  };
+
   const unusableDraft =
     draft.trim() !== "" && normalizeKeyword(draft) === undefined;
 
@@ -340,26 +347,40 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
         />
       </Field>
       <Field label="Start from a word (optional)">
-        <input
-          type="text"
-          value={draft}
-          onChange={(event) => {
-            setDraft(event.target.value);
-          }}
-          onBlur={applyKeyword}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              applyKeyword();
-            }
-          }}
-          placeholder="harbor"
-          maxLength={32}
-          autoComplete="off"
-          spellCheck={false}
-          aria-label="Start from a word"
-          className={`w-full max-w-78 ${FIELD_CLASSES}`}
-        />
+        <div className="relative w-full max-w-78">
+          <input
+            ref={wordInput}
+            type="text"
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+            }}
+            onBlur={applyKeyword}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                applyKeyword();
+              }
+            }}
+            placeholder="harbor"
+            maxLength={32}
+            autoComplete="off"
+            spellCheck={false}
+            aria-label="Start from a word"
+            className={`w-full pr-11 ${FIELD_CLASSES}`}
+          />
+          {draft !== "" && (
+            <span className="absolute inset-y-0 right-1 flex items-center">
+              <IconButton
+                label="Clear the word"
+                title="Clear"
+                onClick={clearKeyword}
+              >
+                <XMarkIcon className="size-5" />
+              </IconButton>
+            </span>
+          )}
+        </div>
         {unusableDraft && (
           <p className="text-sm text-slate-400">
             Use 2 to 12 letters; other characters are dropped.

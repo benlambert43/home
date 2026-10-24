@@ -1,24 +1,48 @@
-export const MAX_SEED = 0xffffffff;
+const SEED_WORDS = 4;
+const HEX_DIGITS_PER_WORD = 8;
+const SEED_PATTERN = /^[0-9a-f]{32}$/;
+const WARM_UP_ROUNDS = 15;
 
-export const randomSeed = () => Math.floor(Math.random() * (MAX_SEED + 1));
+const randomWords = () => {
+  const words = new Uint32Array(SEED_WORDS);
 
-export const encodeSeed = (seed: number) => seed.toString(36);
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    crypto.getRandomValues(words);
+  } else {
+    words.forEach((_, index) => {
+      words[index] = Math.floor(Math.random() * 0x100000000);
+    });
+  }
 
-export const decodeSeed = (value: string) => {
-  const seed = /^[0-9a-z]{1,7}$/.test(value) ? parseInt(value, 36) : NaN;
-  return Number.isInteger(seed) && seed >= 0 && seed <= MAX_SEED
-    ? seed
-    : undefined;
+  return words;
 };
 
-export const createRandom = (seed: number) => {
-  let state = seed >>> 0;
+export const randomSeed = () =>
+  Array.from(randomWords(), (word) =>
+    word.toString(16).padStart(HEX_DIGITS_PER_WORD, "0"),
+  ).join("");
 
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let mixed = state;
-    mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
-    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
-    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+export const decodeSeed = (value: string) =>
+  SEED_PATTERN.test(value) ? value : undefined;
+
+export const createRandom = (seed: string) => {
+  const words = Array.from({ length: SEED_WORDS }, (_, index) => {
+    const start = index * HEX_DIGITS_PER_WORD;
+    return parseInt(seed.slice(start, start + HEX_DIGITS_PER_WORD), 16) >>> 0;
+  });
+  let [a, b, c, d] = words;
+
+  const next = () => {
+    const t = (((a + b) | 0) + d) | 0;
+    d = (d + 1) | 0;
+    a = b ^ (b >>> 9);
+    b = (c + (c << 3)) | 0;
+    c = (c << 21) | (c >>> 11);
+    c = (c + t) | 0;
+    return (t >>> 0) / 4294967296;
   };
+
+  for (let round = 0; round < WARM_UP_ROUNDS; round++) next();
+
+  return next;
 };
