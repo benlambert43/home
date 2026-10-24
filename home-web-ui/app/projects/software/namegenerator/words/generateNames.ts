@@ -7,12 +7,12 @@ import {
 import { ANIMALS } from "@/app/projects/software/namegenerator/words/ANIMALS";
 import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
 import {
-  CROSS_THEME_CHANCE,
   KEYWORD_FIRST_CHANCE,
   MASHUP_CHANCE,
   PROJECT_ALLITERATION_CHANCE,
   PROJECT_NOUN_CHANCE,
   SUFFIX_SHARE,
+  SUGGESTION_CHANCE,
   USERNAME_ALLITERATION_CHANCE,
   USERNAME_ANIMAL_CHANCE,
 } from "@/app/projects/software/namegenerator/words/CHANCES";
@@ -32,10 +32,12 @@ import {
   MIN_MASHUP_PART_LETTERS,
   MIN_PARTNER_LETTERS,
   MIN_ROOT_OVERLAP,
+  NAME_LENGTHS,
   POOL_SIZE,
   PROJECT_WINDOWS,
   REQUIRED_RETRIES,
   SEAM_LETTERS,
+  SHELF_DEPTH,
   TRIPLE_WINDOWS,
   USERNAME_WINDOWS,
 } from "@/app/projects/software/namegenerator/words/LIMITS";
@@ -45,7 +47,10 @@ import {
 } from "@/app/projects/software/namegenerator/words/NOUNS";
 import { ONSETS } from "@/app/projects/software/namegenerator/words/ONSETS";
 import { createRandom } from "@/app/projects/software/namegenerator/words/random";
-import { RECIPE_WEIGHTS } from "@/app/projects/software/namegenerator/words/RECIPE_WEIGHTS";
+import {
+  RECIPE_WEIGHTS,
+  USERNAME_RECIPE_WEIGHTS,
+} from "@/app/projects/software/namegenerator/words/RECIPE_WEIGHTS";
 import {
   DOUBLE_LETTER_PENALTY,
   IDEAL_VOWEL_RATIO,
@@ -423,7 +428,7 @@ const poolsFor = (
     theme === "any" ? Object.values(themed).flat() : themed[theme];
   const nouns = theme === "any" ? NOUNS : NOUNS_BY_THEME[theme];
   const adjectives = [...new Set([...general, ...themedAdjectives])];
-  const crossing = mode === "project" && style === "mix" && theme !== "any";
+  const crossing = mode === "project" && style === "any" && theme !== "any";
   const otherThemes = crossing
     ? (Object.keys(NOUNS_BY_THEME) as ThemeName[]).filter(
         (other) => other !== theme,
@@ -448,7 +453,7 @@ const poolsFor = (
 };
 
 const crossing = (pools: Pools) =>
-  pools.crossNouns.length > 0 && chance(CROSS_THEME_CHANCE);
+  pools.crossNouns.length > 0 && !chance(SUGGESTION_CHANCE);
 
 const pickNoun = (pools: Pools) => {
   if (crossing(pools)) return pick(pools.crossNouns);
@@ -517,6 +522,21 @@ const coinedFromWord = (
 
 const hybridWindow = (length: NameLength) =>
   COINED_WINDOWS[length === "long" ? "medium" : "short"];
+
+type Resolved = GenerateOptions & { length: NameLength };
+
+const loose = ({ mode, style }: GenerateOptions) =>
+  mode === "project" && style === "any";
+
+const resolveLength = (options: GenerateOptions): NameLength =>
+  options.length === "any" || (loose(options) && !chance(SUGGESTION_CHANCE))
+    ? pick(NAME_LENGTHS)
+    : options.length;
+
+const resolve = (options: GenerateOptions): Resolved => ({
+  ...options,
+  length: resolveLength(options),
+});
 
 type Slot = "modifier" | "color" | "noun" | "stem" | "tail" | "coined";
 
@@ -627,12 +647,13 @@ const mashupsFor = (template: Slot[], pools: Pools, length: NameLength) => {
 };
 
 const buildFromTemplate = (
-  { mode, length }: GenerateOptions,
+  options: Resolved,
   pools: Pools,
   template: Slot[],
   required: readonly string[],
   recipe: ProjectRecipe,
 ): Candidate | undefined => {
+  const { mode, length } = options;
   const mashups =
     required.length === 2 ? mashupsFor(template, pools, length) : [];
 
@@ -663,20 +684,38 @@ const buildFromTemplate = (
   }
 
   const realSlots = realSlotsOf(template);
+  const coinedAt = template.indexOf("coined");
   const mashing =
     mashups.length > 0 &&
     (required.length > realSlots.length || chance(MASHUP_CHANCE));
-  const placed = mashing ? [] : required;
+  const coining =
+    !mashing &&
+    coinedAt !== -1 &&
+    required.length === 1 &&
+    loose(options) &&
+    chance(SUGGESTION_CHANCE);
+  const placed = mashing || coining ? [] : required;
   if (placed.length > realSlots.length) return undefined;
 
   const parts: (string | undefined)[] = template.map(() => undefined);
-  if (mashing) parts[template.indexOf("coined")] = pick(mashups);
+  const sources: string[] = [];
+  if (mashing) parts[coinedAt] = pick(mashups);
+  if (coining) {
+    const made = coinedFromWord(
+      required[0],
+      pools,
+      hybridWindow(length),
+      coinedRecipeFor(recipe),
+    );
+    if (!made) return undefined;
+    parts[coinedAt] = made.word;
+    sources.push(...made.sources);
+  }
   const placements = shuffle(realSlots).slice(0, placed.length);
   shuffle(placed).forEach((word, index) => {
     parts[placements[index]] = word;
   });
 
-  const sources: string[] = [];
   for (let index = 0; index < template.length; index++) {
     if (parts[index] !== undefined) continue;
     const slot = template[index];
@@ -696,7 +735,10 @@ const buildFromTemplate = (
   }
 
   const words = parts.filter(isWord);
-  if (mashing && words.some((word) => required.includes(word))) {
+  if (
+    placed.length < required.length &&
+    words.some((word) => required.includes(word))
+  ) {
     return undefined;
   }
   const window = windowFor(mode, length, words.length, placed);
@@ -731,7 +773,7 @@ const picked = (
 ): Picked | undefined => candidate && { candidate, recipe, pinned };
 
 const fitRequired = (
-  options: GenerateOptions,
+  options: Resolved,
   pools: Pools,
   template: Slot[],
   recipe: ProjectRecipe,
@@ -772,8 +814,10 @@ const projectCandidate = (
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
   const recipe = pickWeighted(RECIPE_WEIGHTS[options.style]);
+  const resolved = resolve(options);
+  const wanted = loose(options) && !chance(SUGGESTION_CHANCE) ? [] : required;
 
-  if (recipe === "compound" && required.length === 0) {
+  if (recipe === "compound" && wanted.length === 0) {
     const cross = crossing(pools);
     return picked(
       recipe,
@@ -788,24 +832,24 @@ const projectCandidate = (
             ? pools.nouns
             : pools.animals,
         PROJECT_ALLITERATION_CHANCE,
-        PROJECT_WINDOWS[options.length],
+        PROJECT_WINDOWS[resolved.length],
       ),
     );
   }
 
-  const coinable = required.every(
+  const coinable = wanted.every(
     (word) => word.length >= MIN_BLEND_PART_LETTERS,
   );
   const template = templateFor(recipe);
 
   return fitRequired(
-    options,
+    resolved,
     pools,
     template[0] === "coined" && template.length === 1 && !coinable
       ? pick(PAIR_TEMPLATES)
       : template,
     recipe,
-    required,
+    wanted,
     seen,
   );
 };
@@ -816,6 +860,8 @@ const usernameCandidate = (
   required: readonly string[],
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
+  const resolved = resolve(options);
+
   if (required.length === 0) {
     return picked(
       "compound",
@@ -826,12 +872,12 @@ const usernameCandidate = (
           ? pools.animals
           : pools.nouns,
         USERNAME_ALLITERATION_CHANCE,
-        USERNAME_WINDOWS[options.length],
+        USERNAME_WINDOWS[resolved.length],
       ),
     );
   }
   return fitRequired(
-    options,
+    resolved,
     pools,
     ["modifier", "noun"],
     "compound",
@@ -872,20 +918,21 @@ const requiredWords = ({ keyword, pins = [] }: GenerateOptions) =>
 
 type Ranked = Picked & { score: number };
 
-type Shelves = Map<string, Map<ProjectRecipe, Ranked[]>>;
+type Shelves = Map<ProjectRecipe, Map<string, Ranked[]>>;
 
-const shelve = (pool: readonly Ranked[]): Shelves => {
+const shelve = (pool: readonly Ranked[], grouped: boolean): Shelves => {
   const shelves: Shelves = new Map();
   [...pool]
     .sort((left, right) => right.score - left.score)
     .forEach((entry) => {
-      const key = orderlessKey(entry.pinned);
-      const byRecipe = shelves.get(key) ?? new Map<ProjectRecipe, Ranked[]>();
-      byRecipe.set(entry.recipe, [
-        ...(byRecipe.get(entry.recipe) ?? []),
-        entry,
-      ]);
-      shelves.set(key, byRecipe);
+      const key = grouped
+        ? orderlessKey(entry.pinned)
+        : entry.pinned.length > 0
+          ? "pinned"
+          : "";
+      const byGroup = shelves.get(entry.recipe) ?? new Map<string, Ranked[]>();
+      byGroup.set(key, [...(byGroup.get(key) ?? []), entry]);
+      shelves.set(entry.recipe, byGroup);
     });
   return shelves;
 };
@@ -893,38 +940,66 @@ const shelve = (pool: readonly Ranked[]): Shelves => {
 const takeFromShelves = (
   shelves: Shelves,
   weights: Record<ProjectRecipe, number>,
+  acceptable: (candidate: Candidate) => boolean,
 ) => {
-  const key = pick([...shelves.keys()]);
-  const byRecipe = shelves.get(key);
-  if (!byRecipe) {
-    shelves.delete(key);
+  const recipe = pickWeighted(
+    Object.fromEntries(
+      [...shelves.keys()].map((recipe) => [recipe, weights[recipe]]),
+    ) as Record<ProjectRecipe, number>,
+  );
+  const byGroup = shelves.get(recipe);
+  if (!byGroup) {
+    shelves.delete(recipe);
     return undefined;
   }
 
-  const recipe = pickWeighted(
-    Object.fromEntries(
-      [...byRecipe.keys()].map((recipe) => [recipe, weights[recipe]]),
-    ) as Record<ProjectRecipe, number>,
-  );
-  const shelf = byRecipe.get(recipe) ?? [];
-  const entry = shelf.shift();
-  if (shelf.length === 0) byRecipe.delete(recipe);
-  if (byRecipe.size === 0) shelves.delete(key);
+  const key = pick([...byGroup.keys()]);
+  const shelf = byGroup.get(key) ?? [];
+  let entry = shelf.shift();
+  while (entry && !acceptable(entry.candidate)) entry = shelf.shift();
+  if (shelf.length === 0) byGroup.delete(key);
+  if (byGroup.size === 0) shelves.delete(recipe);
   return entry;
+};
+
+const weightsFor = ({ mode, style }: GenerateOptions) =>
+  mode === "username" ? USERNAME_RECIPE_WEIGHTS : RECIPE_WEIGHTS[style];
+
+const quotasFor = (weights: Record<ProjectRecipe, number>) => {
+  const total = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+  return (Object.entries(weights) as [ProjectRecipe, number][]).flatMap(
+    ([recipe, weight]) =>
+      weight > 0
+        ? [
+            [
+              recipe,
+              Math.ceil((BATCH_SIZE * weight) / total) * SHELF_DEPTH,
+            ] as const,
+          ]
+        : [],
+  );
 };
 
 const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   const required = requiredWords(options);
   const pools = poolsFor(options, required);
+  const weights = weightsFor(options);
+  const quotas = quotasFor(weights);
+  const stocked = new Map<ProjectRecipe, number>();
   const names: GeneratedName[] = [];
   const seen = new Set<string>();
   const used = new Set<string>();
   const pool: Ranked[] = [];
-  let alliterative = 0;
+  let alliterations = 0;
+  const acceptable = (candidate: Candidate) =>
+    !candidate.sources.some((source) => used.has(source)) &&
+    (!candidate.alliterative || alliterations < MAX_ALLITERATIVE_PER_BATCH);
+  const understocked = () =>
+    quotas.some(([recipe, quota]) => (stocked.get(recipe) ?? 0) < quota);
 
   for (
     let attempt = 0;
-    attempt < MAX_ATTEMPTS && pool.length < POOL_SIZE;
+    attempt < MAX_ATTEMPTS && (pool.length < POOL_SIZE || understocked());
     attempt++
   ) {
     const made =
@@ -937,25 +1012,22 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     if (seen.has(key)) continue;
 
     seen.add(key);
+    stocked.set(made.recipe, (stocked.get(made.recipe) ?? 0) + 1);
     pool.push({ ...made, score: scoreCandidate(made.candidate) });
   }
 
-  const shelves = shelve(pool);
+  const shelves = shelve(pool, !loose(options));
 
   for (
     let draw = 0;
     draw < MAX_ATTEMPTS && names.length < BATCH_SIZE && shelves.size > 0;
     draw++
   ) {
-    const entry = takeFromShelves(shelves, RECIPE_WEIGHTS[options.style]);
+    const entry = takeFromShelves(shelves, weights, acceptable);
     if (!entry) continue;
 
     const { candidate } = entry;
-    if (candidate.sources.some((source) => used.has(source))) continue;
-    if (candidate.alliterative) {
-      if (alliterative >= MAX_ALLITERATIVE_PER_BATCH) continue;
-      alliterative += 1;
-    }
+    if (candidate.alliterative) alliterations += 1;
 
     candidate.sources.forEach((source) => used.add(source));
     names.push({

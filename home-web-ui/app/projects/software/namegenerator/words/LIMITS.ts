@@ -9,6 +9,7 @@ export type LengthWindow = {
 
 export const BATCH_SIZE = 12;
 export const POOL_SIZE = BATCH_SIZE * 4;
+export const SHELF_DEPTH = 2;
 export const MAX_ATTEMPTS = POOL_SIZE * 40;
 export const MIN_BLEND_PART_LETTERS = 3;
 export const MIN_MASHUP_PART_LETTERS = 2;
@@ -21,6 +22,7 @@ export const KEYWORD_WINDOW_SLACK = 4;
 export const MIN_PARTNER_LETTERS = 3;
 export const MAX_PINS = 2;
 export const REQUIRED_RETRIES = 3;
+export const NAME_LENGTHS: readonly NameLength[] = ["short", "medium", "long"];
 
 export const PROJECT_WINDOWS: Record<NameLength, LengthWindow> = {
   short: { minLetters: 4, maxLetters: 9, maxSyllables: 3, idealSyllables: 2 },

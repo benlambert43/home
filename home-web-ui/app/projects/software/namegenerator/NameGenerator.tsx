@@ -62,6 +62,7 @@ const MODE_OPTIONS = labelled(MODES, {
 });
 
 const STYLE_OPTIONS = labelled(STYLES, {
+  any: "Any",
   compound: "Two words",
   triple: "Three words",
   invented: "Invented word",
@@ -75,6 +76,7 @@ const FORMAT_OPTIONS = labelled(FORMATS, {
 });
 
 const LENGTH_OPTIONS = labelled(LENGTHS, {
+  any: "Any",
   short: "Short",
   medium: "Medium",
   long: "Long",
@@ -578,6 +580,12 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                 value={style}
                 onChange={change("style")}
               />
+              {style === "any" && (
+                <p className="text-sm text-slate-400">
+                  Any treats the theme, length and pinned words as loose
+                  suggestions.
+                </p>
+              )}
             </Field>
             <Field label="Format">
               <SegmentedToggle

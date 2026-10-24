@@ -2,8 +2,8 @@ import { normalizeKeyword } from "@/app/projects/software/namegenerator/words/ge
 import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import { decodeSeed } from "@/app/projects/software/namegenerator/words/random";
 import {
+  LengthChoice,
   Mode,
-  NameLength,
   ProjectFormat,
   ProjectStyle,
   Theme,
@@ -15,7 +15,7 @@ import {
 export type GeneratorSettings = {
   mode: Mode;
   style: ProjectStyle;
-  length: NameLength;
+  length: LengthChoice;
   theme: Theme;
   keyword?: string;
   pins: string[];
@@ -29,12 +29,18 @@ export type GeneratorState = GeneratorSettings & { seed: string };
 
 export const MODES: readonly Mode[] = ["project", "username"];
 export const STYLES: readonly ProjectStyle[] = [
+  "any",
   "compound",
   "triple",
   "invented",
   "mix",
 ];
-export const LENGTHS: readonly NameLength[] = ["short", "medium", "long"];
+export const LENGTHS: readonly LengthChoice[] = [
+  "any",
+  "short",
+  "medium",
+  "long",
+];
 export const THEMES: readonly Theme[] = [
   "any",
   "nature",

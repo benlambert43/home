@@ -43,4 +43,23 @@ export const RECIPE_WEIGHTS: Record<
     hybridPair: 15,
     hybridTriple: 10,
   },
+  any: {
+    compound: 1,
+    techCompound: 1,
+    triple: 1,
+    suffix: 1,
+    blend: 1,
+    hybridPair: 1,
+    hybridTriple: 1,
+  },
+};
+
+export const USERNAME_RECIPE_WEIGHTS: Record<ProjectRecipe, number> = {
+  compound: 1,
+  techCompound: 0,
+  triple: 0,
+  suffix: 0,
+  blend: 0,
+  hybridPair: 0,
+  hybridTriple: 0,
 };
