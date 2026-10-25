@@ -41,7 +41,7 @@ const SAMPLE_PARTS: string[][] = [
   ["rainspen"],
   ["tarnix"],
   ["maple", "cloud"],
-  ["sage", "percivalex"],
+  ["sage", "percivalia"],
 ];
 
 const SAMPLE_NAMES = SAMPLE_PARTS.map((parts) => ({

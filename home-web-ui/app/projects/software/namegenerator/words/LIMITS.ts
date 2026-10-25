@@ -15,6 +15,7 @@ export const LENGTH_STOCK_ATTEMPTS = POOL_SIZE * 10;
 export const MIN_BLEND_PART_LETTERS = 3;
 export const MIN_MASHUP_PART_LETTERS = 2;
 export const MAX_ALLITERATIVE_PER_BATCH = 4;
+export const MAX_COLORS_PER_BATCH = 2;
 export const MIN_ROOT_OVERLAP = 3;
 export const MAX_CONCRETE_SYLLABLES = 2;
 export const SEAM_LETTERS = 3;

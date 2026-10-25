@@ -15,7 +15,14 @@ export type UsernameCase = "lower" | "capital";
 export type NameLength = "short" | "medium" | "long";
 export type LengthChoice = "any" | NameLength;
 export type ThemeName =
-  "nature" | "space" | "workshop" | "mythology" | "kitchen" | "tech";
+  | "nature"
+  | "space"
+  | "workshop"
+  | "mythology"
+  | "kitchen"
+  | "tech"
+  | "music"
+  | "games";
 export type Theme = "any" | ThemeName;
 
 export type GenerateOptions = {

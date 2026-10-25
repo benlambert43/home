@@ -7,7 +7,8 @@ export const BRAND_SUFFIXES = [
   "ora",
   "ara",
   "era",
-  "ex",
   "os",
   "us",
 ];
+
+export const EXCLUDED_ENDINGS = ["ex"];

@@ -1,6 +1,8 @@
 import { curate } from "@/app/projects/software/namegenerator/words/curate";
+import { GAMES_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/GAMES";
 import { KITCHEN_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/KITCHEN";
 import { MYTHOLOGY_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/MYTHOLOGY";
+import { MUSIC_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/MUSIC";
 import { NATURE_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/NATURE";
 import { SPACE_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/SPACE";
 import { TECH_ADJECTIVES } from "@/app/projects/software/namegenerator/words/nouns/TECH";
@@ -243,6 +245,8 @@ export const USERNAME_ADJECTIVES_BY_THEME: Record<ThemeName, string[]> = {
   mythology: curate(MYTHOLOGY_ADJECTIVES),
   kitchen: curate(KITCHEN_ADJECTIVES),
   tech: curate(TECH_ADJECTIVES),
+  music: curate(MUSIC_ADJECTIVES),
+  games: curate(GAMES_ADJECTIVES),
 };
 
 export const PROJECT_ADJECTIVES_BY_THEME: Record<ThemeName, string[]> = {
@@ -252,6 +256,8 @@ export const PROJECT_ADJECTIVES_BY_THEME: Record<ThemeName, string[]> = {
   mythology: curate(MYTHOLOGY_ADJECTIVES, PLAYFUL_ADJECTIVES),
   kitchen: curate(KITCHEN_ADJECTIVES, PLAYFUL_ADJECTIVES),
   tech: curate(TECH_ADJECTIVES, PLAYFUL_ADJECTIVES),
+  music: curate(MUSIC_ADJECTIVES, PLAYFUL_ADJECTIVES),
+  games: curate(GAMES_ADJECTIVES, PLAYFUL_ADJECTIVES),
 };
 
 export const USERNAME_ADJECTIVES = curate(

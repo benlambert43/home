@@ -5,7 +5,10 @@ import {
   USERNAME_ADJECTIVES_BY_THEME,
 } from "@/app/projects/software/namegenerator/words/ADJECTIVES";
 import { ANIMALS } from "@/app/projects/software/namegenerator/words/ANIMALS";
-import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
+import {
+  BRAND_SUFFIXES,
+  EXCLUDED_ENDINGS,
+} from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
 import {
   CLIMBING_CHANCE,
   COLOR_MODIFIER_SHARE,
@@ -28,6 +31,7 @@ import {
   KEYWORD_WINDOW_SLACK,
   LengthWindow,
   MAX_ALLITERATIVE_PER_BATCH,
+  MAX_COLORS_PER_BATCH,
   LENGTH_STOCK_ATTEMPTS,
   MAX_ATTEMPTS,
   MAX_CONCRETE_SYLLABLES,
@@ -57,6 +61,7 @@ import {
 import { ONSETS } from "@/app/projects/software/namegenerator/words/ONSETS";
 import { createRandom } from "@/app/projects/software/namegenerator/words/random";
 import {
+  OFF_TECH_TAIL_WEIGHT,
   RECIPE_WEIGHTS,
   USERNAME_RECIPE_WEIGHTS,
 } from "@/app/projects/software/namegenerator/words/RECIPE_WEIGHTS";
@@ -259,8 +264,12 @@ const CONCRETE_WORDS = new Set([
   ...ANIMALS,
 ]);
 
+const allowedEnding = (word: string) =>
+  !EXCLUDED_ENDINGS.some((ending) => word.endsWith(ending));
+
 const coined = (word: string, sources: string[], window: LengthWindow) =>
   fits([word], window) &&
+  allowedEnding(word) &&
   syllableCount(word) >= 2 &&
   !NOUN_WORDS.has(word) &&
   !sources.includes(word) &&
@@ -427,6 +436,7 @@ const mashupsOf = (first: string, second: string) => {
       word !== second &&
       syllableCount(word) >= 2 &&
       !NOUN_WORDS.has(word) &&
+      allowedEnding(word) &&
       clean(word),
   );
 };
@@ -517,15 +527,23 @@ const occasionalOr = (words: readonly string[]) => {
 
 const pickNoun = (pools: Pools) => {
   if (crossing(pools)) return pick(pools.crossNouns);
-  return chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
-    ? pick(occasionalOr(pools.nouns))
-    : pick(pools.animals);
+  return pick(
+    occasionalOr(
+      chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
+        ? pools.nouns
+        : pools.animals,
+    ),
+  );
 };
 
 const pickUsernameNoun = (pools: Pools) =>
-  chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
-    ? pick(pools.animals)
-    : pick(occasionalOr(pools.nouns));
+  pick(
+    occasionalOr(
+      chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+        ? pools.animals
+        : pools.nouns,
+    ),
+  );
 
 const pickStem = (pools: Pools) =>
   crossing(pools) ? pick(pools.crossNouns) : pick(occasionalOr(pools.nouns));
@@ -893,8 +911,9 @@ const projectCandidate = (
   pools: Pools,
   required: readonly string[],
   seen: ReadonlySet<string>,
+  weights: Record<ProjectRecipe, number>,
 ): Picked | undefined => {
-  const recipe = pickWeighted(RECIPE_WEIGHTS[resolved.style]);
+  const recipe = pickWeighted(weights);
 
   if (recipe === "compound" && required.length === 0) {
     const cross = crossing(pools);
@@ -907,9 +926,11 @@ const projectCandidate = (
         crossModifier ? pools.crossAdjectives : plainModifiers(pools),
         cross && !crossModifier
           ? pools.crossNouns
-          : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
-            ? occasionalOr(pools.nouns)
-            : pools.animals,
+          : occasionalOr(
+              chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
+                ? pools.nouns
+                : pools.animals,
+            ),
         PROJECT_ALLITERATION_CHANCE,
         PROJECT_WINDOWS[resolved.length],
       ),
@@ -945,9 +966,11 @@ const usernameCandidate = (
       [],
       compound(
         pools.modifiers,
-        chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
-          ? pools.animals
-          : occasionalOr(pools.nouns),
+        occasionalOr(
+          chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
+            ? pools.animals
+            : pools.nouns,
+        ),
         USERNAME_ALLITERATION_CHANCE,
         USERNAME_WINDOWS[resolved.length],
       ),
@@ -1090,8 +1113,28 @@ const takeFromShelves = (
   return entry;
 };
 
-const weightsFor = ({ mode, style }: GenerateOptions) =>
-  mode === "username" ? USERNAME_RECIPE_WEIGHTS : RECIPE_WEIGHTS[style];
+const COLOR_WORDS = new Set(COLORS);
+
+const hasColor = ({ parts }: Candidate) =>
+  parts.some((part) => COLOR_WORDS.has(part));
+
+const techTailShare = (theme: GenerateOptions["theme"]) => {
+  if (theme === "tech") return 1;
+  if (theme !== "any") return OFF_TECH_TAIL_WEIGHT;
+  return (
+    (1 + OFF_TECH_TAIL_WEIGHT * (THEME_NAMES.length - 1)) / THEME_NAMES.length
+  );
+};
+
+const weightsFor = ({ mode, style, theme }: GenerateOptions) => {
+  if (mode === "username") return USERNAME_RECIPE_WEIGHTS;
+  const weights = RECIPE_WEIGHTS[style];
+  if (style !== "compound") return weights;
+  return {
+    ...weights,
+    techCompound: weights.techCompound * techTailShare(theme),
+  };
+};
 
 const stockKey = (recipe: ProjectRecipe, length?: NameLength) =>
   length ? `${recipe}/${length}` : recipe;
@@ -1142,9 +1185,11 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     themes: new Map(),
   };
   let alliterations = 0;
+  let colored = 0;
   const acceptable = (candidate: Candidate) =>
     !candidate.sources.some((source) => used.has(source)) &&
-    (!candidate.alliterative || alliterations < MAX_ALLITERATIVE_PER_BATCH);
+    (!candidate.alliterative || alliterations < MAX_ALLITERATIVE_PER_BATCH) &&
+    (!hasColor(candidate) || colored < MAX_COLORS_PER_BATCH);
   const understocked = (goals: typeof quotas) =>
     goals.some(([stock, quota]) => (stocked.get(stock) ?? 0) < quota);
 
@@ -1161,7 +1206,7 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     if (!pools) continue;
     const made =
       options.mode === "project"
-        ? projectCandidate(resolved, pools, required, seen)
+        ? projectCandidate(resolved, pools, required, seen, weights)
         : usernameCandidate(resolved, pools, required, seen);
     if (!made || !anchored(pools, made.candidate)) continue;
 
@@ -1192,6 +1237,7 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
 
     const { candidate, length, theme } = entry;
     if (candidate.alliterative) alliterations += 1;
+    if (hasColor(candidate)) colored += 1;
     drawn.lengths?.set(length, (drawn.lengths.get(length) ?? 0) + 1);
     drawn.themes.set(theme, (drawn.themes.get(theme) ?? 0) + 1);
 

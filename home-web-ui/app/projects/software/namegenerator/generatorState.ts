@@ -50,6 +50,8 @@ export const THEMES: readonly Theme[] = [
   "mythology",
   "kitchen",
   "tech",
+  "music",
+  "games",
 ];
 export const FORMATS: readonly ProjectFormat[] = ["pascal", "kebab", "lower"];
 export const SEPARATORS: readonly UsernameSeparator[] = [

@@ -54,6 +54,8 @@ export const RECIPE_WEIGHTS: Record<
   },
 };
 
+export const OFF_TECH_TAIL_WEIGHT = 0.4;
+
 export const USERNAME_RECIPE_WEIGHTS: Record<ProjectRecipe, number> = {
   compound: 1,
   techCompound: 0,

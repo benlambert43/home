@@ -102,6 +102,8 @@ const THEME_OPTIONS = labelled(THEMES, {
   mythology: "Mythology",
   kitchen: "Kitchen",
   tech: "Tech",
+  music: "Music",
+  games: "Games",
 });
 
 const SEPARATOR_OPTIONS = labelled(SEPARATORS, {
