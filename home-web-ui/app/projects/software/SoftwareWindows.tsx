@@ -85,7 +85,10 @@ const SoftwareWindows = () => (
         </footer>
       </article>
     </li>
-    <li className="animated:motion-safe:animate-rise">
+    <li
+      className="animated:motion-safe:animate-rise"
+      style={{ "--rise-order": 1 } as CSSProperties}
+    >
       <article
         className="flex h-full flex-col overflow-clip rounded-xl bg-slate-900
           shadow-lg ring-1 shadow-slate-950/40 ring-slate-700 transition-shadow
@@ -133,7 +136,7 @@ const SoftwareWindows = () => (
     </li>
     <li
       className="animated:motion-safe:animate-rise"
-      style={{ "--rise-order": 1 } as CSSProperties}
+      style={{ "--rise-order": 2 } as CSSProperties}
     >
       <div
         className="flex h-full min-h-40 flex-col items-center justify-center
