@@ -566,6 +566,8 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const [draft, setDraft] = useState(state.keyword ?? "");
   const [generation, setGeneration] = useState(0);
   const wordInput = useRef<HTMLInputElement>(null);
+  const generateRow = useRef<HTMLDivElement>(null);
+  const generateTop = useRef<number>(undefined);
   const [openField, setOpenField] = useState<string>();
   const [selected, setSelected] = useState<Favorite>();
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -591,6 +593,13 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       ),
     [mode, style, length, theme, keyword, pinKey, seed],
   );
+
+  useLayoutEffect(() => {
+    const top = generateTop.current;
+    generateTop.current = undefined;
+    if (top === undefined || generateRow.current === null) return;
+    window.scrollBy(0, generateRow.current.getBoundingClientRect().top - top);
+  }, [seed]);
 
   const update = (changes: Partial<GeneratorState>) => {
     const next = { ...state, ...changes };
@@ -899,11 +908,13 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             ))}
           </ul>
         )}
-        <div className="flex justify-center">
+        <div ref={generateRow} className="flex justify-center">
           <Button
             type="button"
             size="large"
             onClick={() => {
+              generateTop.current =
+                generateRow.current?.getBoundingClientRect().top;
               update({ seed: randomSeed() });
             }}
           >
