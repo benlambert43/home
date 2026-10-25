@@ -134,6 +134,13 @@ const CASE_OPTIONS = labelled(CASES, {
 
 const COPIED_MS = 1500;
 
+const GENERATING_SETTINGS: ReadonlySet<keyof GeneratorSettings> = new Set([
+  "mode",
+  "style",
+  "length",
+  "theme",
+]);
+
 const isWord = (word: string | undefined): word is string => word !== undefined;
 
 const shuffleOrder = (parts: readonly string[]) => {
@@ -690,7 +697,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const change =
     <Key extends keyof GeneratorSettings>(key: Key) =>
     (value: GeneratorSettings[Key]) => {
-      update({ [key]: value });
+      update({ [key]: value }, GENERATING_SETTINGS.has(key));
     };
 
   const fieldProps = (label: string, summary: string) => ({
