@@ -72,6 +72,9 @@ const labelled = <T extends string>(
   labels: Record<T, string>,
 ): Option<T>[] => values.map((value) => ({ value, label: labels[value] }));
 
+const optionLabel = <T extends string>(options: Option<T>[], value: T) =>
+  options.find((option) => option.value === value)?.label ?? value;
+
 const MODE_OPTIONS = labelled(MODES, {
   project: "Project name",
   username: "Username",
@@ -155,11 +158,13 @@ const FIELD_LABEL_CLASSES =
 
 const Field = ({
   label,
+  summary,
   expanded = false,
   onToggle,
   children,
 }: {
   label: string;
+  summary?: string;
   expanded?: boolean;
   onToggle?: () => void;
   children: ReactNode;
@@ -195,9 +200,22 @@ const Field = ({
           onToggle();
         }}
         className={`flex items-center justify-between gap-2 text-left
-          hover:text-slate-200 sm:hidden ${FIELD_LABEL_CLASSES}`}
+          hover:cursor-pointer hover:text-slate-200 sm:hidden
+          ${FIELD_LABEL_CLASSES}`}
       >
-        {label}
+        <span
+          className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5"
+        >
+          {label}
+          {summary !== undefined && (
+            <span
+              className="max-w-full truncate text-xs font-normal tracking-normal
+                text-slate-300 normal-case"
+            >
+              {summary}
+            </span>
+          )}
+        </span>
         <ChevronDownIcon
           className={`size-4 shrink-0 transition-transform
             ${expanded ? "rotate-180" : ""}`}
@@ -618,8 +636,9 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       update({ [key]: value });
     };
 
-  const fieldProps = (label: string) => ({
+  const fieldProps = (label: string, summary: string) => ({
     label,
+    summary,
     expanded: openField === label,
     onToggle: () => {
       setOpenField((open) => (open === label ? undefined : label));
@@ -722,7 +741,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         </IconButton>
       </span>
       <div className={FIELDS_GRID_CLASSES}>
-        <Field {...fieldProps("Name type")}>
+        <Field {...fieldProps("Name type", optionLabel(MODE_OPTIONS, mode))}>
           <SegmentedToggle
             label="Name type"
             options={MODE_OPTIONS}
@@ -731,7 +750,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             onChange={change("mode")}
           />
         </Field>
-        <Field {...fieldProps("Start from a word (optional)")}>
+        <Field {...fieldProps("Starting word", keyword ?? "None")}>
           <div className="relative w-full">
             <input
               ref={wordInput}
@@ -751,7 +770,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
               maxLength={32}
               autoComplete="off"
               spellCheck={false}
-              aria-label="Start from a word"
+              aria-label="Starting word"
               className={`w-full pr-10 max-sm:py-1.5 max-sm:pr-8 max-sm:pl-3
                 ${FIELD_CLASSES}`}
             />
@@ -775,7 +794,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             )}
           </div>
         </Field>
-        <Field label={`Pinned words (up to ${MAX_PINS})`}>
+        <Field label="Pinned">
           <ul
             aria-label="Pinned words"
             className="flex min-h-7 flex-wrap gap-2 [overflow-anchor:none]
@@ -816,7 +835,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             ))}
           </ul>
         </Field>
-        <Field {...fieldProps("Length")}>
+        <Field {...fieldProps("Length", optionLabel(LENGTH_OPTIONS, length))}>
           <SegmentedToggle
             label="Length"
             options={LENGTH_OPTIONS}
@@ -825,7 +844,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             onChange={change("length")}
           />
         </Field>
-        <Field {...fieldProps("Theme")}>
+        <Field {...fieldProps("Theme", optionLabel(THEME_OPTIONS, theme))}>
           <SegmentedToggle
             label="Theme"
             options={THEME_OPTIONS}
@@ -836,7 +855,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         </Field>
         {mode === "project" ? (
           <>
-            <Field {...fieldProps("Style")}>
+            <Field {...fieldProps("Style", optionLabel(STYLE_OPTIONS, style))}>
               <SegmentedToggle
                 label="Style"
                 options={STYLE_OPTIONS}
@@ -845,7 +864,9 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                 onChange={change("style")}
               />
             </Field>
-            <Field {...fieldProps("Format")}>
+            <Field
+              {...fieldProps("Format", optionLabel(FORMAT_OPTIONS, format))}
+            >
               <SegmentedToggle
                 label="Format"
                 options={FORMAT_OPTIONS}
@@ -857,7 +878,12 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           </>
         ) : (
           <>
-            <Field {...fieldProps("Separator")}>
+            <Field
+              {...fieldProps(
+                "Separator",
+                optionLabel(SEPARATOR_OPTIONS, separator),
+              )}
+            >
               <SegmentedToggle
                 label="Separator"
                 options={SEPARATOR_OPTIONS}
@@ -866,7 +892,9 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                 onChange={change("separator")}
               />
             </Field>
-            <Field {...fieldProps("Digits")}>
+            <Field
+              {...fieldProps("Digits", optionLabel(DIGIT_OPTIONS, digits))}
+            >
               <SegmentedToggle
                 label="Digits"
                 options={DIGIT_OPTIONS}
@@ -875,7 +903,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                 onChange={change("digits")}
               />
             </Field>
-            <Field {...fieldProps("Case")}>
+            <Field {...fieldProps("Case", optionLabel(CASE_OPTIONS, casing))}>
               <SegmentedToggle
                 label="Case"
                 options={CASE_OPTIONS}
