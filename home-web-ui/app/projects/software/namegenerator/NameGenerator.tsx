@@ -42,11 +42,13 @@ import {
 } from "@/app/projects/software/namegenerator/words/generateNames";
 import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
+import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
 import SegmentedToggle from "@/app/ui/SegmentedToggle";
 import { FIELD_CLASSES } from "@/app/ui/fieldStyles";
 import {
   ArrowPathIcon,
+  ArrowsRightLeftIcon,
   CheckIcon,
   ChevronDownIcon,
   ClipboardDocumentIcon,
@@ -133,6 +135,19 @@ const CASE_OPTIONS = labelled(CASES, {
 const COPIED_MS = 1500;
 
 const isWord = (word: string | undefined): word is string => word !== undefined;
+
+const shuffleOrder = (parts: readonly string[]) => {
+  const original = parts.join(" ");
+  let next = [...parts];
+  while (next.join(" ") === original) {
+    next = [...parts];
+    for (let index = next.length - 1; index > 0; index--) {
+      const swap = Math.floor(Math.random() * (index + 1));
+      [next[index], next[swap]] = [next[swap], next[index]];
+    }
+  }
+  return next;
+};
 
 const PIN_LIST = new Intl.ListFormat("en", { type: "disjunction" });
 
@@ -373,6 +388,7 @@ type NameDetailsProps = {
   pinned: readonly string[];
   onToggleFavorite: () => void;
   onTogglePin: (word: string) => void;
+  onShuffle?: () => void;
 };
 
 const NameDetails = ({
@@ -383,6 +399,7 @@ const NameDetails = ({
   pinned,
   onToggleFavorite,
   onTogglePin,
+  onShuffle,
   stacked = false,
   children,
 }: NameDetailsProps & { stacked?: boolean; children?: ReactNode }) => {
@@ -412,6 +429,16 @@ const NameDetails = ({
         <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
       </IconButton>
       <CopyButton text={display} />
+      {onShuffle !== undefined && new Set(name.parts).size > 1 && (
+        <IconButton
+          label={`Shuffle the word order of ${display}`}
+          title="Shuffle word order"
+          size="medium"
+          onClick={onShuffle}
+        >
+          <ArrowsRightLeftIcon className="size-5" />
+        </IconButton>
+      )}
       {stacked ? <span className="ml-auto flex">{children}</span> : children}
     </span>
   );
@@ -582,18 +609,22 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     parseGeneratorState(params, randomSeed()),
   );
   const [draft, setDraft] = useState(state.keyword ?? "");
+  const [source, setSource] = useState(() => ({
+    keyword: state.keyword,
+    pins: state.pins,
+  }));
   const [generation, setGeneration] = useState(0);
   const wordInput = useRef<HTMLInputElement>(null);
   const generateRow = useRef<HTMLDivElement>(null);
   const generateTop = useRef<number>(undefined);
   const [openField, setOpenField] = useState<string>();
-  const [selected, setSelected] = useState<Favorite>();
+  const [selected, setSelected] = useState<Favorite | GeneratedName>();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { favorites, has, add, remove, full } = useFavorites();
 
   const { mode, style, length, theme, keyword, pins, seed } = state;
   const { format, separator, digits, casing } = state;
-  const pinKey = pins.join(",");
+  const pinKey = source.pins.join(",");
   const pinned = keyword === undefined ? pins : [keyword, ...pins];
 
   const batch = useMemo(
@@ -604,13 +635,33 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           style,
           length,
           theme,
-          keyword,
+          keyword: source.keyword,
           pins: pinKey === "" ? [] : pinKey.split(","),
         },
         seed,
       ),
-    [mode, style, length, theme, keyword, pinKey, seed],
+    [mode, style, length, theme, source.keyword, pinKey, seed],
   );
+
+  const [orders, setOrders] = useState<{
+    batch: GeneratedName[];
+    parts: Partial<Record<string, string[]>>;
+  }>({ batch, parts: {} });
+  const shuffledParts = orders.batch === batch ? orders.parts : {};
+  const names = batch.map((name) => ({
+    ...name,
+    parts: shuffledParts[name.id] ?? name.parts,
+  }));
+
+  const shuffle = (name: GeneratedName) => {
+    const parts = shuffleOrder(name.parts);
+    setOrders({ batch, parts: { ...shuffledParts, [name.id]: parts } });
+    setSelected((current) =>
+      current !== undefined && "id" in current && current.id === name.id
+        ? { ...name, parts }
+        : current,
+    );
+  };
 
   useLayoutEffect(() => {
     const top = generateTop.current;
@@ -619,10 +670,13 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     window.scrollBy(0, generateRow.current.getBoundingClientRect().top - top);
   }, [seed]);
 
-  const update = (changes: Partial<GeneratorState>) => {
+  const update = (changes: Partial<GeneratorState>, regenerate = true) => {
     const next = { ...state, ...changes };
     setState(next);
-    setGeneration((count) => count + 1);
+    if (regenerate) {
+      setSource({ keyword: next.keyword, pins: next.pins });
+      setGeneration((count) => count + 1);
+    }
     window.history.replaceState(
       null,
       "",
@@ -657,30 +711,35 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     });
   };
 
-  const removeKeyword = () => {
+  const removeKeyword = (regenerate = true) => {
     setDraft("");
-    if (keyword !== undefined) update({ keyword: undefined });
+    if (keyword !== undefined) update({ keyword: undefined }, regenerate);
   };
 
   const togglePin = (word: string) => {
     if (word === keyword) {
-      removeKeyword();
+      removeKeyword(false);
     } else if (pins.includes(word)) {
-      update({ pins: pins.filter((pin) => pin !== word) });
+      update({ pins: pins.filter((pin) => pin !== word) }, false);
     } else if (pinned.length < MAX_PINS) {
-      update({ pins: [...pins, word] });
+      update({ pins: [...pins, word] }, false);
     }
   };
 
   const saveFavorite = ({ parts, number }: Favorite) => {
     add({ parts, number });
     setDraft("");
-    update({
-      keyword: undefined,
-      pins: [
-        ...new Set(parts.map((part) => normalizeKeyword(part)).filter(isWord)),
-      ].slice(0, MAX_PINS),
-    });
+    update(
+      {
+        keyword: undefined,
+        pins: [
+          ...new Set(
+            parts.map((part) => normalizeKeyword(part)).filter(isWord),
+          ),
+        ].slice(0, MAX_PINS),
+      },
+      false,
+    );
   };
 
   const atDefaults =
@@ -699,7 +758,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       ? formatProjectName(name, format)
       : formatUsername(name, { separator, digits, casing });
 
-  const detailsProps = (name: Favorite): NameDetailsProps => {
+  const detailsProps = (name: Favorite | GeneratedName): NameDetailsProps => {
     const favorite = has(name);
     return {
       name,
@@ -712,10 +771,16 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         else saveFavorite(name);
       },
       onTogglePin: togglePin,
+      onShuffle:
+        "id" in name
+          ? () => {
+              shuffle(name);
+            }
+          : undefined,
     };
   };
 
-  const openDetails = (name: Favorite) => {
+  const openDetails = (name: Favorite | GeneratedName) => {
     setSelected(name);
     setDetailsOpen(true);
   };
@@ -916,14 +981,14 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         )}
       </div>
       <div className="flex flex-col gap-6">
-        {batch.length === 0 ? (
+        {names.length === 0 ? (
           <p className="text-slate-300">
             Nothing fits these words with these settings. Try another length or
             style.
           </p>
         ) : (
           <ul aria-label="Generated names" className={NAME_GRID_CLASSES}>
-            {batch.map((name, index) => (
+            {names.map((name, index) => (
               <NameRow
                 key={name.id}
                 {...detailsProps(name)}
