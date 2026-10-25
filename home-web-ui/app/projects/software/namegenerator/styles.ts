@@ -2,7 +2,7 @@ export const CARD_CLASSES =
   "@container relative flex w-full flex-col gap-6 rounded-2xl bg-slate-900 p-5 shadow-xl ring-1 shadow-slate-950/50 ring-slate-700 sm:p-8";
 
 export const RESULTS_GRID_CLASSES =
-  "grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3";
+  "grid gap-3 [overflow-anchor:none] @xl:grid-cols-2 @4xl:grid-cols-3";
 
 export const ROW_CLASSES =
   "@container rounded-xl bg-slate-800/60 py-2 pr-2 pl-3 ring-1";

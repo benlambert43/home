@@ -59,6 +59,7 @@ import {
   useEffect,
   useMemo,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -160,6 +161,16 @@ const Field = ({
   children: ReactNode;
 }) => {
   const contentId = useId();
+  const toggle = useRef<HTMLButtonElement>(null);
+  const toggleTop = useRef<number>(undefined);
+
+  useLayoutEffect(() => {
+    const top = toggleTop.current;
+    toggleTop.current = undefined;
+    if (top === undefined || toggle.current === null) return;
+    window.scrollBy(0, toggle.current.getBoundingClientRect().top - top);
+  }, [expanded]);
+
   if (onToggle === undefined) {
     return (
       <div className="flex min-w-0 flex-col gap-1.5">
@@ -171,10 +182,14 @@ const Field = ({
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <button
+        ref={toggle}
         type="button"
         aria-expanded={expanded}
         aria-controls={contentId}
-        onClick={onToggle}
+        onClick={(event) => {
+          toggleTop.current = event.currentTarget.getBoundingClientRect().top;
+          onToggle();
+        }}
         className={`flex items-center justify-between gap-2 text-left
           hover:text-slate-200 sm:hidden ${FIELD_LABEL_CLASSES}`}
       >
@@ -641,8 +656,8 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         <Field label={`Pinned words (up to ${MAX_PINS})`}>
           <ul
             aria-label="Pinned words"
-            className="flex min-h-7 flex-wrap gap-2 max-sm:min-h-5
-              max-sm:gap-1.5"
+            className="flex min-h-7 flex-wrap gap-2 [overflow-anchor:none]
+              max-sm:min-h-5 max-sm:gap-1.5"
           >
             {pinned.length === 0 && (
               <li
