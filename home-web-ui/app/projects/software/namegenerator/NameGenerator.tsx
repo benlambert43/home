@@ -47,6 +47,7 @@ import { FIELD_CLASSES } from "@/app/ui/fieldStyles";
 import {
   ArrowPathIcon,
   CheckIcon,
+  ChevronDownIcon,
   ClipboardDocumentIcon,
   StarIcon,
   XMarkIcon,
@@ -57,6 +58,7 @@ import {
   ReactNode,
   useEffect,
   useMemo,
+  useId,
   useRef,
   useState,
 } from "react";
@@ -129,24 +131,72 @@ const isWord = (word: string | undefined): word is string => word !== undefined;
 
 const PIN_LIST = new Intl.ListFormat("en", { type: "disjunction" });
 
-const generateLabel = (pinned: readonly string[]) =>
-  pinned.length === 0
-    ? "Generate"
-    : `Generate names from ${PIN_LIST.format(pinned)}`;
+const GenerateLabel = ({ pinned }: { pinned: readonly string[] }) => (
+  <span>
+    Generate
+    {pinned.length > 0 && (
+      <span className="hidden sm:inline">
+        {` names from ${PIN_LIST.format(pinned)}`}
+      </span>
+    )}
+  </span>
+);
 
 const FIELDS_GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(min(22.375rem,100%),1fr))] gap-x-8 gap-y-5";
 
-const Field = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex min-w-0 flex-col gap-1.5">
-    <span className="text-xs font-medium tracking-wide text-slate-400 uppercase">
-      {label}
-    </span>
-    {children}
-  </div>
-);
+const FIELD_LABEL_CLASSES =
+  "text-xs font-medium tracking-wide text-slate-400 uppercase";
+
+const Field = ({
+  label,
+  expanded = false,
+  onToggle,
+  children,
+}: {
+  label: string;
+  expanded?: boolean;
+  onToggle?: () => void;
+  children: ReactNode;
+}) => {
+  const contentId = useId();
+  if (onToggle === undefined) {
+    return (
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <span className={FIELD_LABEL_CLASSES}>{label}</span>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        onClick={onToggle}
+        className={`flex items-center justify-between gap-2 text-left
+          hover:text-slate-200 sm:hidden ${FIELD_LABEL_CLASSES}`}
+      >
+        {label}
+        <ChevronDownIcon
+          className={`size-4 shrink-0 transition-transform
+            ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
+      <span className={`hidden sm:block ${FIELD_LABEL_CLASSES}`}>{label}</span>
+      <div
+        id={contentId}
+        className={`${expanded ? "flex" : "hidden"} min-w-0 flex-col sm:flex`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const ICON_BUTTON_PADDING = {
+  compact: "p-1 max-sm:p-0.5",
   small: "p-1",
   medium: "p-1.5",
   large: "p-2",
@@ -415,6 +465,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const [draft, setDraft] = useState(state.keyword ?? "");
   const [generation, setGeneration] = useState(0);
   const wordInput = useRef<HTMLInputElement>(null);
+  const [openField, setOpenField] = useState<string>();
   const { favorites, has, add, remove, full } = useFavorites();
 
   const { mode, style, length, theme, keyword, pins, seed } = state;
@@ -454,6 +505,14 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     (value: GeneratorSettings[Key]) => {
       update({ [key]: value });
     };
+
+  const fieldProps = (label: string) => ({
+    label,
+    expanded: openField === label,
+    onToggle: () => {
+      setOpenField((open) => (open === label ? undefined : label));
+    },
+  });
 
   const applyKeyword = () => {
     const next = normalizeKeyword(draft);
@@ -500,6 +559,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
 
   const reset = () => {
     setDraft("");
+    setOpenField(undefined);
     update({ ...DEFAULT_SETTINGS, keyword: undefined, seed: randomSeed() });
   };
 
@@ -509,7 +569,10 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       : formatUsername(name, { separator, digits, casing });
 
   return (
-    <section aria-label="Name generator" className={CARD_CLASSES}>
+    <section
+      aria-label="Name generator"
+      className={`${CARD_CLASSES} pt-9 sm:pt-10`}
+    >
       <span className="absolute top-1 right-1 sm:top-2 sm:right-2">
         <IconButton
           label="Reset settings"
@@ -522,7 +585,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         </IconButton>
       </span>
       <div className={FIELDS_GRID_CLASSES}>
-        <Field label="Name type">
+        <Field {...fieldProps("Name type")}>
           <SegmentedToggle
             label="Name type"
             options={MODE_OPTIONS}
@@ -531,7 +594,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             onChange={change("mode")}
           />
         </Field>
-        <Field label="Start from a word (optional)">
+        <Field {...fieldProps("Start from a word (optional)")}>
           <div className="relative w-full">
             <input
               ref={wordInput}
@@ -552,10 +615,14 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
               autoComplete="off"
               spellCheck={false}
               aria-label="Start from a word"
-              className={`w-full pr-10 ${FIELD_CLASSES}`}
+              className={`w-full pr-10 max-sm:py-1.5 max-sm:pr-8 max-sm:pl-3
+                ${FIELD_CLASSES}`}
             />
             {draft !== "" && (
-              <span className="absolute inset-y-0 right-2.5 flex items-center">
+              <span
+                className="absolute inset-y-0 right-2.5 flex items-center
+                  max-sm:right-1.5"
+              >
                 <IconButton
                   label="Clear the word"
                   title="Clear"
@@ -565,46 +632,54 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                     wordInput.current?.focus();
                   }}
                 >
-                  <XMarkIcon className="size-4" />
+                  <XMarkIcon className="size-4 max-sm:size-3.5" />
                 </IconButton>
               </span>
             )}
           </div>
         </Field>
         <Field label={`Pinned words (up to ${MAX_PINS})`}>
-          {pinned.length === 0 ? (
-            <p className="text-sm text-slate-400">
-              Save a word here for the next round of name generation.
-            </p>
-          ) : (
-            <ul aria-label="Pinned words" className="flex flex-wrap gap-2">
-              {pinned.map((word) => (
-                <li
-                  key={word}
-                  className={`flex items-center gap-1 rounded-full py-0.5 pr-1
-                    pl-3 text-sm ${PIN_CHIP_CLASSES}`}
+          <ul
+            aria-label="Pinned words"
+            className="flex min-h-7 flex-wrap gap-2 max-sm:min-h-5
+              max-sm:gap-1.5"
+          >
+            {pinned.length === 0 && (
+              <li
+                className="flex items-center rounded-full px-3 py-1 text-sm
+                  text-slate-500 outline-1 outline-slate-600 outline-dashed
+                  max-sm:px-2.5 max-sm:py-0.5 max-sm:text-xs"
+              >
+                None
+              </li>
+            )}
+            {pinned.map((word) => (
+              <li
+                key={word}
+                className={`flex items-center gap-1 rounded-full py-0.5 pr-1
+                pl-3 text-sm max-sm:gap-0.5 max-sm:pr-0.5 max-sm:pl-2
+                max-sm:text-xs ${PIN_CHIP_CLASSES}`}
+              >
+                {word}
+                <IconButton
+                  label={`Unpin ${word}`}
+                  title={
+                    word === keyword
+                      ? "Unpin and clear the start word"
+                      : "Unpin"
+                  }
+                  size="compact"
+                  onClick={() => {
+                    togglePin(word);
+                  }}
                 >
-                  {word}
-                  <IconButton
-                    label={`Unpin ${word}`}
-                    title={
-                      word === keyword
-                        ? "Unpin and clear the start word"
-                        : "Unpin"
-                    }
-                    size="small"
-                    onClick={() => {
-                      togglePin(word);
-                    }}
-                  >
-                    <XMarkIcon className="size-4" />
-                  </IconButton>
-                </li>
-              ))}
-            </ul>
-          )}
+                  <XMarkIcon className="size-4 max-sm:size-3" />
+                </IconButton>
+              </li>
+            ))}
+          </ul>
         </Field>
-        <Field label="Length">
+        <Field {...fieldProps("Length")}>
           <SegmentedToggle
             label="Length"
             options={LENGTH_OPTIONS}
@@ -613,7 +688,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             onChange={change("length")}
           />
         </Field>
-        <Field label="Theme">
+        <Field {...fieldProps("Theme")}>
           <SegmentedToggle
             label="Theme"
             options={THEME_OPTIONS}
@@ -624,7 +699,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         </Field>
         {mode === "project" ? (
           <>
-            <Field label="Style">
+            <Field {...fieldProps("Style")}>
               <SegmentedToggle
                 label="Style"
                 options={STYLE_OPTIONS}
@@ -633,7 +708,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                 onChange={change("style")}
               />
             </Field>
-            <Field label="Format">
+            <Field {...fieldProps("Format")}>
               <SegmentedToggle
                 label="Format"
                 options={FORMAT_OPTIONS}
@@ -645,7 +720,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           </>
         ) : (
           <>
-            <Field label="Separator">
+            <Field {...fieldProps("Separator")}>
               <SegmentedToggle
                 label="Separator"
                 options={SEPARATOR_OPTIONS}
@@ -654,7 +729,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                 onChange={change("separator")}
               />
             </Field>
-            <Field label="Digits">
+            <Field {...fieldProps("Digits")}>
               <SegmentedToggle
                 label="Digits"
                 options={DIGIT_OPTIONS}
@@ -663,7 +738,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
                 onChange={change("digits")}
               />
             </Field>
-            <Field label="Case">
+            <Field {...fieldProps("Case")}>
               <SegmentedToggle
                 label="Case"
                 options={CASE_OPTIONS}
@@ -717,7 +792,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           >
             <span className="flex items-center justify-center gap-2">
               <ArrowPathIcon className="size-5" />
-              {generateLabel(pinned)}
+              <GenerateLabel pinned={pinned} />
             </span>
           </Button>
         </div>
