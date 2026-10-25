@@ -255,7 +255,7 @@ const Field = ({
 };
 
 const ICON_BUTTON_PADDING = {
-  compact: "p-1 max-sm:p-0.5",
+  compact: "p-1 max-sm:rounded-full max-sm:p-1.5",
   small: "p-1",
   medium: "p-1.5",
   large: "p-2",
@@ -873,7 +873,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           <ul
             aria-label="Pinned words"
             className="flex min-h-7 flex-wrap gap-2 [overflow-anchor:none]
-              max-sm:min-h-5 max-sm:gap-1.5"
+              max-sm:gap-1.5"
           >
             {pinned.length === 0 && (
               <li
