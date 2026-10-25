@@ -20,23 +20,16 @@ const Preview = ({
   onOpen?: () => void;
   children: ReactNode;
 }) => (
-  <section aria-label="Name generator preview" className={CARD_CLASSES}>
-    <div
-      className="flex flex-col gap-4 sm:flex-row sm:items-center
-        sm:justify-between"
-    >
-      <p className="text-slate-300">
-        A sample batch. Open the generator to choose a theme, style and length,
-        start from your own word, pin words you like and save favorites.
-      </p>
-      <span className="shrink-0">
-        <Button type="button" size="large" disabled={loading} onClick={onOpen}>
-          {loading ? "Loading…" : "Open the generator"}
-        </Button>
-      </span>
+  <>
+    <div>
+      <Button type="button" size="large" disabled={loading} onClick={onOpen}>
+        {loading ? "Loading…" : "Open the Generator"}
+      </Button>
     </div>
-    {children}
-  </section>
+    <section aria-label="Name generator preview" className={CARD_CLASSES}>
+      {children}
+    </section>
+  </>
 );
 
 const Loader = ({ children }: { children: ReactNode }) => {

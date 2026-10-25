@@ -3,16 +3,10 @@ import {
   pageMetadata,
   siteShareImages,
 } from "@/app/lib/metadata";
-import {
-  DEFAULT_SETTINGS,
-  PREVIEW_SEED,
-} from "@/app/projects/software/namegenerator/generatorState";
+import { DEFAULT_SETTINGS } from "@/app/projects/software/namegenerator/generatorState";
 import LazyNameGenerator from "@/app/projects/software/namegenerator/LazyNameGenerator";
 import SampleNames from "@/app/projects/software/namegenerator/SampleNames";
-import {
-  formatProjectName,
-  generateBatch,
-} from "@/app/projects/software/namegenerator/words/generateNames";
+import { formatProjectName } from "@/app/projects/software/namegenerator/words/generateNames";
 import ProjectPage from "@/app/projects/ProjectPage";
 import type { Metadata, ResolvingMetadata } from "next";
 
@@ -35,14 +29,24 @@ export const generateMetadata = async (
   },
 });
 
-const { mode, style, length, theme, pins, format } = DEFAULT_SETTINGS;
+const SAMPLE_PARTS: string[][] = [
+  ["quill", "tap"],
+  ["relic", "desk"],
+  ["rose", "sailfish"],
+  ["lilac", "wave"],
+  ["aqua", "mesh", "web"],
+  ["regal", "dry", "gold"],
+  ["granite", "bit", "cast"],
+  ["kelpara"],
+  ["rainspen"],
+  ["tarnix"],
+  ["maple", "cloud"],
+  ["sage", "percivalex"],
+];
 
-const SAMPLE_NAMES = generateBatch(
-  { mode, style, length, theme, pins, keyword: undefined },
-  PREVIEW_SEED,
-).map((name) => ({
-  text: formatProjectName(name, format),
-  parts: name.parts,
+const SAMPLE_NAMES = SAMPLE_PARTS.map((parts) => ({
+  text: formatProjectName({ parts }, DEFAULT_SETTINGS.format),
+  parts,
 }));
 
 const NameGeneratorPage = () => (
@@ -51,10 +55,9 @@ const NameGeneratorPage = () => (
     backLink={{ href: "/projects/software", label: "Software" }}
   >
     <p className="text-slate-300">
-      Generate names for software projects and usernames from curated word
-      lists, themed around nature, space, the workshop, mythology, the kitchen
-      and tech. Pick a length and style, start from your own word, pin the words
-      you like and star favorites to keep. Everything runs in your browser.
+      Generate names for software projects and usernames, using word lists and
+      themes to choose your favorites and iterate on the words that speak to
+      you. The project name and username generator runs in the browser.
     </p>
     <LazyNameGenerator>
       <SampleNames names={SAMPLE_NAMES} />

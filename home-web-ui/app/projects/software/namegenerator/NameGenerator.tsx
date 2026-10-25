@@ -17,12 +17,10 @@ import {
   LENGTHS,
   MODES,
   parseGeneratorState,
-  PREVIEW_STATE,
   SEPARATORS,
   STYLES,
   THEMES,
 } from "@/app/projects/software/namegenerator/generatorState";
-import { hasGeneratorParams } from "@/app/projects/software/namegenerator/params";
 import {
   CARD_CLASSES,
   CHIP_CLASSES,
@@ -410,9 +408,7 @@ const FavoritesList = ({
 const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const pathname = usePathname();
   const [state, setState] = useState(() =>
-    hasGeneratorParams(Object.keys(params))
-      ? parseGeneratorState(params, randomSeed())
-      : PREVIEW_STATE,
+    parseGeneratorState(params, randomSeed()),
   );
   const [draft, setDraft] = useState(state.keyword ?? "");
   const [generation, setGeneration] = useState(0);

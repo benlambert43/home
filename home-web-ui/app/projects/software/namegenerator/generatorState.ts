@@ -72,13 +72,6 @@ export const DEFAULT_SETTINGS: GeneratorSettings = {
   casing: "capital",
 };
 
-export const PREVIEW_SEED = "3d0cccc4bef8b6800548b0fa11c67fc1";
-
-export const PREVIEW_STATE: GeneratorState = {
-  ...DEFAULT_SETTINGS,
-  seed: PREVIEW_SEED,
-};
-
 type SearchParamValues = Record<string, string | string[] | undefined>;
 
 const choose = <T extends string>(
