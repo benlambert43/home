@@ -2,6 +2,7 @@
 
 import {
   Favorite,
+  favoriteKey,
   MAX_FAVORITES,
   useFavorites,
 } from "@/app/projects/software/namegenerator/favorites";
@@ -120,7 +121,7 @@ const generateLabel = (pinned: readonly string[]) =>
     : `Generate names from ${PIN_LIST.format(pinned)}`;
 
 const FIELDS_GRID_CLASSES =
-  "grid grid-cols-[repeat(auto-fill,minmax(min(24.5rem,100%),1fr))] gap-x-8 gap-y-5";
+  "grid grid-cols-[repeat(auto-fill,minmax(min(22.375rem,100%),1fr))] gap-x-8 gap-y-5";
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="flex min-w-0 flex-col gap-1.5">
@@ -340,13 +341,15 @@ const NameRow = ({
 
 const FavoritesList = ({
   favorites,
+  display,
   pinned,
   onRemove,
   onTogglePin,
 }: {
   favorites: readonly Favorite[];
+  display: (favorite: Favorite) => string;
   pinned: readonly string[];
-  onRemove: (text: string) => void;
+  onRemove: (favorite: Favorite) => void;
   onTogglePin: (word: string) => void;
 }) => (
   <div className="flex flex-col gap-3 border-t border-slate-800 pt-6">
@@ -368,11 +371,11 @@ const FavoritesList = ({
           );
         }
 
-        const { text, parts } = favorite;
+        const text = display(favorite);
 
         return (
           <li
-            key={text}
+            key={favoriteKey(favorite)}
             className={`${ROW_CLASSES} flex flex-col ring-amber-400/40`}
           >
             <div className={ROW_HEADER_CLASSES}>
@@ -384,21 +387,19 @@ const FavoritesList = ({
                   title="Remove from favorites"
                   size="medium"
                   onClick={() => {
-                    onRemove(text);
+                    onRemove(favorite);
                   }}
                 >
                   <XMarkIcon className="size-5" />
                 </IconButton>
               </span>
             </div>
-            {parts.length > 0 && (
-              <WordChips
-                label={`Words in ${text}`}
-                parts={parts}
-                pinned={pinned}
-                onTogglePin={onTogglePin}
-              />
-            )}
+            <WordChips
+              label={`Words in ${text}`}
+              parts={favorite.parts}
+              pinned={pinned}
+              onTogglePin={onTogglePin}
+            />
           </li>
         );
       })}
@@ -479,8 +480,8 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
     }
   };
 
-  const saveFavorite = (text: string, parts: string[]) => {
-    add({ text, parts });
+  const saveFavorite = ({ parts, number }: Favorite) => {
+    add({ parts, number });
     setDraft("");
     update({
       keyword: undefined,
@@ -500,7 +501,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
     update({ ...DEFAULT_SETTINGS, keyword: undefined, seed: randomSeed() });
   };
 
-  const display = (name: GeneratedName) =>
+  const display = (name: Favorite) =>
     mode === "project"
       ? formatProjectName(name, format)
       : formatUsername(name, { separator, digits, casing });
@@ -554,19 +555,20 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
               autoComplete="off"
               spellCheck={false}
               aria-label="Start from a word"
-              className={`w-full pr-11 ${FIELD_CLASSES}`}
+              className={`w-full pr-10 ${FIELD_CLASSES}`}
             />
             {draft !== "" && (
-              <span className="absolute inset-y-0 right-1 flex items-center">
+              <span className="absolute inset-y-0 right-2.5 flex items-center">
                 <IconButton
                   label="Clear the word"
                   title="Clear"
+                  size="small"
                   onClick={() => {
                     removeKeyword();
                     wordInput.current?.focus();
                   }}
                 >
-                  <XMarkIcon className="size-5" />
+                  <XMarkIcon className="size-4" />
                 </IconButton>
               </span>
             )}
@@ -686,7 +688,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
           <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
             {batch.map((name, index) => {
               const text = display(name);
-              const favorite = has(text);
+              const favorite = has(name);
 
               return (
                 <NameRow
@@ -699,8 +701,8 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
                   favoritesFull={full}
                   pinned={pinned}
                   onToggleFavorite={() => {
-                    if (favorite) remove(text);
-                    else saveFavorite(text, name.parts);
+                    if (favorite) remove(name);
+                    else saveFavorite(name);
                   }}
                   onTogglePin={togglePin}
                 />
@@ -725,6 +727,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
       </div>
       <FavoritesList
         favorites={favorites}
+        display={display}
         pinned={pinned}
         onRemove={remove}
         onTogglePin={togglePin}

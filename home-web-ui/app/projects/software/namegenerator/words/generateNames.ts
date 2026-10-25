@@ -1080,7 +1080,7 @@ const capitalize = (word: string) =>
   word.charAt(0).toUpperCase() + word.slice(1);
 
 export const formatProjectName = (
-  { parts }: GeneratedName,
+  { parts }: Pick<GeneratedName, "parts">,
   format: ProjectFormat,
 ) =>
   format === "pascal"
@@ -1095,7 +1095,7 @@ const digitsFor = (number: number, digits: UsernameDigits) => {
 };
 
 export const formatUsername = (
-  { parts, number }: GeneratedName,
+  { parts, number }: Pick<GeneratedName, "parts" | "number">,
   { separator, digits, casing }: UsernameOptions,
 ) =>
   [

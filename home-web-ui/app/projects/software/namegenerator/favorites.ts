@@ -1,8 +1,12 @@
+import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import { useMemo, useSyncExternalStore } from "react";
 
 export const MAX_FAVORITES = 12;
 
-export type Favorite = { text: string; parts: string[] };
+export type Favorite = Pick<GeneratedName, "parts" | "number">;
+
+export const favoriteKey = ({ parts }: Pick<Favorite, "parts">) =>
+  parts.join(" ");
 
 const STORAGE_KEY = "namegenerator.favorites";
 
@@ -28,24 +32,49 @@ const readStored = () => {
 const isStrings = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === "string");
 
+const partsFromText = (text: string) =>
+  text
+    .replace(/\d+$/, "")
+    .split(/[-_\s]+|(?<=[a-z])(?=[A-Z])/)
+    .filter((part) => part !== "")
+    .map((part) => part.toLowerCase());
+
+const numberFromText = (text: string) => {
+  const digits = /\d+$/.exec(text)?.[0];
+  if (digits === undefined) return 0;
+  return Math.max(0, Number(digits) - (digits.length > 2 ? 1000 : 10));
+};
+
+const isNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0;
+
 const toFavorite = (item: unknown): Favorite | undefined => {
-  if (typeof item === "string") return { text: item, parts: [] };
+  if (typeof item === "string") {
+    return { parts: partsFromText(item), number: numberFromText(item) };
+  }
   if (typeof item !== "object" || item === null) return undefined;
-  const { text, parts } = item as Record<string, unknown>;
-  return typeof text === "string" && isStrings(parts)
-    ? { text, parts }
+  const { text, parts, number } = item as Record<string, unknown>;
+  if (!isStrings(parts)) return undefined;
+  if (isNumber(number)) return { parts, number };
+  return typeof text === "string"
+    ? {
+        parts: parts.length > 0 ? parts : partsFromText(text),
+        number: numberFromText(text),
+      }
     : undefined;
 };
 
 const parseStored = (raw: string): Favorite[] => {
   try {
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed
-          .map(toFavorite)
-          .filter((item) => item !== undefined)
-          .slice(0, MAX_FAVORITES)
-      : [];
+    if (!Array.isArray(parsed)) return [];
+    const byKey = new Map<string, Favorite>();
+    for (const favorite of parsed.map(toFavorite)) {
+      if (favorite === undefined || favorite.parts.length === 0) continue;
+      const key = favoriteKey(favorite);
+      if (!byKey.has(key)) byKey.set(key, favorite);
+    }
+    return [...byKey.values()].slice(0, MAX_FAVORITES);
   } catch {
     return [];
   }
@@ -64,16 +93,20 @@ export const useFavorites = () => {
   const raw = useSyncExternalStore(subscribe, readStored, () => "");
   const favorites = useMemo(() => parseStored(raw), [raw]);
 
-  const has = (text: string) =>
-    favorites.some((favorite) => favorite.text === text);
+  const has = (name: Favorite) =>
+    favorites.some((favorite) => favoriteKey(favorite) === favoriteKey(name));
 
-  const add = (favorite: Favorite) => {
-    if (has(favorite.text) || favorites.length >= MAX_FAVORITES) return;
-    writeStored([...favorites, favorite]);
+  const add = ({ parts, number }: Favorite) => {
+    if (has({ parts, number }) || favorites.length >= MAX_FAVORITES) return;
+    writeStored([...favorites, { parts, number }]);
   };
 
-  const remove = (text: string) => {
-    writeStored(favorites.filter((favorite) => favorite.text !== text));
+  const remove = (name: Favorite) => {
+    writeStored(
+      favorites.filter(
+        (favorite) => favoriteKey(favorite) !== favoriteKey(name),
+      ),
+    );
   };
 
   return {
