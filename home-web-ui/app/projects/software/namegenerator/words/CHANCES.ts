@@ -1,6 +1,6 @@
 export const PROJECT_ALLITERATION_CHANCE = 0.25;
 export const USERNAME_ALLITERATION_CHANCE = 0.3;
-export const PROJECT_NOUN_CHANCE = 0.65;
+export const PROJECT_NOUN_CHANCE = 0.5;
 export const USERNAME_ANIMAL_CHANCE = 0.75;
 export const KEYWORD_MODIFIER_CHANCE = 0.6;
 export const KEYWORD_FIRST_CHANCE = 0.5;
