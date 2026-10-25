@@ -1,3 +1,4 @@
+import { PARAMS } from "@/app/projects/software/namegenerator/params";
 import { normalizeKeyword } from "@/app/projects/software/namegenerator/words/generateNames";
 import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import { decodeSeed } from "@/app/projects/software/namegenerator/words/random";
@@ -71,19 +72,12 @@ export const DEFAULT_SETTINGS: GeneratorSettings = {
   casing: "capital",
 };
 
-const PARAMS = {
-  mode: "type",
-  style: "style",
-  length: "length",
-  theme: "theme",
-  keyword: "word",
-  pins: "pins",
-  format: "format",
-  separator: "separator",
-  digits: "digits",
-  casing: "case",
-  seed: "seed",
-} as const;
+export const PREVIEW_SEED = "3d0cccc4bef8b6800548b0fa11c67fc1";
+
+export const PREVIEW_STATE: GeneratorState = {
+  ...DEFAULT_SETTINGS,
+  seed: PREVIEW_SEED,
+};
 
 type SearchParamValues = Record<string, string | string[] | undefined>;
 

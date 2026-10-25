@@ -16,10 +16,24 @@ import {
   generatorSearch,
   LENGTHS,
   MODES,
+  parseGeneratorState,
+  PREVIEW_STATE,
   SEPARATORS,
   STYLES,
   THEMES,
 } from "@/app/projects/software/namegenerator/generatorState";
+import { hasGeneratorParams } from "@/app/projects/software/namegenerator/params";
+import {
+  CARD_CLASSES,
+  CHIP_CLASSES,
+  NAME_TEXT_CLASSES,
+  PIN_CHIP_CLASSES,
+  PLAIN_CHIP_CLASSES,
+  RESULTS_GRID_CLASSES,
+  ROW_CLASSES,
+  ROW_HEADER_CLASSES,
+  WORD_LIST_CLASSES,
+} from "@/app/projects/software/namegenerator/styles";
 import {
   formatProjectName,
   formatUsername,
@@ -203,18 +217,6 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-const RESULTS_GRID_CLASSES = "grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3";
-
-const ROW_CLASSES =
-  "@container rounded-xl bg-slate-800/60 py-2 pr-2 pl-3 ring-1";
-
-const ROW_HEADER_CLASSES = "flex min-h-8 flex-wrap items-center gap-x-2";
-
-const NAME_TEXT_CLASSES = `min-w-0 grow font-mono text-sm break-all
-  text-slate-50 @3xs:text-base @xs:text-lg`;
-
-const PIN_CHIP_CLASSES = "bg-sky-500/20 text-sky-100 ring-1 ring-sky-400/70";
-
 const WordChip = ({
   word,
   pinned,
@@ -238,13 +240,11 @@ const WordChip = ({
           : "Pin this word for the next names"
     }
     onClick={onToggle}
-    className={`rounded-full px-2.5 py-0.5 text-xs font-medium
-      hover:cursor-pointer focus:outline-slate-100 disabled:cursor-default
-      disabled:opacity-40 ${
+    className={`${CHIP_CLASSES} hover:cursor-pointer focus:outline-slate-100
+      disabled:cursor-default disabled:opacity-40 ${
         pinned
           ? PIN_CHIP_CLASSES
-          : `bg-slate-700/60 text-slate-300 ring-1 ring-slate-600
-            hover:bg-slate-600 hover:text-slate-50`
+          : `${PLAIN_CHIP_CLASSES} hover:bg-slate-600 hover:text-slate-50`
       }`}
   >
     {word}
@@ -262,7 +262,7 @@ const WordChips = ({
   pinned: readonly string[];
   onTogglePin: (word: string) => void;
 }) => (
-  <ul aria-label={label} className="flex flex-wrap gap-1.5 pt-1.5">
+  <ul aria-label={label} className={WORD_LIST_CLASSES}>
     {parts.map((word) => (
       <li key={word}>
         <WordChip
@@ -407,10 +407,14 @@ const FavoritesList = ({
   </div>
 );
 
-const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
+const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const pathname = usePathname();
-  const [state, setState] = useState(initial);
-  const [draft, setDraft] = useState(initial.keyword ?? "");
+  const [state, setState] = useState(() =>
+    hasGeneratorParams(Object.keys(params))
+      ? parseGeneratorState(params, randomSeed())
+      : PREVIEW_STATE,
+  );
+  const [draft, setDraft] = useState(state.keyword ?? "");
   const [generation, setGeneration] = useState(0);
   const wordInput = useRef<HTMLInputElement>(null);
   const { favorites, has, add, remove, full } = useFavorites();
@@ -507,12 +511,7 @@ const NameGenerator = ({ initial }: { initial: GeneratorState }) => {
       : formatUsername(name, { separator, digits, casing });
 
   return (
-    <section
-      aria-label="Name generator"
-      className="@container relative flex w-full flex-col gap-6 rounded-2xl
-        bg-slate-900 p-5 shadow-xl ring-1 shadow-slate-950/50 ring-slate-700
-        sm:p-8"
-    >
+    <section aria-label="Name generator" className={CARD_CLASSES}>
       <span className="absolute top-1 right-1 sm:top-2 sm:right-2">
         <IconButton
           label="Reset settings"

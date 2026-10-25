@@ -1,54 +1,65 @@
-import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
-import { pageMetadata } from "@/app/lib/metadata";
-import { SearchParams } from "@/app/lib/searchParams";
-import { parseGeneratorState } from "@/app/projects/software/namegenerator/generatorState";
-import NameGenerator from "@/app/projects/software/namegenerator/NameGenerator";
-import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
+import {
+  openGraphPage,
+  pageMetadata,
+  siteShareImages,
+} from "@/app/lib/metadata";
+import {
+  DEFAULT_SETTINGS,
+  PREVIEW_SEED,
+} from "@/app/projects/software/namegenerator/generatorState";
+import LazyNameGenerator from "@/app/projects/software/namegenerator/LazyNameGenerator";
+import SampleNames from "@/app/projects/software/namegenerator/SampleNames";
+import {
+  formatProjectName,
+  generateBatch,
+} from "@/app/projects/software/namegenerator/words/generateNames";
 import ProjectPage from "@/app/projects/ProjectPage";
-import { connection } from "next/server";
+import type { Metadata, ResolvingMetadata } from "next";
 
 const PATH = "/projects/software/namegenerator";
+
+const TITLE = "name generator";
 
 const DESCRIPTION =
   "Generate memorable names for software projects and usernames, built in your browser from curated word lists.";
 
-export const metadata = {
-  ...pageMetadata("name generator", {
-    canonicalPath: PATH,
-    description: DESCRIPTION,
-  }),
-  robots: { index: false },
-};
+export const generateMetadata = async (
+  _props: unknown,
+  parent: ResolvingMetadata,
+): Promise<Metadata> => ({
+  ...pageMetadata(TITLE, { canonicalPath: PATH, description: DESCRIPTION }),
+  openGraph: {
+    type: "website",
+    ...openGraphPage(TITLE, DESCRIPTION, PATH),
+    images: await siteShareImages(parent),
+  },
+});
 
-export const instant = false;
+const { mode, style, length, theme, pins, format } = DEFAULT_SETTINGS;
 
-const returnPath = (params: Awaited<SearchParams>) => {
-  const query = new URLSearchParams(
-    Object.entries(params).flatMap(([key, value]) =>
-      typeof value === "string" ? [[key, value]] : [],
-    ),
-  ).toString();
-  return query === "" ? PATH : `${PATH}?${query}`;
-};
+const SAMPLE_NAMES = generateBatch(
+  { mode, style, length, theme, pins, keyword: undefined },
+  PREVIEW_SEED,
+).map((name) => ({
+  text: formatProjectName(name, format),
+  parts: name.parts,
+}));
 
-const NameGeneratorPage = async ({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) => {
-  const params = await searchParams;
-  await requireBffSessionUser(returnPath(params));
-  await connection();
-  const initial = parseGeneratorState(params, randomSeed());
-
-  return (
-    <ProjectPage
-      title="Name Generator"
-      backLink={{ href: "/projects/software", label: "Software" }}
-    >
-      <NameGenerator initial={initial} />
-    </ProjectPage>
-  );
-};
+const NameGeneratorPage = () => (
+  <ProjectPage
+    title="Name Generator"
+    backLink={{ href: "/projects/software", label: "Software" }}
+  >
+    <p className="text-slate-300">
+      Generate names for software projects and usernames from curated word
+      lists, themed around nature, space, the workshop, mythology, the kitchen
+      and tech. Pick a length and style, start from your own word, pin the words
+      you like and star favorites to keep. Everything runs in your browser.
+    </p>
+    <LazyNameGenerator>
+      <SampleNames names={SAMPLE_NAMES} />
+    </LazyNameGenerator>
+  </ProjectPage>
+);
 
 export default NameGeneratorPage;

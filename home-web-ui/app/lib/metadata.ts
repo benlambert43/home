@@ -61,7 +61,7 @@ export const siteShareImages = async (
   parent: ResolvingMetadata,
 ): Promise<ShareImages> => (await parent).openGraph?.images ?? [];
 
-const openGraphPage = (
+export const openGraphPage = (
   title: string,
   description: string,
   canonicalPath: string,
