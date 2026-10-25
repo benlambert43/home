@@ -672,15 +672,18 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
 
   const update = (changes: Partial<GeneratorState>, regenerate = true) => {
     const next = { ...state, ...changes };
+    const generated = regenerate
+      ? { keyword: next.keyword, pins: next.pins }
+      : source;
     setState(next);
     if (regenerate) {
-      setSource({ keyword: next.keyword, pins: next.pins });
+      setSource(generated);
       setGeneration((count) => count + 1);
     }
     window.history.replaceState(
       null,
       "",
-      `${pathname}${generatorSearch(next)}`,
+      `${pathname}${generatorSearch({ ...next, ...generated })}`,
     );
   };
 
