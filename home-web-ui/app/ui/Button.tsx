@@ -6,8 +6,10 @@ type ButtonEmphasis = "primary" | "secondary";
 export type ButtonColor = "normal" | "warning" | "danger";
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  large: "inline-block rounded-md px-8 py-1 hover:cursor-pointer text-lg",
-  small: "inline-block rounded-sm px-2 py-0.5 hover:cursor-pointer text-base",
+  large:
+    "inline-block rounded-md px-8 py-1 hover:cursor-pointer disabled:cursor-default text-lg",
+  small:
+    "inline-block rounded-sm px-2 py-0.5 hover:cursor-pointer disabled:cursor-default text-base",
 };
 
 const COLOR_CLASSES: Record<ButtonEmphasis, Record<ButtonColor, string>> = {

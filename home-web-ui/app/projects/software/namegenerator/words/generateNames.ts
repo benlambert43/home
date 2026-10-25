@@ -27,6 +27,7 @@ import { CODA_ONSET_PAIRS } from "@/app/projects/software/namegenerator/words/CO
 import { COLORS } from "@/app/projects/software/namegenerator/words/COLORS";
 import {
   BATCH_SIZE,
+  COVERAGE_ATTEMPTS,
   COINED_WINDOWS,
   KEYWORD_WINDOW_SLACK,
   LengthWindow,
@@ -645,24 +646,27 @@ const HYBRID_TRIPLE_TEMPLATES: Slot[][] = [
   ["modifier", "coined", "noun"],
 ];
 
+const HYBRID_PAIR_TEMPLATES: Slot[][] = [
+  ["modifier", "coined"],
+  ["coined", "tail"],
+];
+
+const TEMPLATES_BY_RECIPE: Record<ProjectRecipe, Slot[][]> = {
+  compound: [["modifier", "noun"]],
+  techCompound: [["stem", "tail"]],
+  triple: TRIPLE_TEMPLATES,
+  suffix: [["coined"]],
+  blend: [["coined"]],
+  hybridPair: HYBRID_PAIR_TEMPLATES,
+  hybridTriple: HYBRID_TRIPLE_TEMPLATES,
+};
+
 const templateFor = (recipe: ProjectRecipe): Slot[] => {
-  switch (recipe) {
-    case "compound":
-      return ["modifier", "noun"];
-    case "techCompound":
-      return ["stem", "tail"];
-    case "triple":
-      return pick(TRIPLE_TEMPLATES);
-    case "suffix":
-    case "blend":
-      return ["coined"];
-    case "hybridPair":
-      return chance(KEYWORD_FIRST_CHANCE)
-        ? ["modifier", "coined"]
-        : ["coined", "tail"];
-    case "hybridTriple":
-      return pick(HYBRID_TRIPLE_TEMPLATES);
+  const templates = TEMPLATES_BY_RECIPE[recipe];
+  if (recipe === "hybridPair") {
+    return templates[chance(KEYWORD_FIRST_CHANCE) ? 0 : 1];
   }
+  return templates.length === 1 ? templates[0] : pick(templates);
 };
 
 const coinedRecipeFor = (recipe: ProjectRecipe): CoinedRecipe =>
@@ -748,6 +752,7 @@ const buildFromTemplate = (
   template: Slot[],
   required: readonly string[],
   recipe: ProjectRecipe,
+  literal = false,
 ): Candidate | undefined => {
   const { mode, length } = options;
   const mashups = mashupsFor(template, pools, length, required);
@@ -782,8 +787,9 @@ const buildFromTemplate = (
   const coinedAt = template.indexOf("coined");
   const mashing =
     mashups.length > 0 &&
-    (required.length > realSlots.length || chance(MASHUP_CHANCE));
+    (required.length > realSlots.length || (!literal && chance(MASHUP_CHANCE)));
   const coining =
+    !literal &&
     !mashing &&
     coinedAt !== -1 &&
     required.length === 1 &&
@@ -848,6 +854,20 @@ const capacityOf = (template: Slot[]) =>
     ? 1
     : realSlotsOf(template).length;
 
+const largestCombination = (
+  weights: Record<ProjectRecipe, number>,
+  literal: boolean,
+) =>
+  Math.max(
+    ...(Object.keys(weights) as ProjectRecipe[])
+      .filter((recipe) => weights[recipe] > 0)
+      .flatMap((recipe) =>
+        TEMPLATES_BY_RECIPE[recipe].map((template) =>
+          literal ? realSlotsOf(template).length : capacityOf(template) + 1,
+        ),
+      ),
+  );
+
 const subsetChoices = (
   template: Slot[],
   pools: Pools,
@@ -884,7 +904,26 @@ const fitRequired = (
   recipe: ProjectRecipe,
   required: readonly string[],
   seen: ReadonlySet<string>,
+  forced?: readonly string[],
 ): Picked | undefined => {
+  if (forced) {
+    for (let retry = 0; retry < REQUIRED_RETRIES; retry++) {
+      const candidate = buildFromTemplate(
+        options,
+        pools,
+        template,
+        forced,
+        recipe,
+        options.style !== "invented",
+      );
+      if (!candidate) return undefined;
+      if (!seen.has(orderlessKey(candidate.parts))) {
+        return picked(recipe, forced, candidate);
+      }
+    }
+    return undefined;
+  }
+
   const choices = subsetChoices(template, pools, options.length, required);
   if (choices.length === 0) return undefined;
 
@@ -912,6 +951,7 @@ const projectCandidate = (
   required: readonly string[],
   seen: ReadonlySet<string>,
   weights: Record<ProjectRecipe, number>,
+  forced?: readonly string[],
 ): Picked | undefined => {
   const recipe = pickWeighted(weights);
 
@@ -951,6 +991,7 @@ const projectCandidate = (
     recipe,
     required,
     seen,
+    forced,
   );
 };
 
@@ -959,6 +1000,7 @@ const usernameCandidate = (
   pools: Pools,
   required: readonly string[],
   seen: ReadonlySet<string>,
+  forced?: readonly string[],
 ): Picked | undefined => {
   if (required.length === 0) {
     return picked(
@@ -983,6 +1025,7 @@ const usernameCandidate = (
     "compound",
     required,
     seen,
+    forced,
   );
 };
 
@@ -1193,26 +1236,28 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     !hasColor(candidate, required) || colored < MAX_COLORS_PER_BATCH;
   const understocked = (goals: typeof quotas) =>
     goals.some(([stock, quota]) => (stocked.get(stock) ?? 0) < quota);
+  const literal = options.mode === "username" || options.style !== "invented";
+  const combinationOf = ({ candidate, pinned }: Ranked) => {
+    const shown = required.filter((word) => candidate.parts.includes(word));
+    return orderlessKey(shown.length > 0 || literal ? shown : pinned);
+  };
+  const combinations = Array.from(
+    { length: Math.min(required.length, largestCombination(weights, literal)) },
+    (_, index) => subsetsOf(required, index + 1),
+  ).flat();
 
-  for (
-    let attempt = 0;
-    attempt < MAX_ATTEMPTS &&
-    (pool.length < POOL_SIZE ||
-      understocked(quotas) ||
-      (attempt < LENGTH_STOCK_ATTEMPTS && understocked(lengthQuotas)));
-    attempt++
-  ) {
+  const stock = (forced?: readonly string[]) => {
     const resolved = resolve(options);
     const pools = poolsByTheme.get(resolved.theme);
-    if (!pools) continue;
+    if (!pools) return;
     const made =
       options.mode === "project"
-        ? projectCandidate(resolved, pools, required, seen, weights)
-        : usernameCandidate(resolved, pools, required, seen);
-    if (!made || !anchored(pools, made.candidate)) continue;
+        ? projectCandidate(resolved, pools, required, seen, weights, forced)
+        : usernameCandidate(resolved, pools, required, seen, forced);
+    if (!made || !anchored(pools, made.candidate)) return;
 
     const key = orderlessKey(made.candidate.parts);
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return;
 
     seen.add(key);
     [stockKey(made.recipe), stockKey(made.recipe, resolved.length)].forEach(
@@ -1224,10 +1269,48 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
       theme: resolved.theme,
       score: scoreCandidate(made.candidate, loose(options)),
     });
+  };
+
+  for (
+    let attempt = 0;
+    attempt < MAX_ATTEMPTS &&
+    (pool.length < POOL_SIZE ||
+      understocked(quotas) ||
+      (attempt < LENGTH_STOCK_ATTEMPTS && understocked(lengthQuotas)));
+    attempt++
+  ) {
+    stock();
   }
+
+  combinations.forEach((combination) => {
+    const key = orderlessKey(combination);
+    const stocked = () => pool.some((entry) => combinationOf(entry) === key);
+    for (
+      let attempt = 0;
+      attempt < COVERAGE_ATTEMPTS && !stocked();
+      attempt++
+    ) {
+      stock(combination);
+    }
+  });
 
   const grouped = !loose(options);
   const taken = new Set<Ranked>();
+  const take = (entry: Ranked) => {
+    const { candidate, length, theme } = entry;
+    taken.add(entry);
+    if (candidate.alliterative) alliterations += 1;
+    if (hasColor(candidate, required)) colored += 1;
+    drawn.lengths?.set(length, (drawn.lengths.get(length) ?? 0) + 1);
+    drawn.themes.set(theme, (drawn.themes.get(theme) ?? 0) + 1);
+
+    candidate.sources.forEach((source) => used.add(source));
+    names.push({
+      id: `${candidate.parts.join("")}-${names.length}`,
+      parts: candidate.parts,
+      number: randomIndex(10000),
+    });
+  };
   const drawFrom = (
     shelves: Shelves,
     fitting: (candidate: Candidate) => boolean,
@@ -1238,26 +1321,27 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
       draw++
     ) {
       const entry = takeFromShelves(shelves, weights, fitting, drawn);
-      if (!entry) continue;
-
-      const { candidate, length, theme } = entry;
-      taken.add(entry);
-      if (candidate.alliterative) alliterations += 1;
-      if (hasColor(candidate, required)) colored += 1;
-      drawn.lengths?.set(length, (drawn.lengths.get(length) ?? 0) + 1);
-      drawn.themes.set(theme, (drawn.themes.get(theme) ?? 0) + 1);
-
-      candidate.sources.forEach((source) => used.add(source));
-      names.push({
-        id: `${candidate.parts.join("")}-${names.length}`,
-        parts: candidate.parts,
-        number: randomIndex(10000),
-      });
+      if (entry) take(entry);
     }
   };
 
+  shuffle(combinations).forEach((combination) => {
+    const key = orderlessKey(combination);
+    const shelf = pool
+      .filter((entry) => !taken.has(entry) && combinationOf(entry) === key)
+      .sort((left, right) => right.score - left.score);
+    const fitting = shelf.filter((entry) => acceptable(entry.candidate));
+    const entry =
+      shelf.length > 0
+        ? balancedEntry(fitting.length > 0 ? fitting : shelf, drawn)
+        : undefined;
+    if (entry) take(entry);
+  });
   drawFrom(
-    shelve(pool, grouped),
+    shelve(
+      pool.filter((entry) => !taken.has(entry)),
+      grouped,
+    ),
     (candidate) => acceptable(candidate) && underColorCap(candidate),
   );
   if (names.length < BATCH_SIZE) {
@@ -1270,7 +1354,7 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     );
   }
 
-  return names;
+  return combinations.length > 0 ? shuffle(names) : names;
 };
 
 export const generateBatch = (

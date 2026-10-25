@@ -8,6 +8,10 @@ const GROUP_CLASSES =
 const FILL_GRID_CLASSES =
   "grid w-full grid-cols-[repeat(auto-fill,minmax(min(11rem,100%),1fr))] gap-0.5";
 
+const PHONE_GRID_CLASSES = "max-sm:w-fit max-sm:grid-cols-[repeat(2,7.125rem)]";
+
+const FILL_BUTTON_CLASSES = "max-sm:px-4 max-sm:text-xs";
+
 const SegmentedToggle = <T extends string>({
   label,
   options,
@@ -35,6 +39,8 @@ const SegmentedToggle = <T extends string>({
         className={`flex items-center justify-center rounded-sm px-8 py-1
           text-base whitespace-nowrap transition-colors hover:cursor-pointer
           focus-visible:outline-slate-100 pointer-coarse:py-2 ${
+            fill ? FILL_BUTTON_CLASSES : ""
+          } ${
             selected
               ? "bg-slate-200 font-medium text-slate-900"
               : `bg-slate-800 text-slate-200 hover:bg-slate-700
@@ -45,8 +51,8 @@ const SegmentedToggle = <T extends string>({
           {selected ? (
             <CheckIcon
               aria-hidden
-              className="absolute top-1/2 right-full mr-1 size-4
-                -translate-y-1/2"
+              className={`absolute top-1/2 right-full mr-1 size-4
+                -translate-y-1/2 ${fill ? "max-sm:size-3" : ""}`}
             />
           ) : null}
           {option.label}
@@ -57,13 +63,29 @@ const SegmentedToggle = <T extends string>({
 
   if (fill && options.length === 2) {
     return (
-      <div className={`@container p-0.5 ${FILL_GRID_CLASSES}`}>
+      <div className={`@container p-0.5 max-sm:block ${FILL_GRID_CLASSES}`}>
         <div
           role="group"
           aria-label={label}
           className={`col-span-2 -m-0.5 grid grid-cols-2
-            @max-[22.125rem]:col-span-1 @max-[22.125rem]:grid-cols-1
-            ${GROUP_CLASSES}`}
+            sm:@max-[22.125rem]:col-span-1 sm:@max-[22.125rem]:grid-cols-1
+            ${PHONE_GRID_CLASSES} ${GROUP_CLASSES}`}
+        >
+          {buttons}
+        </div>
+      </div>
+    );
+  }
+
+  if (fill) {
+    return (
+      <div className="@container w-full">
+        <div
+          role="group"
+          aria-label={label}
+          className={`${GROUP_CLASSES} ${FILL_GRID_CLASSES}
+            ${PHONE_GRID_CLASSES}
+            max-sm:@min-[21.875rem]:grid-cols-[repeat(3,7.125rem)]`}
         >
           {buttons}
         </div>
@@ -75,9 +97,7 @@ const SegmentedToggle = <T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={`${GROUP_CLASSES} ${
-        fill ? FILL_GRID_CLASSES : "inline-flex flex-wrap self-start"
-      }`}
+      className={`${GROUP_CLASSES} inline-flex flex-wrap self-start`}
     >
       {buttons}
     </div>
