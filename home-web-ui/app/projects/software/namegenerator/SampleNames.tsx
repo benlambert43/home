@@ -1,3 +1,4 @@
+import NameText from "@/app/projects/software/namegenerator/NameText";
 import {
   CHIP_CLASSES,
   NAME_TEXT_CLASSES,
@@ -5,6 +6,7 @@ import {
   RESULTS_GRID_CLASSES,
   ROW_CLASSES,
   ROW_HEADER_CLASSES,
+  ROW_PADDING_CLASSES,
   WORD_LIST_CLASSES,
 } from "@/app/projects/software/namegenerator/styles";
 
@@ -15,10 +17,13 @@ const SampleNames = ({ names }: { names: readonly SampleName[] }) => (
     {names.map(({ text, parts }) => (
       <li
         key={text}
-        className={`${ROW_CLASSES} flex flex-col ring-slate-700/80`}
+        className={`${ROW_CLASSES} ${ROW_PADDING_CLASSES} flex flex-col
+        ring-slate-700/80`}
       >
         <div className={ROW_HEADER_CLASSES}>
-          <code className={NAME_TEXT_CLASSES}>{text}</code>
+          <code className={NAME_TEXT_CLASSES}>
+            <NameText text={text} parts={parts} />
+          </code>
         </div>
         <ul aria-label={`Words in ${text}`} className={WORD_LIST_CLASSES}>
           {parts.map((word) => (

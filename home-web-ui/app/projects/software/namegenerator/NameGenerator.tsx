@@ -1,5 +1,6 @@
 "use client";
 
+import Dialog from "@/app/components/Dialog";
 import {
   Favorite,
   favoriteKey,
@@ -21,15 +22,16 @@ import {
   STYLES,
   THEMES,
 } from "@/app/projects/software/namegenerator/generatorState";
+import NameText from "@/app/projects/software/namegenerator/NameText";
 import {
   CARD_CLASSES,
   CHIP_CLASSES,
   NAME_TEXT_CLASSES,
   PIN_CHIP_CLASSES,
   PLAIN_CHIP_CLASSES,
-  RESULTS_GRID_CLASSES,
   ROW_CLASSES,
   ROW_HEADER_CLASSES,
+  ROW_PADDING_CLASSES,
   WORD_LIST_CLASSES,
 } from "@/app/projects/software/namegenerator/styles";
 import {
@@ -40,7 +42,6 @@ import {
 } from "@/app/projects/software/namegenerator/words/generateNames";
 import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
-import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
 import SegmentedToggle from "@/app/ui/SegmentedToggle";
 import { FIELD_CLASSES } from "@/app/ui/fieldStyles";
@@ -145,6 +146,9 @@ const GenerateLabel = ({ pinned }: { pinned: readonly string[] }) => (
 
 const FIELDS_GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(min(22.375rem,100%),1fr))] gap-x-8 gap-y-5";
+
+const NAME_GRID_CLASSES =
+  "grid grid-cols-2 gap-2 [overflow-anchor:none] @md/generator:grid-cols-1 @md/generator:gap-3 @xl:grid-cols-2 @4xl:grid-cols-3";
 
 const FIELD_LABEL_CLASSES =
   "text-xs font-medium tracking-wide text-slate-400 uppercase";
@@ -343,64 +347,133 @@ const WordChips = ({
   </ul>
 );
 
-const NameRow = ({
-  name,
-  display,
-  order,
-  animate,
-  favorite,
-  favoritesFull,
-  pinned,
-  onToggleFavorite,
-  onTogglePin,
-}: {
-  name: GeneratedName;
+type NameDetailsProps = {
+  name: Favorite;
   display: string;
-  order: number;
-  animate: boolean;
   favorite: boolean;
   favoritesFull: boolean;
   pinned: readonly string[];
   onToggleFavorite: () => void;
   onTogglePin: (word: string) => void;
+};
+
+const NameDetails = ({
+  name,
+  display,
+  favorite,
+  favoritesFull,
+  pinned,
+  onToggleFavorite,
+  onTogglePin,
+  stacked = false,
+  children,
+}: NameDetailsProps & { stacked?: boolean; children?: ReactNode }) => {
+  const actions = (
+    <span
+      className={`flex shrink-0 items-center ${
+        stacked ? "-mx-1.5 -mt-1.5 self-stretch" : "-ml-1.5"
+      }`}
+    >
+      <IconButton
+        label={
+          favorite
+            ? `Remove ${display} from favorites`
+            : `Add ${display} to favorites`
+        }
+        title={
+          favorite
+            ? "Remove from favorites"
+            : favoritesFull
+              ? `Favorites are full (${MAX_FAVORITES})`
+              : "Add to favorites"
+        }
+        disabled={!favorite && favoritesFull}
+        size="medium"
+        onClick={onToggleFavorite}
+      >
+        <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
+      </IconButton>
+      <CopyButton text={display} />
+      {stacked ? <span className="ml-auto flex">{children}</span> : children}
+    </span>
+  );
+
+  return (
+    <>
+      {stacked && actions}
+      <div className={ROW_HEADER_CLASSES}>
+        <code className={NAME_TEXT_CLASSES}>
+          <NameText text={display} parts={name.parts} />
+        </code>
+        {!stacked && actions}
+      </div>
+      <WordChips
+        label={`Words in ${display}`}
+        parts={name.parts}
+        pinned={pinned}
+        onTogglePin={onTogglePin}
+      />
+    </>
+  );
+};
+
+const CompactName = ({
+  name,
+  display,
+  favorite = false,
+  onOpen,
+}: {
+  name: Favorite;
+  display: string;
+  favorite?: boolean;
+  onOpen: () => void;
+}) => (
+  <button
+    type="button"
+    aria-haspopup="dialog"
+    onClick={onOpen}
+    className={`${ROW_PADDING_CLASSES} flex size-full items-start gap-1
+      rounded-xl text-left hover:cursor-pointer hover:bg-slate-700/60
+      focus:outline-slate-100 @md/generator:hidden`}
+  >
+    <code className={NAME_TEXT_CLASSES}>
+      <NameText text={display} parts={name.parts} />
+    </code>
+    {favorite && (
+      <StarIcon className="mt-0.5 size-4 shrink-0 text-amber-400">
+        <title>Favorite</title>
+      </StarIcon>
+    )}
+  </button>
+);
+
+const FULL_NAME_CLASSES = `${ROW_PADDING_CLASSES} hidden flex-col @md/generator:flex`;
+
+const NameRow = ({
+  order,
+  animate,
+  onOpen,
+  ...details
+}: NameDetailsProps & {
+  order: number;
+  animate: boolean;
+  onOpen: () => void;
 }) => (
   <li
-    className={`${ROW_CLASSES} flex flex-col ring-slate-700/80 ${
+    className={`${ROW_CLASSES} ring-slate-700/80 ${
       animate ? "animated:motion-safe:animate-rise" : ""
     }`}
     style={{ "--rise-order": order * 0.4 } as CSSProperties}
   >
-    <div className={ROW_HEADER_CLASSES}>
-      <code className={NAME_TEXT_CLASSES}>{display}</code>
-      <span className="-ml-1.5 flex shrink-0 items-center">
-        <IconButton
-          label={
-            favorite
-              ? `Remove ${display} from favorites`
-              : `Add ${display} to favorites`
-          }
-          title={
-            favorite
-              ? "Remove from favorites"
-              : favoritesFull
-                ? `Favorites are full (${MAX_FAVORITES})`
-                : "Add to favorites"
-          }
-          disabled={!favorite && favoritesFull}
-          size="medium"
-          onClick={onToggleFavorite}
-        >
-          <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
-        </IconButton>
-        <CopyButton text={display} />
-      </span>
-    </div>
-    <WordChips
-      label={`Words in ${display}`}
-      parts={name.parts}
-      pinned={pinned}
-      onTogglePin={onTogglePin}
+    <CompactName
+      name={details.name}
+      display={details.display}
+      favorite={details.favorite}
+      onOpen={onOpen}
     />
+    <div className={FULL_NAME_CLASSES}>
+      <NameDetails {...details} />
+    </div>
   </li>
 );
 
@@ -410,18 +483,20 @@ const FavoritesList = ({
   pinned,
   onRemove,
   onTogglePin,
+  onOpen,
 }: {
   favorites: readonly Favorite[];
   display: (favorite: Favorite) => string;
   pinned: readonly string[];
   onRemove: (favorite: Favorite) => void;
   onTogglePin: (word: string) => void;
+  onOpen: (favorite: Favorite) => void;
 }) => (
   <div className="flex flex-col gap-3 border-t border-slate-800 pt-6">
     <h2 className="text-xs font-medium tracking-wide text-slate-400 uppercase">
       Favorites ({favorites.length} of {MAX_FAVORITES})
     </h2>
-    <ul aria-label="Favorite names" className={RESULTS_GRID_CLASSES}>
+    <ul aria-label="Favorite names" className={NAME_GRID_CLASSES}>
       {Array.from({ length: MAX_FAVORITES }, (_, index) => {
         const favorite = favorites[index];
 
@@ -430,8 +505,8 @@ const FavoritesList = ({
             <li
               key={index}
               aria-hidden
-              className="min-h-18.5 rounded-xl border border-dashed
-                border-slate-700"
+              className="min-h-9 rounded-xl border border-dashed
+                border-slate-700 @md/generator:min-h-18.5"
             />
           );
         }
@@ -441,30 +516,41 @@ const FavoritesList = ({
         return (
           <li
             key={favoriteKey(favorite)}
-            className={`${ROW_CLASSES} flex flex-col ring-amber-400/40`}
+            className={`${ROW_CLASSES} ring-amber-400/40`}
           >
-            <div className={ROW_HEADER_CLASSES}>
-              <code className={NAME_TEXT_CLASSES}>{text}</code>
-              <span className="-ml-1.5 flex shrink-0 items-center">
-                <CopyButton text={text} />
-                <IconButton
-                  label={`Remove ${text} from favorites`}
-                  title="Remove from favorites"
-                  size="medium"
-                  onClick={() => {
-                    onRemove(favorite);
-                  }}
-                >
-                  <XMarkIcon className="size-5" />
-                </IconButton>
-              </span>
-            </div>
-            <WordChips
-              label={`Words in ${text}`}
-              parts={favorite.parts}
-              pinned={pinned}
-              onTogglePin={onTogglePin}
+            <CompactName
+              name={favorite}
+              display={text}
+              onOpen={() => {
+                onOpen(favorite);
+              }}
             />
+            <div className={FULL_NAME_CLASSES}>
+              <div className={ROW_HEADER_CLASSES}>
+                <code className={NAME_TEXT_CLASSES}>
+                  <NameText text={text} parts={favorite.parts} />
+                </code>
+                <span className="-ml-1.5 flex shrink-0 items-center">
+                  <CopyButton text={text} />
+                  <IconButton
+                    label={`Remove ${text} from favorites`}
+                    title="Remove from favorites"
+                    size="medium"
+                    onClick={() => {
+                      onRemove(favorite);
+                    }}
+                  >
+                    <XMarkIcon className="size-5" />
+                  </IconButton>
+                </span>
+              </div>
+              <WordChips
+                label={`Words in ${text}`}
+                parts={favorite.parts}
+                pinned={pinned}
+                onTogglePin={onTogglePin}
+              />
+            </div>
           </li>
         );
       })}
@@ -481,6 +567,8 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const [generation, setGeneration] = useState(0);
   const wordInput = useRef<HTMLInputElement>(null);
   const [openField, setOpenField] = useState<string>();
+  const [selected, setSelected] = useState<Favorite>();
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { favorites, has, add, remove, full } = useFavorites();
 
   const { mode, style, length, theme, keyword, pins, seed } = state;
@@ -582,6 +670,31 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     mode === "project"
       ? formatProjectName(name, format)
       : formatUsername(name, { separator, digits, casing });
+
+  const detailsProps = (name: Favorite): NameDetailsProps => {
+    const favorite = has(name);
+    return {
+      name,
+      display: display(name),
+      favorite,
+      favoritesFull: full,
+      pinned,
+      onToggleFavorite: () => {
+        if (favorite) remove(name);
+        else saveFavorite(name);
+      },
+      onTogglePin: togglePin,
+    };
+  };
+
+  const openDetails = (name: Favorite) => {
+    setSelected(name);
+    setDetailsOpen(true);
+  };
+
+  const closeDetails = () => {
+    setDetailsOpen(false);
+  };
 
   return (
     <section
@@ -772,29 +885,18 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
             style.
           </p>
         ) : (
-          <ul aria-label="Generated names" className={RESULTS_GRID_CLASSES}>
-            {batch.map((name, index) => {
-              const text = display(name);
-              const favorite = has(name);
-
-              return (
-                <NameRow
-                  key={name.id}
-                  name={name}
-                  display={text}
-                  order={index}
-                  animate={generation > 0}
-                  favorite={favorite}
-                  favoritesFull={full}
-                  pinned={pinned}
-                  onToggleFavorite={() => {
-                    if (favorite) remove(name);
-                    else saveFavorite(name);
-                  }}
-                  onTogglePin={togglePin}
-                />
-              );
-            })}
+          <ul aria-label="Generated names" className={NAME_GRID_CLASSES}>
+            {batch.map((name, index) => (
+              <NameRow
+                key={name.id}
+                {...detailsProps(name)}
+                order={index}
+                animate={generation > 0}
+                onOpen={() => {
+                  openDetails(name);
+                }}
+              />
+            ))}
           </ul>
         )}
         <div className="flex justify-center">
@@ -818,7 +920,31 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
         pinned={pinned}
         onRemove={remove}
         onTogglePin={togglePin}
+        onOpen={openDetails}
       />
+      <Dialog
+        open={detailsOpen}
+        onClose={closeDetails}
+        label={selected === undefined ? undefined : display(selected)}
+      >
+        {selected !== undefined && (
+          <div
+            className={`@container flex w-full max-w-sm flex-col rounded-xl
+            bg-slate-800 p-3 shadow-xl ring-1 ring-slate-700`}
+          >
+            <NameDetails {...detailsProps(selected)} stacked>
+              <IconButton
+                label="Close"
+                title="Close"
+                size="medium"
+                onClick={closeDetails}
+              >
+                <XMarkIcon className="size-5" />
+              </IconButton>
+            </NameDetails>
+          </div>
+        )}
+      </Dialog>
     </section>
   );
 };
