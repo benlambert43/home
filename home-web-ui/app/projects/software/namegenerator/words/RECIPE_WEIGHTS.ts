@@ -44,13 +44,13 @@ export const RECIPE_WEIGHTS: Record<
     hybridTriple: 10,
   },
   any: {
-    compound: 1,
-    techCompound: 1,
-    triple: 1,
-    suffix: 1,
-    blend: 1,
-    hybridPair: 1,
-    hybridTriple: 1,
+    compound: 4,
+    techCompound: 4,
+    triple: 4,
+    suffix: 3,
+    blend: 3,
+    hybridPair: 2,
+    hybridTriple: 2,
   },
 };
 

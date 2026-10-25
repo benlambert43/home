@@ -7,6 +7,8 @@ import {
 import { ANIMALS } from "@/app/projects/software/namegenerator/words/ANIMALS";
 import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
 import {
+  COLOR_MODIFIER_SHARE,
+  CONCRETE_MODIFIER_CHANCE,
   KEYWORD_FIRST_CHANCE,
   MASHUP_CHANCE,
   PROJECT_ALLITERATION_CHANCE,
@@ -26,6 +28,7 @@ import {
   MAX_ALLITERATIVE_PER_BATCH,
   LENGTH_STOCK_ATTEMPTS,
   MAX_ATTEMPTS,
+  MAX_CONCRETE_SYLLABLES,
   MAX_KEYWORD_LETTERS,
   MAX_PINS,
   MIN_BLEND_PART_LETTERS,
@@ -90,6 +93,7 @@ type Candidate = {
 type Pools = {
   adjectives: string[];
   modifiers: string[];
+  concreteNouns: string[];
   nouns: string[];
   animals: string[];
   blendable: string[];
@@ -243,6 +247,13 @@ const fits = (parts: string[], window: LengthWindow) => {
 };
 
 const NOUN_WORDS = new Set(NOUNS);
+
+const CONCRETE_WORDS = new Set([
+  ...NOUNS,
+  ...COLORS,
+  ...TECH_TAILS,
+  ...ANIMALS,
+]);
 
 const coined = (word: string, sources: string[], window: LengthWindow) =>
   fits([word], window) &&
@@ -458,6 +469,10 @@ const poolsFor = (
   ];
   const crossAdjectives = otherThemes.flatMap((other) => themed[other]);
   const modifiers = [...new Set([...adjectives, ...COLORS])];
+  const concreteNouns =
+    mode === "project" && style === "any"
+      ? nouns.filter((noun) => syllableCount(noun) <= MAX_CONCRETE_SYLLABLES)
+      : [];
   const animals = theme === "nature" ? ANIMALS : [];
   const themeWords = new Set(
     crossing
@@ -469,6 +484,7 @@ const poolsFor = (
   return {
     adjectives,
     modifiers,
+    concreteNouns,
     nouns,
     animals,
     blendable: blendableOf(nouns),
@@ -508,10 +524,17 @@ const pickStem = (pools: Pools) =>
 const pickBlendable = (pools: Pools) =>
   crossing(pools) ? pick(pools.crossBlendable) : pick(pools.blendable);
 
+const plainModifiers = (pools: Pools) => {
+  if (pools.concreteNouns.length === 0 || !chance(CONCRETE_MODIFIER_CHANCE)) {
+    return pools.modifiers;
+  }
+  return chance(COLOR_MODIFIER_SHARE) ? COLORS : pools.concreteNouns;
+};
+
 const pickModifier = (pools: Pools) =>
   crossing(pools) && pools.crossAdjectives.length > 0
     ? pick(pools.crossAdjectives)
-    : pick(pools.modifiers);
+    : pick(plainModifiers(pools));
 
 type Coined = { word: string; sources: string[] };
 
@@ -873,7 +896,7 @@ const projectCandidate = (
       recipe,
       [],
       compound(
-        crossModifier ? pools.crossAdjectives : pools.modifiers,
+        crossModifier ? pools.crossAdjectives : plainModifiers(pools),
         cross && !crossModifier
           ? pools.crossNouns
           : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
@@ -932,7 +955,19 @@ const usernameCandidate = (
   );
 };
 
-const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
+const concreteScore = (parts: readonly string[]) => {
+  const shortConcrete = parts.filter(
+    (part) =>
+      CONCRETE_WORDS.has(part) && syllableCount(part) <= MAX_CONCRETE_SYLLABLES,
+  ).length;
+  const crisp = syllableCount(parts[parts.length - 1]) === 1 ? 1 : 0;
+  return (shortConcrete / parts.length + crisp) / 2;
+};
+
+const scoreCandidate = (
+  { parts, alliterative, window }: Candidate,
+  favorConcrete: boolean,
+) => {
   const letters = parts.join("");
   const center = (window.minLetters + window.maxLetters) / 2;
   const reach = (window.maxLetters - window.minLetters) / 2 + 1;
@@ -955,6 +990,7 @@ const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
     SCORE_WEIGHTS.syllables * syllableScore +
     SCORE_WEIGHTS.balance * balanceScore +
     SCORE_WEIGHTS.alliteration * (alliterative ? 1 : 0) +
+    (favorConcrete ? SCORE_WEIGHTS.concrete * concreteScore(parts) : 0) +
     SCORE_WEIGHTS.jitter * nextRandom()
   );
 };
@@ -1132,7 +1168,7 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
       ...made,
       length: resolved.length,
       theme: resolved.theme,
-      score: scoreCandidate(made.candidate),
+      score: scoreCandidate(made.candidate, loose(options)),
     });
   }
 

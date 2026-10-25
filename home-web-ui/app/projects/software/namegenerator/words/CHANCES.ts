@@ -7,3 +7,5 @@ export const KEYWORD_FIRST_CHANCE = 0.5;
 export const SUFFIX_SHARE = 0.4;
 export const MASHUP_CHANCE = 0.5;
 export const SUGGESTION_CHANCE = 0.5;
+export const CONCRETE_MODIFIER_CHANCE = 0.35;
+export const COLOR_MODIFIER_SHARE = 0.5;
