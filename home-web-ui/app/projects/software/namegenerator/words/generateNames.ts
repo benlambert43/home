@@ -886,9 +886,8 @@ const projectCandidate = (
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
   const recipe = pickWeighted(RECIPE_WEIGHTS[resolved.style]);
-  const wanted = loose(resolved) && !chance(SUGGESTION_CHANCE) ? [] : required;
 
-  if (recipe === "compound" && wanted.length === 0) {
+  if (recipe === "compound" && required.length === 0) {
     const cross = crossing(pools);
     const crossModifier =
       cross && pools.crossAdjectives.length > 0 && chance(SUGGESTION_CHANCE);
@@ -908,7 +907,7 @@ const projectCandidate = (
     );
   }
 
-  const coinable = wanted.every(
+  const coinable = required.every(
     (word) => word.length >= MIN_BLEND_PART_LETTERS,
   );
   const template = templateFor(recipe);
@@ -920,7 +919,7 @@ const projectCandidate = (
       ? pick(PAIR_TEMPLATES)
       : template,
     recipe,
-    wanted,
+    required,
     seen,
   );
 };
