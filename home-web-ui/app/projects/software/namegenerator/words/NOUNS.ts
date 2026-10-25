@@ -17,3 +17,5 @@ export const NOUNS_BY_THEME: Record<ThemeName, string[]> = {
 };
 
 export const NOUNS = curate(Object.values(NOUNS_BY_THEME).flat());
+
+export const THEME_NAMES = Object.keys(NOUNS_BY_THEME) as ThemeName[];

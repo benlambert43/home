@@ -24,6 +24,7 @@ import {
   KEYWORD_WINDOW_SLACK,
   LengthWindow,
   MAX_ALLITERATIVE_PER_BATCH,
+  LENGTH_STOCK_ATTEMPTS,
   MAX_ATTEMPTS,
   MAX_KEYWORD_LETTERS,
   MAX_PINS,
@@ -44,6 +45,7 @@ import {
 import {
   NOUNS,
   NOUNS_BY_THEME,
+  THEME_NAMES,
 } from "@/app/projects/software/namegenerator/words/NOUNS";
 import { ONSETS } from "@/app/projects/software/namegenerator/words/ONSETS";
 import { createRandom } from "@/app/projects/software/namegenerator/words/random";
@@ -426,24 +428,29 @@ const subsetsOf = (words: readonly string[], size: number): string[][] => {
 const blendableOf = (nouns: readonly string[]) =>
   nouns.filter((noun) => syllables(noun).length >= 2);
 
+const mashupsBy = (required: readonly string[]) =>
+  new Map(
+    subsetsOf(required, 2).map((pair) => [
+      orderlessKey(pair),
+      mashupsOf(pair[0], pair[1]),
+    ]),
+  );
+
 const poolsFor = (
-  { mode, style, theme }: GenerateOptions,
-  required: readonly string[],
+  { mode, style, theme: chosen }: GenerateOptions,
+  theme: ThemeName,
+  mashups: Map<string, string[]>,
 ): Pools => {
   const general = mode === "project" ? PROJECT_ADJECTIVES : USERNAME_ADJECTIVES;
   const themed =
     mode === "project"
       ? PROJECT_ADJECTIVES_BY_THEME
       : USERNAME_ADJECTIVES_BY_THEME;
-  const themedAdjectives =
-    theme === "any" ? Object.values(themed).flat() : themed[theme];
-  const nouns = theme === "any" ? NOUNS : NOUNS_BY_THEME[theme];
-  const adjectives = [...new Set([...general, ...themedAdjectives])];
-  const crossing = mode === "project" && style === "any" && theme !== "any";
+  const nouns = NOUNS_BY_THEME[theme];
+  const adjectives = [...new Set([...general, ...themed[theme]])];
+  const crossing = mode === "project" && style === "any" && chosen !== "any";
   const otherThemes = crossing
-    ? (Object.keys(NOUNS_BY_THEME) as ThemeName[]).filter(
-        (other) => other !== theme,
-      )
+    ? THEME_NAMES.filter((other) => other !== theme)
     : [];
   const crossNouns = [
     ...otherThemes.flatMap((other) => NOUNS_BY_THEME[other]),
@@ -451,7 +458,7 @@ const poolsFor = (
   ];
   const crossAdjectives = otherThemes.flatMap((other) => themed[other]);
   const modifiers = [...new Set([...adjectives, ...COLORS])];
-  const animals = theme === "any" || theme === "nature" ? ANIMALS : [];
+  const animals = theme === "nature" ? ANIMALS : [];
   const themeWords = new Set(
     crossing
       ? [...USERNAME_ADJECTIVES_BY_THEME[theme], ...nouns, ...animals]
@@ -472,12 +479,7 @@ const poolsFor = (
     foreignWords: new Set(
       [...crossAdjectives, ...crossNouns].filter((word) => !native.has(word)),
     ),
-    mashups: new Map(
-      subsetsOf(required, 2).map((pair) => [
-        orderlessKey(pair),
-        mashupsOf(pair[0], pair[1]),
-      ]),
-    ),
+    mashups,
   };
 };
 
@@ -556,7 +558,7 @@ const coinedFromWord = (
 const hybridWindow = (length: NameLength) =>
   COINED_WINDOWS[length === "long" ? "medium" : "short"];
 
-type Resolved = GenerateOptions & { length: NameLength };
+type Resolved = GenerateOptions & { length: NameLength; theme: ThemeName };
 
 const loose = ({ mode, style }: GenerateOptions) =>
   mode === "project" && style === "any";
@@ -566,9 +568,13 @@ const resolveLength = (options: GenerateOptions): NameLength =>
     ? pick(NAME_LENGTHS)
     : options.length;
 
+const resolveTheme = ({ theme }: GenerateOptions): ThemeName =>
+  theme === "any" ? pick(THEME_NAMES) : theme;
+
 const resolve = (options: GenerateOptions): Resolved => ({
   ...options,
   length: resolveLength(options),
+  theme: resolveTheme(options),
 });
 
 type Slot = "modifier" | "color" | "noun" | "stem" | "tail" | "coined";
@@ -851,14 +857,13 @@ const fitRequired = (
 };
 
 const projectCandidate = (
-  options: GenerateOptions,
+  resolved: Resolved,
   pools: Pools,
   required: readonly string[],
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
-  const recipe = pickWeighted(RECIPE_WEIGHTS[options.style]);
-  const resolved = resolve(options);
-  const wanted = loose(options) && !chance(SUGGESTION_CHANCE) ? [] : required;
+  const recipe = pickWeighted(RECIPE_WEIGHTS[resolved.style]);
+  const wanted = loose(resolved) && !chance(SUGGESTION_CHANCE) ? [] : required;
 
   if (recipe === "compound" && wanted.length === 0) {
     const cross = crossing(pools);
@@ -898,13 +903,11 @@ const projectCandidate = (
 };
 
 const usernameCandidate = (
-  options: GenerateOptions,
+  resolved: Resolved,
   pools: Pools,
   required: readonly string[],
   seen: ReadonlySet<string>,
 ): Picked | undefined => {
-  const resolved = resolve(options);
-
   if (required.length === 0) {
     return picked(
       "compound",
@@ -959,7 +962,16 @@ const scoreCandidate = ({ parts, alliterative, window }: Candidate) => {
 const requiredWords = ({ keyword, pins = [] }: GenerateOptions) =>
   [...new Set([keyword, ...pins].filter(isWord))].slice(0, MAX_PINS);
 
-type Ranked = Picked & { score: number };
+type Ranked = Picked & {
+  length: NameLength;
+  theme: ThemeName;
+  score: number;
+};
+
+type Drawn = {
+  lengths?: Map<NameLength, number>;
+  themes: Map<ThemeName, number>;
+};
 
 type Shelves = Map<ProjectRecipe, Map<string, Ranked[]>>;
 
@@ -980,10 +992,36 @@ const shelve = (pool: readonly Ranked[], grouped: boolean): Shelves => {
   return shelves;
 };
 
+const leastDrawn = <T>(
+  values: readonly T[],
+  counts: ReadonlyMap<T, number>,
+) => {
+  const fewest = Math.min(...values.map((value) => counts.get(value) ?? 0));
+  return pick(values.filter((value) => (counts.get(value) ?? 0) === fewest));
+};
+
+const balancedEntry = (
+  shelf: readonly Ranked[],
+  { lengths, themes }: Drawn,
+) => {
+  const length =
+    lengths &&
+    leastDrawn([...new Set(shelf.map((entry) => entry.length))], lengths);
+  const fitting = length
+    ? shelf.filter((entry) => entry.length === length)
+    : shelf;
+  const theme = leastDrawn(
+    [...new Set(fitting.map((entry) => entry.theme))],
+    themes,
+  );
+  return fitting.find((entry) => entry.theme === theme);
+};
+
 const takeFromShelves = (
   shelves: Shelves,
   weights: Record<ProjectRecipe, number>,
   acceptable: (candidate: Candidate) => boolean,
+  drawn: Drawn,
 ) => {
   const recipe = pickWeighted(
     Object.fromEntries(
@@ -997,10 +1035,13 @@ const takeFromShelves = (
   }
 
   const key = pick([...byGroup.keys()]);
-  const shelf = byGroup.get(key) ?? [];
-  let entry = shelf.shift();
-  while (entry && !acceptable(entry.candidate)) entry = shelf.shift();
-  if (shelf.length === 0) byGroup.delete(key);
+  const shelf = (byGroup.get(key) ?? []).filter((entry) =>
+    acceptable(entry.candidate),
+  );
+  const entry = shelf.length > 0 ? balancedEntry(shelf, drawn) : undefined;
+  const rest = shelf.filter((other) => other !== entry);
+  if (rest.length === 0) byGroup.delete(key);
+  else byGroup.set(key, rest);
   if (byGroup.size === 0) shelves.delete(recipe);
   return entry;
 };
@@ -1008,55 +1049,91 @@ const takeFromShelves = (
 const weightsFor = ({ mode, style }: GenerateOptions) =>
   mode === "username" ? USERNAME_RECIPE_WEIGHTS : RECIPE_WEIGHTS[style];
 
-const quotasFor = (weights: Record<ProjectRecipe, number>) => {
+const stockKey = (recipe: ProjectRecipe, length?: NameLength) =>
+  length ? `${recipe}/${length}` : recipe;
+
+const quotasFor = (
+  weights: Record<ProjectRecipe, number>,
+  balancing: boolean,
+) => {
   const total = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+  const lengths = balancing ? NAME_LENGTHS : [undefined];
   return (Object.entries(weights) as [ProjectRecipe, number][]).flatMap(
     ([recipe, weight]) =>
       weight > 0
-        ? [
-            [
-              recipe,
-              Math.ceil((BATCH_SIZE * weight) / total) * SHELF_DEPTH,
-            ] as const,
-          ]
+        ? lengths.map(
+            (length) =>
+              [
+                stockKey(recipe, length),
+                Math.ceil(
+                  (Math.ceil((BATCH_SIZE * weight) / total) * SHELF_DEPTH) /
+                    lengths.length,
+                ),
+              ] as const,
+          )
         : [],
   );
 };
 
 const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   const required = requiredWords(options);
-  const pools = poolsFor(options, required);
+  const mashups = mashupsBy(required);
+  const poolsByTheme = new Map(
+    (options.theme === "any" ? THEME_NAMES : [options.theme]).map((theme) => [
+      theme,
+      poolsFor(options, theme, mashups),
+    ]),
+  );
   const weights = weightsFor(options);
-  const quotas = quotasFor(weights);
-  const stocked = new Map<ProjectRecipe, number>();
+  const balancing = options.length === "any";
+  const quotas = quotasFor(weights, false);
+  const lengthQuotas = balancing ? quotasFor(weights, true) : [];
+  const stocked = new Map<string, number>();
   const names: GeneratedName[] = [];
   const seen = new Set<string>();
   const used = new Set<string>();
   const pool: Ranked[] = [];
+  const drawn: Drawn = {
+    lengths: balancing ? new Map() : undefined,
+    themes: new Map(),
+  };
   let alliterations = 0;
   const acceptable = (candidate: Candidate) =>
     !candidate.sources.some((source) => used.has(source)) &&
     (!candidate.alliterative || alliterations < MAX_ALLITERATIVE_PER_BATCH);
-  const understocked = () =>
-    quotas.some(([recipe, quota]) => (stocked.get(recipe) ?? 0) < quota);
+  const understocked = (goals: typeof quotas) =>
+    goals.some(([stock, quota]) => (stocked.get(stock) ?? 0) < quota);
 
   for (
     let attempt = 0;
-    attempt < MAX_ATTEMPTS && (pool.length < POOL_SIZE || understocked());
+    attempt < MAX_ATTEMPTS &&
+    (pool.length < POOL_SIZE ||
+      understocked(quotas) ||
+      (attempt < LENGTH_STOCK_ATTEMPTS && understocked(lengthQuotas)));
     attempt++
   ) {
+    const resolved = resolve(options);
+    const pools = poolsByTheme.get(resolved.theme);
+    if (!pools) continue;
     const made =
       options.mode === "project"
-        ? projectCandidate(options, pools, required, seen)
-        : usernameCandidate(options, pools, required, seen);
+        ? projectCandidate(resolved, pools, required, seen)
+        : usernameCandidate(resolved, pools, required, seen);
     if (!made || !anchored(pools, made.candidate)) continue;
 
     const key = orderlessKey(made.candidate.parts);
     if (seen.has(key)) continue;
 
     seen.add(key);
-    stocked.set(made.recipe, (stocked.get(made.recipe) ?? 0) + 1);
-    pool.push({ ...made, score: scoreCandidate(made.candidate) });
+    [stockKey(made.recipe), stockKey(made.recipe, resolved.length)].forEach(
+      (stock) => stocked.set(stock, (stocked.get(stock) ?? 0) + 1),
+    );
+    pool.push({
+      ...made,
+      length: resolved.length,
+      theme: resolved.theme,
+      score: scoreCandidate(made.candidate),
+    });
   }
 
   const shelves = shelve(pool, !loose(options));
@@ -1066,11 +1143,13 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     draw < MAX_ATTEMPTS && names.length < BATCH_SIZE && shelves.size > 0;
     draw++
   ) {
-    const entry = takeFromShelves(shelves, weights, acceptable);
+    const entry = takeFromShelves(shelves, weights, acceptable, drawn);
     if (!entry) continue;
 
-    const { candidate } = entry;
+    const { candidate, length, theme } = entry;
     if (candidate.alliterative) alliterations += 1;
+    drawn.lengths?.set(length, (drawn.lengths.get(length) ?? 0) + 1);
+    drawn.themes.set(theme, (drawn.themes.get(theme) ?? 0) + 1);
 
     candidate.sources.forEach((source) => used.add(source));
     names.push({
