@@ -94,6 +94,8 @@ type Pools = {
   crossAdjectives: string[];
   crossNouns: string[];
   crossBlendable: string[];
+  themeWords: Set<string>;
+  foreignWords: Set<string>;
   mashups: Map<string, string[]>;
 };
 
@@ -447,16 +449,29 @@ const poolsFor = (
     ...otherThemes.flatMap((other) => NOUNS_BY_THEME[other]),
     ...(crossing && theme !== "nature" ? ANIMALS : []),
   ];
+  const crossAdjectives = otherThemes.flatMap((other) => themed[other]);
+  const modifiers = [...new Set([...adjectives, ...COLORS])];
+  const animals = theme === "any" || theme === "nature" ? ANIMALS : [];
+  const themeWords = new Set(
+    crossing
+      ? [...USERNAME_ADJECTIVES_BY_THEME[theme], ...nouns, ...animals]
+      : [],
+  );
+  const native = new Set([...modifiers, ...nouns, ...animals]);
 
   return {
     adjectives,
-    modifiers: [...new Set([...adjectives, ...COLORS])],
+    modifiers,
     nouns,
-    animals: theme === "any" || theme === "nature" ? ANIMALS : [],
+    animals,
     blendable: blendableOf(nouns),
-    crossAdjectives: otherThemes.flatMap((other) => themed[other]),
+    crossAdjectives,
     crossNouns,
     crossBlendable: blendableOf(crossNouns),
+    themeWords,
+    foreignWords: new Set(
+      [...crossAdjectives, ...crossNouns].filter((word) => !native.has(word)),
+    ),
     mashups: new Map(
       subsetsOf(required, 2).map((pair) => [
         orderlessKey(pair),
@@ -468,6 +483,10 @@ const poolsFor = (
 
 const crossing = (pools: Pools) =>
   pools.crossNouns.length > 0 && !chance(SUGGESTION_CHANCE);
+
+const anchored = (pools: Pools, { sources }: Candidate) =>
+  !sources.some((source) => pools.foreignWords.has(source)) ||
+  sources.some((source) => pools.themeWords.has(source));
 
 const pickNoun = (pools: Pools) => {
   if (crossing(pools)) return pick(pools.crossNouns);
@@ -843,14 +862,14 @@ const projectCandidate = (
 
   if (recipe === "compound" && wanted.length === 0) {
     const cross = crossing(pools);
+    const crossModifier =
+      cross && pools.crossAdjectives.length > 0 && chance(SUGGESTION_CHANCE);
     return picked(
       recipe,
       [],
       compound(
-        cross && pools.crossAdjectives.length > 0
-          ? pools.crossAdjectives
-          : pools.modifiers,
-        cross
+        crossModifier ? pools.crossAdjectives : pools.modifiers,
+        cross && !crossModifier
           ? pools.crossNouns
           : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
             ? pools.nouns
@@ -1030,7 +1049,7 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
       options.mode === "project"
         ? projectCandidate(options, pools, required, seen)
         : usernameCandidate(options, pools, required, seen);
-    if (!made) continue;
+    if (!made || !anchored(pools, made.candidate)) continue;
 
     const key = orderlessKey(made.candidate.parts);
     if (seen.has(key)) continue;
