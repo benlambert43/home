@@ -7,9 +7,11 @@ import {
 import { ANIMALS } from "@/app/projects/software/namegenerator/words/ANIMALS";
 import { BRAND_SUFFIXES } from "@/app/projects/software/namegenerator/words/BRAND_SUFFIXES";
 import {
+  CLIMBING_CHANCE,
   COLOR_MODIFIER_SHARE,
   CONCRETE_MODIFIER_CHANCE,
   KEYWORD_FIRST_CHANCE,
+  LANDMARK_CHANCE,
   MASHUP_CHANCE,
   PROJECT_ALLITERATION_CHANCE,
   PROJECT_NOUN_CHANCE,
@@ -46,6 +48,8 @@ import {
   USERNAME_WINDOWS,
 } from "@/app/projects/software/namegenerator/words/LIMITS";
 import {
+  CLIMBING,
+  LANDMARKS,
   NOUNS,
   NOUNS_BY_THEME,
   THEME_NAMES,
@@ -506,20 +510,25 @@ const anchored = (pools: Pools, { sources }: Candidate) =>
   !sources.some((source) => pools.foreignWords.has(source)) ||
   sources.some((source) => pools.themeWords.has(source));
 
+const occasionalOr = (words: readonly string[]) => {
+  if (chance(CLIMBING_CHANCE)) return CLIMBING;
+  return chance(LANDMARK_CHANCE) ? LANDMARKS : words;
+};
+
 const pickNoun = (pools: Pools) => {
   if (crossing(pools)) return pick(pools.crossNouns);
   return chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
-    ? pick(pools.nouns)
+    ? pick(occasionalOr(pools.nouns))
     : pick(pools.animals);
 };
 
 const pickUsernameNoun = (pools: Pools) =>
   chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
     ? pick(pools.animals)
-    : pick(pools.nouns);
+    : pick(occasionalOr(pools.nouns));
 
 const pickStem = (pools: Pools) =>
-  crossing(pools) ? pick(pools.crossNouns) : pick(pools.nouns);
+  crossing(pools) ? pick(pools.crossNouns) : pick(occasionalOr(pools.nouns));
 
 const pickBlendable = (pools: Pools) =>
   crossing(pools) ? pick(pools.crossBlendable) : pick(pools.blendable);
@@ -899,7 +908,7 @@ const projectCandidate = (
         cross && !crossModifier
           ? pools.crossNouns
           : chance(PROJECT_NOUN_CHANCE) || pools.animals.length === 0
-            ? pools.nouns
+            ? occasionalOr(pools.nouns)
             : pools.animals,
         PROJECT_ALLITERATION_CHANCE,
         PROJECT_WINDOWS[resolved.length],
@@ -938,7 +947,7 @@ const usernameCandidate = (
         pools.modifiers,
         chance(USERNAME_ANIMAL_CHANCE) && pools.animals.length > 0
           ? pools.animals
-          : pools.nouns,
+          : occasionalOr(pools.nouns),
         USERNAME_ALLITERATION_CHANCE,
         USERNAME_WINDOWS[resolved.length],
       ),
