@@ -10,7 +10,7 @@ export const metadata = pageMetadata("cookie notice", {
 });
 
 const CookieNotice = () => (
-  <Notice title="Cookie Notice" updated="2026-10-09">
+  <Notice title="Cookie Notice" updated="2026-10-24">
     <p>
       Cookies are small pieces of text that a website asks your browser to keep
       and send back on later visits. This site uses cookies only to keep you
@@ -60,6 +60,15 @@ const CookieNotice = () => (
       the word true or false and nothing else.
     </p>
 
+    <h2>Local storage this site uses</h2>
+    <p>
+      The name generator keeps the names you star under{" "}
+      <code>namegenerator.favorites</code> in your browser's local storage: up
+      to twelve names and nothing else. It is written only when you star a name,
+      stays until you remove those names or clear the site's data in your
+      browser, and is never sent to the server.
+    </p>
+
     <h2>Cookies set by Google reCAPTCHA</h2>
     <p>
       The create account, forgot password, and request new verification link
@@ -85,9 +94,10 @@ const CookieNotice = () => (
       You can delete or block cookies in your browser's settings; each browser's
       help pages explain how. If you block the session cookies you will not be
       able to stay signed in, and if you block the preference cookie, animations
-      will play on each visit. The site's own code does not use local storage or
-      any other way of keeping information in your browser; only reCAPTCHA, once
-      you choose to load it, may.
+      will play on each visit. Apart from the name generator's favorites
+      described above, the site's own code does not use local storage or any
+      other way of keeping information in your browser; only reCAPTCHA, once you
+      choose to load it, may.
     </p>
   </Notice>
 );

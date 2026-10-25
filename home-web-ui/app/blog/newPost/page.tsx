@@ -1,4 +1,5 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
+import { newPostHref } from "@/app/blog/links";
 import NewPostForm from "@/app/blog/newPost/NewPostForm";
 import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
 import PageColumn from "@/app/components/PageColumn";
@@ -10,7 +11,7 @@ export const metadata = pageMetadata("new blog post");
 export const instant = false;
 
 const NewPost = async () => {
-  const user = await requireBffSessionUser();
+  const user = await requireBffSessionUser(newPostHref());
   if (user.role !== "admin") {
     redirect("/blog");
   }

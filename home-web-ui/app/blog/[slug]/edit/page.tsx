@@ -1,6 +1,6 @@
 import { requireBffSessionUser } from "@/app/auth/requireBffSessionUser";
 import EditPostForm from "@/app/blog/[slug]/edit/EditPostForm";
-import { postHref, requestedPage } from "@/app/blog/links";
+import { editPostHref, postHref, requestedPage } from "@/app/blog/links";
 import { PostParams } from "@/app/blog/Post";
 import PostProblem from "@/app/blog/PostProblem";
 import { POST_COLUMN_WIDTH_CLASS_NAME } from "@/app/blog/postColumn";
@@ -24,7 +24,7 @@ const EditPost = async ({
   const { slug } = await params;
   const page = requestedPage((await searchParams).page);
 
-  const user = await requireBffSessionUser();
+  const user = await requireBffSessionUser(editPostHref(slug, page));
   if (user.role !== "admin") {
     redirect(postHref(slug, page));
   }

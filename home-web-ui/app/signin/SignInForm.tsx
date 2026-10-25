@@ -1,16 +1,18 @@
 "use client";
 
 import { signIn } from "@/app/actions/auth";
+import { RETURN_TO } from "@/app/auth/returnPath";
 import Button from "@/app/ui/Button";
 import FieldError from "@/app/ui/FieldError";
 import TextField from "@/app/ui/TextField";
 import { useActionState } from "react";
 
-export const SignInForm = () => {
+export const SignInForm = ({ returnTo }: { returnTo: string }) => {
   const [state, action, pending] = useActionState(signIn, undefined);
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      <input type="hidden" name={RETURN_TO} value={returnTo} />
       <TextField
         name="email"
         label="Email"

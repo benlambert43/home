@@ -8,7 +8,9 @@ export const metadata = pageMetadata("profile");
 export const instant = false;
 
 const RequestNewEmailVerificationLink = async () => {
-  await requireBffSessionUser();
+  await requireBffSessionUser(
+    "/profile/accountManagement/requestNewEmailVerificationLink",
+  );
 
   return (
     <PageColumn>

@@ -13,6 +13,7 @@ const PAGE_PATHS = [
   "/",
   "/projects",
   "/projects/software",
+  "/projects/software/namegenerator",
   "/projects/lifelist",
   "/projects/adventures",
   "/about",

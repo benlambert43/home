@@ -51,7 +51,7 @@ const ChangePassword = async ({
 
   if (paramFilled(code)) return <ResetPassword code={code} />;
 
-  await requireBffSessionUser();
+  await requireBffSessionUser("/profile/accountManagement/changePassword");
 
   return (
     <PageColumn className="flex flex-col gap-4">

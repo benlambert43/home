@@ -8,7 +8,9 @@ export const metadata = pageMetadata("profile");
 export const instant = false;
 
 const RequestNewEmailVerificationLinkSuccess = async () => {
-  await requireBffSessionUser();
+  await requireBffSessionUser(
+    "/profile/accountManagement/requestNewEmailVerificationLinkSuccess",
+  );
 
   return (
     <PageColumn className="flex flex-col gap-2">
