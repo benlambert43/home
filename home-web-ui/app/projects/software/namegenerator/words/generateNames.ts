@@ -1115,8 +1115,8 @@ const takeFromShelves = (
 
 const COLOR_WORDS = new Set(COLORS);
 
-const hasColor = ({ parts }: Candidate) =>
-  parts.some((part) => COLOR_WORDS.has(part));
+const hasColor = ({ parts }: Candidate, required: readonly string[]) =>
+  parts.some((part) => COLOR_WORDS.has(part) && !required.includes(part));
 
 const techTailShare = (theme: GenerateOptions["theme"]) => {
   if (theme === "tech") return 1;
@@ -1188,8 +1188,9 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
   let colored = 0;
   const acceptable = (candidate: Candidate) =>
     !candidate.sources.some((source) => used.has(source)) &&
-    (!candidate.alliterative || alliterations < MAX_ALLITERATIVE_PER_BATCH) &&
-    (!hasColor(candidate) || colored < MAX_COLORS_PER_BATCH);
+    (!candidate.alliterative || alliterations < MAX_ALLITERATIVE_PER_BATCH);
+  const underColorCap = (candidate: Candidate) =>
+    !hasColor(candidate, required) || colored < MAX_COLORS_PER_BATCH;
   const understocked = (goals: typeof quotas) =>
     goals.some(([stock, quota]) => (stocked.get(stock) ?? 0) < quota);
 
@@ -1225,28 +1226,48 @@ const collectBatch = (options: GenerateOptions): GeneratedName[] => {
     });
   }
 
-  const shelves = shelve(pool, !loose(options));
+  const grouped = !loose(options);
+  const taken = new Set<Ranked>();
+  const drawFrom = (
+    shelves: Shelves,
+    fitting: (candidate: Candidate) => boolean,
+  ) => {
+    for (
+      let draw = 0;
+      draw < MAX_ATTEMPTS && names.length < BATCH_SIZE && shelves.size > 0;
+      draw++
+    ) {
+      const entry = takeFromShelves(shelves, weights, fitting, drawn);
+      if (!entry) continue;
 
-  for (
-    let draw = 0;
-    draw < MAX_ATTEMPTS && names.length < BATCH_SIZE && shelves.size > 0;
-    draw++
-  ) {
-    const entry = takeFromShelves(shelves, weights, acceptable, drawn);
-    if (!entry) continue;
+      const { candidate, length, theme } = entry;
+      taken.add(entry);
+      if (candidate.alliterative) alliterations += 1;
+      if (hasColor(candidate, required)) colored += 1;
+      drawn.lengths?.set(length, (drawn.lengths.get(length) ?? 0) + 1);
+      drawn.themes.set(theme, (drawn.themes.get(theme) ?? 0) + 1);
 
-    const { candidate, length, theme } = entry;
-    if (candidate.alliterative) alliterations += 1;
-    if (hasColor(candidate)) colored += 1;
-    drawn.lengths?.set(length, (drawn.lengths.get(length) ?? 0) + 1);
-    drawn.themes.set(theme, (drawn.themes.get(theme) ?? 0) + 1);
+      candidate.sources.forEach((source) => used.add(source));
+      names.push({
+        id: `${candidate.parts.join("")}-${names.length}`,
+        parts: candidate.parts,
+        number: randomIndex(10000),
+      });
+    }
+  };
 
-    candidate.sources.forEach((source) => used.add(source));
-    names.push({
-      id: `${candidate.parts.join("")}-${names.length}`,
-      parts: candidate.parts,
-      number: randomIndex(10000),
-    });
+  drawFrom(
+    shelve(pool, grouped),
+    (candidate) => acceptable(candidate) && underColorCap(candidate),
+  );
+  if (names.length < BATCH_SIZE) {
+    drawFrom(
+      shelve(
+        pool.filter((entry) => !taken.has(entry)),
+        grouped,
+      ),
+      acceptable,
+    );
   }
 
   return names;
