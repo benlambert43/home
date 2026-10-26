@@ -4,25 +4,21 @@ import {
   MAX_FAVORITES,
 } from "@/app/projects/software/namegenerator/favorites";
 import {
-  CompactName,
   CopyButton,
   IconButton,
-  WordChips,
+  ListedName,
+  SaveButton,
+  SaveProps,
 } from "@/app/projects/software/namegenerator/NameRow";
-import NameText from "@/app/projects/software/namegenerator/NameText";
-import {
-  FULL_NAME_CLASSES,
-  NAME_GRID_CLASSES,
-  NAME_TEXT_CLASSES,
-  ROW_CLASSES,
-  ROW_HEADER_CLASSES,
-} from "@/app/projects/software/namegenerator/styles";
+import { NAME_GRID_CLASSES } from "@/app/projects/software/namegenerator/styles";
 import { XMarkIcon } from "@heroicons/react/16/solid";
 
 const FavoritesList = ({
   favorites,
   display,
   pinned,
+  error,
+  saveProps,
   onRemove,
   onTogglePin,
   onOpen,
@@ -30,14 +26,13 @@ const FavoritesList = ({
   favorites: readonly Favorite[];
   display: (favorite: Favorite) => string;
   pinned: readonly string[];
+  error?: string;
+  saveProps: (favorite: Favorite) => SaveProps | undefined;
   onRemove: (favorite: Favorite) => void;
   onTogglePin: (word: string) => void;
   onOpen: (favorite: Favorite) => void;
 }) => (
-  <div className="flex flex-col gap-3 border-t border-slate-800 pt-6">
-    <h2 className="text-xs font-medium tracking-wide text-slate-400 uppercase">
-      Favorites ({favorites.length} of {MAX_FAVORITES})
-    </h2>
+  <div className="flex flex-col gap-3">
     <ul aria-label="Favorite names" className={NAME_GRID_CLASSES}>
       {Array.from({ length: MAX_FAVORITES }, (_, index) => {
         const favorite = favorites[index];
@@ -54,49 +49,39 @@ const FavoritesList = ({
         }
 
         const text = display(favorite);
+        const save = saveProps(favorite);
 
         return (
-          <li
+          <ListedName
             key={favoriteKey(favorite)}
-            className={`${ROW_CLASSES} ring-amber-400/40`}
+            name={favorite}
+            display={text}
+            ring="ring-amber-400/40"
+            saved={save?.saved}
+            pinned={pinned}
+            onTogglePin={onTogglePin}
+            onOpen={() => {
+              onOpen(favorite);
+            }}
           >
-            <CompactName
-              name={favorite}
-              display={text}
-              onOpen={() => {
-                onOpen(favorite);
+            <CopyButton text={text} />
+            {save !== undefined && <SaveButton {...save} display={text} />}
+            <IconButton
+              label={`Remove ${text} from favorites`}
+              title="Remove from favorites"
+              size="medium"
+              onClick={() => {
+                onRemove(favorite);
               }}
-            />
-            <div className={FULL_NAME_CLASSES}>
-              <div className={ROW_HEADER_CLASSES}>
-                <code className={NAME_TEXT_CLASSES}>
-                  <NameText text={text} parts={favorite.parts} />
-                </code>
-                <span className="-ml-1.5 flex shrink-0 items-center">
-                  <CopyButton text={text} />
-                  <IconButton
-                    label={`Remove ${text} from favorites`}
-                    title="Remove from favorites"
-                    size="medium"
-                    onClick={() => {
-                      onRemove(favorite);
-                    }}
-                  >
-                    <XMarkIcon className="size-5" />
-                  </IconButton>
-                </span>
-              </div>
-              <WordChips
-                label={`Words in ${text}`}
-                parts={favorite.parts}
-                pinned={pinned}
-                onTogglePin={onTogglePin}
-              />
-            </div>
-          </li>
+            >
+              <XMarkIcon className="size-5" />
+            </IconButton>
+          </ListedName>
         );
       })}
     </ul>
+    {error !== undefined && <p className="text-sm text-amber-200">{error}</p>}
   </div>
 );
+
 export default FavoritesList;

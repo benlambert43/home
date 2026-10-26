@@ -17,6 +17,7 @@ import {
 import { MAX_PINS } from "@/app/projects/software/namegenerator/words/LIMITS";
 import {
   ArrowsRightLeftIcon,
+  BookmarkIcon,
   CheckIcon,
   ClipboardDocumentIcon,
   StarIcon,
@@ -97,6 +98,41 @@ export const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
+export type SaveProps = {
+  saved: boolean;
+  full: boolean;
+  pending: boolean;
+  onToggle: () => void;
+};
+
+export const SaveButton = ({
+  display,
+  saved,
+  full,
+  pending,
+  onToggle,
+}: SaveProps & { display: string }) => (
+  <IconButton
+    label={
+      saved
+        ? `Remove ${display} from saved names`
+        : `Save ${display} to your account`
+    }
+    title={
+      saved
+        ? "Remove from saved names"
+        : full
+          ? "Saved names are full"
+          : "Save to your account"
+    }
+    disabled={pending || (!saved && full)}
+    size="medium"
+    onClick={onToggle}
+  >
+    <BookmarkIcon className={`size-5 ${saved ? "text-sky-400" : ""}`} />
+  </IconButton>
+);
+
 const WordChip = ({
   word,
   pinned,
@@ -163,6 +199,7 @@ export type NameDetailsProps = {
   display: string;
   favorite: boolean;
   favoritesFull: boolean;
+  save?: SaveProps;
   pinned: readonly string[];
   onToggleFavorite: () => void;
   onTogglePin: (word: string) => void;
@@ -174,6 +211,7 @@ export const NameDetails = ({
   display,
   favorite,
   favoritesFull,
+  save,
   pinned,
   onToggleFavorite,
   onTogglePin,
@@ -206,6 +244,7 @@ export const NameDetails = ({
       >
         <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
       </IconButton>
+      {save !== undefined && <SaveButton {...save} display={display} />}
       <CopyButton text={display} />
       {onShuffle !== undefined && new Set(name.parts).size > 1 && (
         <IconButton
@@ -244,11 +283,13 @@ export const CompactName = ({
   name,
   display,
   favorite = false,
+  saved = false,
   onOpen,
 }: {
   name: Favorite;
   display: string;
   favorite?: boolean;
+  saved?: boolean;
   onOpen: () => void;
 }) => (
   <button
@@ -266,6 +307,11 @@ export const CompactName = ({
       <StarIcon className="mt-0.5 size-4 shrink-0 text-amber-400">
         <title>Favorite</title>
       </StarIcon>
+    )}
+    {saved && (
+      <BookmarkIcon className="mt-0.5 size-4 shrink-0 text-sky-400">
+        <title>Saved</title>
+      </BookmarkIcon>
     )}
   </button>
 );
@@ -290,6 +336,7 @@ const NameRow = ({
       name={details.name}
       display={details.display}
       favorite={details.favorite}
+      saved={details.save?.saved}
       onOpen={onOpen}
     />
     <div className={FULL_NAME_CLASSES}>
@@ -297,4 +344,42 @@ const NameRow = ({
     </div>
   </li>
 );
+export const ListedName = ({
+  name,
+  display,
+  ring,
+  saved,
+  pinned,
+  onTogglePin,
+  onOpen,
+  children,
+}: {
+  name: Favorite;
+  display: string;
+  ring: string;
+  saved?: boolean;
+  pinned: readonly string[];
+  onTogglePin: (word: string) => void;
+  onOpen: () => void;
+  children: ReactNode;
+}) => (
+  <li className={`${ROW_CLASSES} ${ring}`}>
+    <CompactName name={name} display={display} saved={saved} onOpen={onOpen} />
+    <div className={FULL_NAME_CLASSES}>
+      <div className={ROW_HEADER_CLASSES}>
+        <code className={NAME_TEXT_CLASSES}>
+          <NameText text={display} parts={name.parts} />
+        </code>
+        <span className="-ml-1.5 flex shrink-0 items-center">{children}</span>
+      </div>
+      <WordChips
+        label={`Words in ${display}`}
+        parts={name.parts}
+        pinned={pinned}
+        onTogglePin={onTogglePin}
+      />
+    </div>
+  </li>
+);
+
 export default NameRow;

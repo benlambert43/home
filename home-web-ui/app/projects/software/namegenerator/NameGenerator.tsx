@@ -1,8 +1,10 @@
 "use client";
 
 import Dialog from "@/app/components/Dialog";
+import { SessionContext } from "@/app/components/SessionProvider";
 import {
   Favorite,
+  MAX_FAVORITES,
   useFavorites,
 } from "@/app/projects/software/namegenerator/favorites";
 import FavoritesList from "@/app/projects/software/namegenerator/FavoritesList";
@@ -25,7 +27,10 @@ import NameRow, {
   IconButton,
   NameDetails,
   NameDetailsProps,
+  SaveProps,
 } from "@/app/projects/software/namegenerator/NameRow";
+import { useSavedNames } from "@/app/projects/software/namegenerator/savedNames";
+import SavedNamesList from "@/app/projects/software/namegenerator/SavedNamesList";
 import {
   CARD_CLASSES,
   NAME_GRID_CLASSES,
@@ -42,6 +47,7 @@ import { randomSeed } from "@/app/projects/software/namegenerator/words/random";
 import { GeneratedName } from "@/app/projects/software/namegenerator/words/types";
 import Button from "@/app/ui/Button";
 import SegmentedToggle from "@/app/ui/SegmentedToggle";
+import Tabs, { TabOption } from "@/app/ui/Tabs";
 import { FIELD_CLASSES } from "@/app/ui/fieldStyles";
 import {
   ArrowPathIcon,
@@ -51,6 +57,7 @@ import {
 import { usePathname } from "next/navigation";
 import {
   ReactNode,
+  useContext,
   useMemo,
   useId,
   useLayoutEffect,
@@ -59,6 +66,8 @@ import {
 } from "react";
 
 type Option<T extends string> = { value: T; label: string };
+
+type NameListTab = "favorites" | "saved";
 
 const labelled = <T extends string>(
   values: readonly T[],
@@ -257,11 +266,19 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const [selected, setSelected] = useState<Favorite | GeneratedName>();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { favorites, has, add, remove, full } = useFavorites();
+  const session = useContext(SessionContext);
+  const [tab, setTab] = useState<NameListTab>("favorites");
+  const saved = useSavedNames(
+    session?.signedIn ?? false,
+    favorites,
+    tab === "saved",
+  );
 
   const { mode, style, length, theme, keyword, pins, seed } = state;
   const { format, separator, digits, casing } = state;
   const pinKey = source.pins.join(",");
   const pinned = keyword === undefined ? pins : [keyword, ...pins];
+  const returnTo = `${pathname}${generatorSearch({ ...state, ...source })}`;
 
   const batch = useMemo(
     () =>
@@ -397,6 +414,35 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       ? formatProjectName(name, format)
       : formatUsername(name, { separator, digits, casing });
 
+  const saveProps = (name: Favorite): SaveProps | undefined => {
+    const id = saved.idOf(name);
+    if (!saved.active || (!has(name) && id === undefined)) return undefined;
+
+    return {
+      saved: id !== undefined,
+      full: saved.full,
+      pending: saved.pending,
+      onToggle: () => {
+        if (id === undefined) saved.save(name);
+        else saved.unsave(name);
+      },
+    };
+  };
+
+  const nameListTabs: TabOption<NameListTab>[] = [
+    {
+      value: "favorites",
+      label: `Favorites (${favorites.length} of ${MAX_FAVORITES})`,
+    },
+    {
+      value: "saved",
+      label:
+        saved.total === undefined
+          ? "Saved"
+          : `Saved (${saved.total.toLocaleString("en-US")})`,
+    },
+  ];
+
   const detailsProps = (name: Favorite | GeneratedName): NameDetailsProps => {
     const favorite = has(name);
     return {
@@ -404,6 +450,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       display: display(name),
       favorite,
       favoritesFull: full,
+      save: saveProps(name),
       pinned,
       onToggleFavorite: () => {
         if (favorite) remove(name);
@@ -657,14 +704,36 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           </Button>
         </div>
       </div>
-      <FavoritesList
-        favorites={favorites}
-        display={display}
-        pinned={pinned}
-        onRemove={remove}
-        onTogglePin={togglePin}
-        onOpen={openDetails}
-      />
+      <div className="border-t border-slate-800 pt-6">
+        <Tabs
+          label="Name lists"
+          tabs={nameListTabs}
+          value={tab}
+          onChange={setTab}
+        >
+          {tab === "favorites" ? (
+            <FavoritesList
+              favorites={favorites}
+              display={display}
+              pinned={pinned}
+              error={saved.error}
+              saveProps={saveProps}
+              onRemove={remove}
+              onTogglePin={togglePin}
+              onOpen={openDetails}
+            />
+          ) : (
+            <SavedNamesList
+              saved={saved}
+              returnTo={returnTo}
+              display={display}
+              pinned={pinned}
+              onTogglePin={togglePin}
+              onOpen={openDetails}
+            />
+          )}
+        </Tabs>
+      </div>
       <Dialog
         open={detailsOpen}
         onClose={closeDetails}
