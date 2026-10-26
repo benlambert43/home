@@ -14,6 +14,14 @@ import {
   postUploadImageNames,
 } from "./post";
 import { POST_SLUG_PATTERN } from "./postSlug";
+import {
+  DEFAULT_SAVED_NAMES_PAGE_SIZE,
+  MAX_SAVED_NAME_LOOKUP,
+  MAX_SAVED_NAME_NUMBER,
+  MAX_SAVED_NAME_PART_LETTERS,
+  MAX_SAVED_NAME_PARTS,
+  MAX_SAVED_NAMES_PAGE_SIZE,
+} from "./savedName";
 import { MAX_USERNAME_CHARACTERS } from "./user";
 
 const nameField = (label: string) =>
@@ -269,11 +277,14 @@ export const updatePostFormSchema = updatePostBodySchema.pick({
   headerImageAlt: true,
 });
 
-export const postIdParamsSchema = z.object({
-  id: z
+const objectIdField = (message: string) =>
+  z
     .string()
-    .regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid post id." })
-    .transform((id) => id.toLowerCase()),
+    .regex(/^[0-9a-fA-F]{24}$/, { message })
+    .transform((id) => id.toLowerCase());
+
+export const postIdParamsSchema = z.object({
+  id: objectIdField("Invalid post id."),
 });
 
 export const postSlugParamsSchema = z.object({
@@ -299,4 +310,51 @@ export const postListQuerySchema = z.object({
     .min(1)
     .max(MAX_POST_PAGE_SIZE)
     .default(DEFAULT_POST_PAGE_SIZE),
+});
+
+const savedNamePartsField = z
+  .array(
+    z
+      .string()
+      .max(MAX_SAVED_NAME_PART_LETTERS, {
+        message: `Each word in a saved name must be ${MAX_SAVED_NAME_PART_LETTERS} letters or fewer.`,
+      })
+      .regex(/^[a-z]+$/, {
+        message: "Each word in a saved name must be lowercase letters.",
+      }),
+  )
+  .min(1, { message: "A saved name needs at least one word." })
+  .max(MAX_SAVED_NAME_PARTS, {
+    message: `A saved name may have at most ${MAX_SAVED_NAME_PARTS} words.`,
+  });
+
+export const saveNameBodySchema = z.object({
+  parts: savedNamePartsField,
+  number: z
+    .number()
+    .int()
+    .min(0)
+    .max(MAX_SAVED_NAME_NUMBER, { message: "Invalid saved name number." }),
+});
+
+export const savedNameIdParamsSchema = z.object({
+  id: objectIdField("Invalid saved name id."),
+});
+
+export const savedNameListQuerySchema = z.object({
+  before: objectIdField("Invalid saved name cursor.").optional(),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_SAVED_NAMES_PAGE_SIZE)
+    .default(DEFAULT_SAVED_NAMES_PAGE_SIZE),
+});
+
+export const lookupSavedNamesBodySchema = z.object({
+  names: z
+    .array(z.object({ parts: savedNamePartsField }))
+    .max(MAX_SAVED_NAME_LOOKUP, {
+      message: `At most ${MAX_SAVED_NAME_LOOKUP} names can be looked up at a time.`,
+    }),
 });

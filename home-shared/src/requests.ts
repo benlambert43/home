@@ -6,10 +6,13 @@ import {
   createAccountBodySchema,
   createPostBodySchema,
   createPostUploadBodySchema,
+  lookupSavedNamesBodySchema,
   postListQuerySchema,
   requestNewEmailVerificationLinkBodySchema,
   requestPasswordResetBodySchema,
   resetPasswordBodySchema,
+  saveNameBodySchema,
+  savedNameListQuerySchema,
   signInBodySchema,
   updatePostBodySchema,
 } from "./schemas";
@@ -48,4 +51,12 @@ export type PostListQuery = z.infer<typeof postListQuerySchema>;
 
 export type CreatePostUploadRequestBody = z.infer<
   typeof createPostUploadBodySchema
+>;
+
+export type SaveNameRequestBody = z.infer<typeof saveNameBodySchema>;
+
+export type SavedNameListQuery = z.infer<typeof savedNameListQuerySchema>;
+
+export type LookupSavedNamesRequestBody = z.infer<
+  typeof lookupSavedNamesBodySchema
 >;
