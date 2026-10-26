@@ -3,84 +3,74 @@ import {
   favoriteKey,
   MAX_FAVORITES,
 } from "@/app/projects/software/namegenerator/favorites";
-import {
-  CopyButton,
-  IconButton,
-  ListedName,
+import NameRow, {
+  NameDetailsProps,
   PlaceholderSlot,
-  SaveButton,
-  SaveProps,
 } from "@/app/projects/software/namegenerator/NameRow";
 import {
   LIST_BAR_CLASSES,
   NAME_GRID_CLASSES,
 } from "@/app/projects/software/namegenerator/styles";
-import { XMarkIcon } from "@heroicons/react/16/solid";
+import { useEffect, useRef } from "react";
 
 const FavoritesList = ({
   favorites,
-  display,
-  pinned,
   error,
-  saveProps,
-  onRemove,
-  onTogglePin,
+  detailsProps,
   onOpen,
 }: {
   favorites: readonly Favorite[];
-  display: (favorite: Favorite) => string;
-  pinned: readonly string[];
   error?: string;
-  saveProps: (favorite: Favorite) => SaveProps | undefined;
-  onRemove: (favorite: Favorite) => void;
-  onTogglePin: (word: string) => void;
+  detailsProps: (favorite: Favorite) => NameDetailsProps;
   onOpen: (favorite: Favorite) => void;
-}) => (
-  <div className="flex flex-col gap-3">
-    <ul aria-label="Favorite names" className={NAME_GRID_CLASSES}>
-      {Array.from({ length: MAX_FAVORITES }, (_, index) => {
-        const favorite = favorites[index];
+}) => {
+  const stars = useRef<(HTMLButtonElement | null)[]>([]);
+  const focusSlot = useRef<number>(undefined);
 
-        if (favorite === undefined) return <PlaceholderSlot key={index} />;
+  useEffect(() => {
+    const slot = focusSlot.current;
+    if (slot === undefined) return;
 
-        const text = display(favorite);
-        const save = saveProps(favorite);
+    focusSlot.current = undefined;
+    const filled = stars.current.filter((button) => button !== null);
+    (stars.current[slot] ?? filled[filled.length - 1])?.focus();
+  }, [favorites]);
 
-        return (
-          <ListedName
-            key={favoriteKey(favorite)}
-            name={favorite}
-            display={text}
-            ring="ring-amber-400/40"
-            saved={save?.saved}
-            pinned={pinned}
-            onTogglePin={onTogglePin}
-            onOpen={() => {
-              onOpen(favorite);
-            }}
-          >
-            <CopyButton text={text} />
-            {save !== undefined && <SaveButton {...save} display={text} />}
-            <IconButton
-              label={`Remove ${text} from favorites`}
-              title="Remove from favorites"
-              size="medium"
-              onClick={() => {
-                onRemove(favorite);
+  return (
+    <div className="flex flex-col gap-3">
+      <ul aria-label="Favorite names" className={NAME_GRID_CLASSES}>
+        {Array.from({ length: MAX_FAVORITES }, (_, slot) => {
+          const favorite = favorites[slot];
+          if (favorite === undefined) return <PlaceholderSlot key={slot} />;
+
+          const details = detailsProps(favorite);
+
+          return (
+            <NameRow
+              key={favoriteKey(favorite)}
+              {...details}
+              favoriteRef={(button) => {
+                stars.current[slot] = button;
               }}
-            >
-              <XMarkIcon className="size-5" />
-            </IconButton>
-          </ListedName>
-        );
-      })}
-    </ul>
-    <div className={LIST_BAR_CLASSES}>
-      <p className="min-w-0 flex-1 truncate text-amber-200" title={error}>
-        {error}
-      </p>
+              onToggleFavorite={() => {
+                focusSlot.current = slot;
+                details.onToggleFavorite();
+              }}
+              ring="ring-amber-400/40"
+              onOpen={() => {
+                onOpen(favorite);
+              }}
+            />
+          );
+        })}
+      </ul>
+      <div className={LIST_BAR_CLASSES}>
+        <p className="min-w-0 flex-1 truncate text-amber-200" title={error}>
+          {error}
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default FavoritesList;

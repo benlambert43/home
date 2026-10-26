@@ -416,9 +416,9 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
       : formatUsername(name, { separator, digits, casing });
 
   const saveProps = (name: Favorite): SaveProps | undefined => {
-    const id = saved.idOf(name);
-    if (!saved.active || (!has(name) && id === undefined)) return undefined;
+    if (!saved.active) return undefined;
 
+    const id = saved.idOf(name);
     return {
       saved: id !== undefined,
       full: saved.full,
@@ -715,21 +715,15 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
           {tab === "favorites" ? (
             <FavoritesList
               favorites={favorites}
-              display={display}
-              pinned={pinned}
               error={saved.error}
-              saveProps={saveProps}
-              onRemove={remove}
-              onTogglePin={togglePin}
+              detailsProps={detailsProps}
               onOpen={openDetails}
             />
           ) : (
             <SavedNamesList
               saved={saved}
               returnTo={returnTo}
-              display={display}
-              pinned={pinned}
-              onTogglePin={togglePin}
+              detailsProps={detailsProps}
               onOpen={openDetails}
             />
           )}

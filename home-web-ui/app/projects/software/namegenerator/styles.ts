@@ -16,7 +16,7 @@ export const FULL_NAME_CLASSES = `${ROW_PADDING_CLASSES} hidden flex-col @md/gen
 export const ROW_HEADER_CLASSES = "flex min-h-8 flex-wrap items-center gap-x-2";
 
 export const NAME_TEXT_CLASSES =
-  "min-w-0 grow font-mono text-sm wrap-break-word text-slate-50 @3xs:text-base @xs:text-lg";
+  "min-w-0 grow basis-0 font-mono text-sm wrap-break-word text-slate-50 @3xs:text-base @xs:text-lg";
 
 export const WORD_LIST_CLASSES = "flex flex-wrap gap-1.5 pt-1.5";
 

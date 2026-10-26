@@ -40,6 +40,8 @@ const ICON_BUTTON_PADDING = {
   large: "p-2",
 };
 
+type IconButtonSize = keyof typeof ICON_BUTTON_PADDING;
+
 export const IconButton = ({
   label,
   title,
@@ -54,7 +56,7 @@ export const IconButton = ({
   title: string;
   disabled?: boolean;
   busy?: boolean;
-  size?: keyof typeof ICON_BUTTON_PADDING;
+  size?: IconButtonSize;
   ref?: Ref<HTMLButtonElement>;
   onClick: () => void;
   children: ReactNode;
@@ -78,7 +80,13 @@ export const IconButton = ({
   </button>
 );
 
-export const CopyButton = ({ text }: { text: string }) => {
+export const CopyButton = ({
+  text,
+  size = "medium",
+}: {
+  text: string;
+  size?: IconButtonSize;
+}) => {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -98,7 +106,7 @@ export const CopyButton = ({ text }: { text: string }) => {
   return (
     <IconButton
       label={copied ? `Copied ${text}` : `Copy ${text}`}
-      size="medium"
+      size={size}
       title="Copy to clipboard"
       onClick={() => {
         void copy();
@@ -117,6 +125,7 @@ export type SaveProps = {
   saved: boolean;
   full: boolean;
   pending: boolean;
+  ref?: Ref<HTMLButtonElement>;
   onToggle: () => void;
 };
 
@@ -125,9 +134,12 @@ export const SaveButton = ({
   saved,
   full,
   pending,
+  ref,
   onToggle,
-}: SaveProps & { display: string }) => (
+  size = "medium",
+}: SaveProps & { display: string; size?: IconButtonSize }) => (
   <IconButton
+    ref={ref}
     label={
       saved
         ? `Remove ${display} from saved names`
@@ -142,7 +154,7 @@ export const SaveButton = ({
     }
     disabled={!saved && full}
     busy={pending}
-    size="medium"
+    size={size}
     onClick={onToggle}
   >
     <BookmarkIcon className={`size-5 ${saved ? "text-sky-400" : ""}`} />
@@ -216,6 +228,7 @@ export type NameDetailsProps = {
   favorite: boolean;
   favoritesFull: boolean;
   save?: SaveProps;
+  favoriteRef?: Ref<HTMLButtonElement>;
   pinned: readonly string[];
   onToggleFavorite: () => void;
   onTogglePin: (word: string) => void;
@@ -228,6 +241,7 @@ export const NameDetails = ({
   favorite,
   favoritesFull,
   save,
+  favoriteRef,
   pinned,
   onToggleFavorite,
   onTogglePin,
@@ -235,6 +249,8 @@ export const NameDetails = ({
   stacked = false,
   children,
 }: NameDetailsProps & { stacked?: boolean; children?: ReactNode }) => {
+  const size = stacked ? "medium" : "small";
+
   const actions = (
     <span
       className={`flex shrink-0 items-center ${
@@ -255,18 +271,21 @@ export const NameDetails = ({
               : "Add to favorites"
         }
         disabled={!favorite && favoritesFull}
-        size="medium"
+        size={size}
+        ref={favoriteRef}
         onClick={onToggleFavorite}
       >
         <StarIcon className={`size-5 ${favorite ? "text-amber-400" : ""}`} />
       </IconButton>
-      {save !== undefined && <SaveButton {...save} display={display} />}
-      <CopyButton text={display} />
+      {save !== undefined && (
+        <SaveButton {...save} display={display} size={size} />
+      )}
+      <CopyButton text={display} size={size} />
       {onShuffle !== undefined && new Set(name.parts).size > 1 && (
         <IconButton
           label={`Shuffle the word order of ${display}`}
           title="Shuffle word order"
-          size="medium"
+          size={size}
           onClick={onShuffle}
         >
           <ArrowsRightLeftIcon className="size-5" />
@@ -333,17 +352,19 @@ export const CompactName = ({
 );
 
 const NameRow = ({
-  order,
-  animate,
+  ring = "ring-slate-700/80",
+  order = 0,
+  animate = false,
   onOpen,
   ...details
 }: NameDetailsProps & {
-  order: number;
-  animate: boolean;
+  ring?: string;
+  order?: number;
+  animate?: boolean;
   onOpen: () => void;
 }) => (
   <li
-    className={`${ROW_CLASSES} ring-slate-700/80 ${
+    className={`${ROW_CLASSES} ${ring} ${
       animate ? "animated:motion-safe:animate-rise" : ""
     }`}
     style={{ "--rise-order": order * 0.4 } as CSSProperties}
@@ -367,44 +388,6 @@ export const PlaceholderSlot = () => (
       outline-slate-700 outline-dashed"
   >
     <div className="min-h-9 @3xs:min-h-10 @xs:min-h-11 @md/generator:min-h-18.5" />
-  </li>
-);
-
-export const ListedName = ({
-  name,
-  display,
-  ring,
-  saved,
-  pinned,
-  onTogglePin,
-  onOpen,
-  children,
-}: {
-  name: Favorite;
-  display: string;
-  ring: string;
-  saved?: boolean;
-  pinned: readonly string[];
-  onTogglePin: (word: string) => void;
-  onOpen: () => void;
-  children: ReactNode;
-}) => (
-  <li className={`${ROW_CLASSES} ${ring}`}>
-    <CompactName name={name} display={display} saved={saved} onOpen={onOpen} />
-    <div className={FULL_NAME_CLASSES}>
-      <div className={ROW_HEADER_CLASSES}>
-        <code className={NAME_TEXT_CLASSES}>
-          <NameText text={display} parts={name.parts} />
-        </code>
-        <span className="-ml-1.5 flex shrink-0 items-center">{children}</span>
-      </div>
-      <WordChips
-        label={`Words in ${display}`}
-        parts={name.parts}
-        pinned={pinned}
-        onTogglePin={onTogglePin}
-      />
-    </div>
   </li>
 );
 

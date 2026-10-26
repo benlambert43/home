@@ -1,9 +1,7 @@
 import { signInHref } from "@/app/auth/returnPath";
 import { Favorite } from "@/app/projects/software/namegenerator/favorites";
-import {
-  CopyButton,
-  IconButton,
-  ListedName,
+import NameRow, {
+  NameDetailsProps,
   PlaceholderSlot,
 } from "@/app/projects/software/namegenerator/NameRow";
 import { SavedNames } from "@/app/projects/software/namegenerator/savedNames";
@@ -13,11 +11,7 @@ import {
 } from "@/app/projects/software/namegenerator/styles";
 import Button from "@/app/ui/Button";
 import type { SavedName } from "@home/shared";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  XMarkIcon,
-} from "@heroicons/react/16/solid";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import { ReactNode, Ref, useEffect, useRef } from "react";
 
 const PAGER_BUTTON_CLASSES =
@@ -64,27 +58,21 @@ const statusOf = (saved: SavedNames) => {
   }
   if (saved.error !== undefined) return saved.error;
   if (saved.names === undefined) return "Loading saved names…";
-  if (saved.total === 0)
-    return "No saved names yet. Star a name, then save it.";
   return "";
 };
 
 const SavedNamesList = ({
   saved,
   returnTo,
-  display,
-  pinned,
-  onTogglePin,
+  detailsProps,
   onOpen,
 }: {
   saved: SavedNames;
   returnTo: string;
-  display: (name: Favorite) => string;
-  pinned: readonly string[];
-  onTogglePin: (word: string) => void;
+  detailsProps: (name: Favorite) => NameDetailsProps;
   onOpen: (name: SavedName) => void;
 }) => {
-  const removeButtons = useRef<(HTMLButtonElement | null)[]>([]);
+  const bookmarks = useRef<(HTMLButtonElement | null)[]>([]);
   const previousButton = useRef<HTMLButtonElement>(null);
   const focusSlot = useRef<number>(undefined);
   const names = saved.names;
@@ -94,9 +82,9 @@ const SavedNamesList = ({
     if (slot === undefined) return;
 
     focusSlot.current = undefined;
-    const filled = removeButtons.current.filter((button) => button !== null);
+    const filled = bookmarks.current.filter((button) => button !== null);
     (
-      removeButtons.current[slot] ??
+      bookmarks.current[slot] ??
       filled[filled.length - 1] ??
       previousButton.current
     )?.focus();
@@ -114,40 +102,32 @@ const SavedNamesList = ({
       <ul aria-label="Saved names" className={NAME_GRID_CLASSES}>
         {Array.from({ length: saved.pageSize }, (_, slot) => {
           const name = names?.[slot];
-
           if (name === undefined) return <PlaceholderSlot key={slot} />;
 
-          const text = display(name);
+          const details = detailsProps(name);
+          const save = details.save;
 
           return (
-            <ListedName
+            <NameRow
               key={name._id}
-              name={name}
-              display={text}
+              {...details}
+              save={
+                save && {
+                  ...save,
+                  ref: (button: HTMLButtonElement | null) => {
+                    bookmarks.current[slot] = button;
+                  },
+                  onToggle: () => {
+                    focusSlot.current = slot;
+                    save.onToggle();
+                  },
+                }
+              }
               ring="ring-sky-400/40"
-              pinned={pinned}
-              onTogglePin={onTogglePin}
               onOpen={() => {
                 onOpen(name);
               }}
-            >
-              <CopyButton text={text} />
-              <IconButton
-                ref={(button) => {
-                  removeButtons.current[slot] = button;
-                }}
-                label={`Remove ${text} from saved names`}
-                title="Remove from saved names"
-                busy={saved.pending}
-                size="medium"
-                onClick={() => {
-                  focusSlot.current = slot;
-                  saved.unsave(name);
-                }}
-              >
-                <XMarkIcon className="size-5" />
-              </IconButton>
-            </ListedName>
+            />
           );
         })}
       </ul>
