@@ -27,3 +27,6 @@ export const PLAIN_CHIP_CLASSES =
 
 export const PIN_CHIP_CLASSES =
   "bg-sky-500/20 text-sky-100 ring-1 ring-sky-400/70";
+
+export const LIST_BAR_CLASSES =
+  "flex min-h-8 items-center gap-2 text-sm text-slate-300";

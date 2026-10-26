@@ -22,7 +22,14 @@ import {
   ClipboardDocumentIcon,
   StarIcon,
 } from "@heroicons/react/16/solid";
-import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  CSSProperties,
+  ReactNode,
+  Ref,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 const COPIED_MS = 1500;
 
@@ -37,23 +44,31 @@ export const IconButton = ({
   label,
   title,
   disabled = false,
+  busy = false,
   size = "large",
+  ref,
   onClick,
   children,
 }: {
   label: string;
   title: string;
   disabled?: boolean;
+  busy?: boolean;
   size?: keyof typeof ICON_BUTTON_PADDING;
+  ref?: Ref<HTMLButtonElement>;
   onClick: () => void;
   children: ReactNode;
 }) => (
   <button
+    ref={ref}
     type="button"
     aria-label={label}
     title={title}
     disabled={disabled}
-    onClick={onClick}
+    aria-disabled={busy || undefined}
+    onClick={() => {
+      if (!busy) onClick();
+    }}
     className={`shrink-0 rounded-md text-slate-400 hover:cursor-pointer
       hover:bg-slate-700 hover:text-slate-100 focus:outline-slate-100
       disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent
@@ -125,7 +140,8 @@ export const SaveButton = ({
           ? "Saved names are full"
           : "Save to your account"
     }
-    disabled={pending || (!saved && full)}
+    disabled={!saved && full}
+    busy={pending}
     size="medium"
     onClick={onToggle}
   >
@@ -180,7 +196,7 @@ export const WordChips = ({
 }) => (
   <ul aria-label={label} className={WORD_LIST_CLASSES}>
     {parts.map((word) => (
-      <li key={word}>
+      <li key={word} className="flex">
         <WordChip
           word={word}
           pinned={pinned.includes(word)}
@@ -344,6 +360,16 @@ const NameRow = ({
     </div>
   </li>
 );
+export const PlaceholderSlot = () => (
+  <li
+    aria-hidden
+    className="@container rounded-xl outline-1 -outline-offset-1
+      outline-slate-700 outline-dashed"
+  >
+    <div className="min-h-9 @3xs:min-h-10 @xs:min-h-11 @md/generator:min-h-18.5" />
+  </li>
+);
+
 export const ListedName = ({
   name,
   display,

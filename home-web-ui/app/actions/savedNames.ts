@@ -65,13 +65,16 @@ const savedNamesRequest = async <
 };
 
 export const getSavedNames = async (
-  before?: string,
+  page: number,
+  pageSize: number,
 ): Promise<SavedNamesResult<GetSavedNamesResponse>> => {
-  const query = savedNameListQuerySchema.safeParse({ before });
+  const query = savedNameListQuerySchema.safeParse({ page, pageSize });
   if (!query.success) return invalidRequest;
 
-  const search = new URLSearchParams({ pageSize: String(query.data.pageSize) });
-  if (query.data.before !== undefined) search.set("before", query.data.before);
+  const search = new URLSearchParams({
+    page: String(query.data.page),
+    pageSize: String(query.data.pageSize),
+  });
 
   return savedNamesRequest<GetSavedNamesResponse>(
     `${SAVED_NAMES_URL}?${search}`,

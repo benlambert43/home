@@ -7,10 +7,14 @@ import {
   CopyButton,
   IconButton,
   ListedName,
+  PlaceholderSlot,
   SaveButton,
   SaveProps,
 } from "@/app/projects/software/namegenerator/NameRow";
-import { NAME_GRID_CLASSES } from "@/app/projects/software/namegenerator/styles";
+import {
+  LIST_BAR_CLASSES,
+  NAME_GRID_CLASSES,
+} from "@/app/projects/software/namegenerator/styles";
 import { XMarkIcon } from "@heroicons/react/16/solid";
 
 const FavoritesList = ({
@@ -37,16 +41,7 @@ const FavoritesList = ({
       {Array.from({ length: MAX_FAVORITES }, (_, index) => {
         const favorite = favorites[index];
 
-        if (favorite === undefined) {
-          return (
-            <li
-              key={index}
-              aria-hidden
-              className="min-h-9 rounded-xl border border-dashed
-                border-slate-700 @md/generator:min-h-18.5"
-            />
-          );
-        }
+        if (favorite === undefined) return <PlaceholderSlot key={index} />;
 
         const text = display(favorite);
         const save = saveProps(favorite);
@@ -80,7 +75,11 @@ const FavoritesList = ({
         );
       })}
     </ul>
-    {error !== undefined && <p className="text-sm text-amber-200">{error}</p>}
+    <div className={LIST_BAR_CLASSES}>
+      <p className="min-w-0 flex-1 truncate text-amber-200" title={error}>
+        {error}
+      </p>
+    </div>
   </div>
 );
 

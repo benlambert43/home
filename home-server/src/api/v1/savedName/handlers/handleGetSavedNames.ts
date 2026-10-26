@@ -5,20 +5,20 @@ import { savedNamesSummary } from "../savedNamesSummary";
 
 export const handleGetSavedNames = async (
   userId: string,
-  { before, pageSize }: SavedNameListQuery,
+  { page, pageSize }: SavedNameListQuery,
 ) => {
-  const found = await SavedNameModel.find(
-    before === undefined ? { userId } : { userId, _id: { $lt: before } },
-  )
-    .sort({ _id: -1 })
-    .limit(pageSize + 1);
+  const summary = await savedNamesSummary(userId);
 
-  const names = found.slice(0, pageSize).map(serializeSavedName);
-  const last = found.length > pageSize ? names[names.length - 1] : undefined;
+  const names = await SavedNameModel.find({ userId })
+    .sort({ _id: -1 })
+    .skip((page - 1) * pageSize)
+    .limit(pageSize);
 
   return {
-    ...(await savedNamesSummary(userId)),
-    names,
-    nextCursor: last?._id ?? null,
+    ...summary,
+    names: names.map(serializeSavedName),
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(summary.total / pageSize)),
   };
 };

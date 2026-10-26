@@ -6,7 +6,7 @@ export const MAX_SAVED_NAME_PART_LETTERS = 24;
 
 export const MAX_SAVED_NAME_NUMBER = 9999;
 
-export const DEFAULT_SAVED_NAMES_PAGE_SIZE = 48;
+export const DEFAULT_SAVED_NAMES_PAGE_SIZE = 12;
 
 export const MAX_SAVED_NAMES_PAGE_SIZE = 100;
 

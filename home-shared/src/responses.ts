@@ -87,7 +87,12 @@ export type UploadPostImageResponse = ApiResponse<{
 }>;
 
 export type GetSavedNamesResponse = ApiResponse<
-  SavedNamesSummary & { names: SavedName[]; nextCursor: string | null }
+  SavedNamesSummary & {
+    names: SavedName[];
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }
 >;
 
 export type SaveNameResponse = ApiResponse<

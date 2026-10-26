@@ -272,6 +272,7 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     session?.signedIn ?? false,
     favorites,
     tab === "saved",
+    MAX_FAVORITES,
   );
 
   const { mode, style, length, theme, keyword, pins, seed } = state;

@@ -342,7 +342,7 @@ export const savedNameIdParamsSchema = z.object({
 });
 
 export const savedNameListQuerySchema = z.object({
-  before: objectIdField("Invalid saved name cursor.").optional(),
+  page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce
     .number()
     .int()

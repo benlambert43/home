@@ -13,11 +13,16 @@ import {
 import type { SavedName, SavedNamesSummary } from "@home/shared";
 import { useEffect, useState, useTransition } from "react";
 
-type SavedNamesList = { names: SavedName[]; nextCursor: string | null };
+type SavedNamesPage = {
+  number: number;
+  names: SavedName[];
+  totalPages: number;
+};
 
 type SavedNamesData = {
   summary?: SavedNamesSummary;
-  list?: SavedNamesList;
+  page?: SavedNamesPage;
+  stale: boolean;
   savedIds: ReadonlyMap<string, string>;
   checked: ReadonlySet<string>;
   error?: string;
@@ -25,6 +30,7 @@ type SavedNamesData = {
 };
 
 const EMPTY: SavedNamesData = {
+  stale: false,
   savedIds: new Map(),
   checked: new Set(),
   signedOut: false,
@@ -84,19 +90,25 @@ export const useSavedNames = (
   signedIn: boolean,
   favorites: readonly Favorite[],
   wanted: boolean,
+  pageSize: number,
 ) => {
   const [data, setData] = useState(EMPTY);
+  const [requested, setRequested] = useState(1);
   const [wasSignedIn, setWasSignedIn] = useState(signedIn);
   const [pending, startTransition] = useTransition();
 
   if (signedIn !== wasSignedIn) {
     setWasSignedIn(signedIn);
     setData(EMPTY);
+    setRequested(1);
   }
 
   const active = signedIn && !data.signedOut;
   const loading =
-    active && wanted && data.list === undefined && data.error === undefined;
+    active &&
+    wanted &&
+    data.error === undefined &&
+    (data.page === undefined || data.page.number !== requested || data.stale);
 
   useEffect(() => {
     const unchecked = favorites.filter(
@@ -138,15 +150,25 @@ export const useSavedNames = (
     let cancelled = false;
 
     const load = async () => {
-      const result = await request(getSavedNames());
+      const result = await request(getSavedNames(requested, pageSize));
       if (cancelled) return;
+
+      if (!result.error && result.page > result.totalPages) {
+        setRequested(result.totalPages);
+        return;
+      }
 
       setData((current) =>
         result.error
           ? failed(current, result)
           : {
               ...known(current, result, result.names),
-              list: { names: result.names, nextCursor: result.nextCursor },
+              page: {
+                number: result.page,
+                names: result.names,
+                totalPages: result.totalPages,
+              },
+              stale: false,
             },
       );
     };
@@ -156,7 +178,7 @@ export const useSavedNames = (
     return () => {
       cancelled = true;
     };
-  }, [loading]);
+  }, [loading, requested, pageSize, data.stale]);
 
   const save = (name: Favorite) => {
     startTransition(async () => {
@@ -164,18 +186,14 @@ export const useSavedNames = (
         saveName({ parts: name.parts, number: name.number }),
       );
 
-      setData((current) => {
-        if (result.error) return failed(current, result);
-
-        const next = known(current, result, [result.name]);
-        const list = current.list;
-        if (list === undefined || !result.created) return next;
-
-        return {
-          ...next,
-          list: { ...list, names: [result.name, ...list.names] },
-        };
-      });
+      setData((current) =>
+        result.error
+          ? failed(current, result)
+          : {
+              ...known(current, result, [result.name]),
+              stale: current.page !== undefined,
+            },
+      );
     });
   };
 
@@ -192,40 +210,20 @@ export const useSavedNames = (
 
         const savedIds = new Map(current.savedIds);
         savedIds.delete(key);
-        const list = current.list && {
-          ...current.list,
-          names: current.list.names.filter((saved) => saved._id !== id),
-        };
 
         return {
           ...current,
           summary: summaryOf(result),
           savedIds,
-          list,
           error: undefined,
+          stale: current.page !== undefined,
         };
       });
     });
   };
 
-  const loadMore = () => {
-    const cursor = data.list?.nextCursor;
-    if (!cursor) return;
-
-    startTransition(async () => {
-      const result = await request(getSavedNames(cursor));
-
-      setData((current) => {
-        if (result.error) return failed(current, result);
-
-        const names = [...(current.list?.names ?? []), ...result.names];
-
-        return {
-          ...known(current, result, result.names),
-          list: { names, nextCursor: result.nextCursor },
-        };
-      });
-    });
+  const goTo = (page: number) => {
+    setRequested(Math.max(1, page));
   };
 
   const retry = () => {
@@ -240,12 +238,14 @@ export const useSavedNames = (
     total: data.summary?.total,
     full:
       data.summary !== undefined && data.summary.total >= data.summary.limit,
-    names: data.list?.names,
-    hasMore: Boolean(data.list?.nextCursor),
+    pageSize,
+    page: data.page?.number ?? 1,
+    totalPages: data.page?.totalPages ?? 1,
+    names: data.page?.names,
     idOf: (name: Favorite) => data.savedIds.get(favoriteKey(name)),
     save,
     unsave,
-    loadMore,
+    goTo,
     retry,
   };
 };
