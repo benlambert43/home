@@ -15,7 +15,7 @@ export const metadata = pageMetadata("accounts and email", {
 });
 
 const AccountsAndEmail = () => (
-  <Notice title="Accounts and Email" updated="2026-10-05">
+  <Notice title="Accounts and Email" updated="2026-10-26">
     <p>
       This page explains what happens when you create an account on
       benlambert.tech, which emails the site sends, and how to change or delete
@@ -155,14 +155,14 @@ const AccountsAndEmail = () => (
     <p>
       Open your settings page, choose Delete Account, and confirm. Deletion
       happens immediately and cannot be undone. It is designed to remove your
-      name, email address, username, password, notifications, and any count of
-      recent sign-in attempts, and to scrub your email address out of the site's
-      records of the emails it sent you, so that nothing that identifies you is
-      left behind. It signs you out of the browser you delete from, but not
-      other browsers: until you log out there or their 7 days run out, they may
-      still show your name and email address from their session cookies, though
-      the account itself is gone. If you think something was missed, email me at{" "}
-      <ContactEmail /> to have it removed.
+      name, email address, username, password, notifications, saved names, and
+      any count of recent sign-in attempts, and to scrub your email address out
+      of the site's records of the emails it sent you, so that nothing that
+      identifies you is left behind. It signs you out of the browser you delete
+      from, but not other browsers: until you log out there or their 7 days run
+      out, they may still show your name and email address from their session
+      cookies, though the account itself is gone. If you think something was
+      missed, email me at <ContactEmail /> to have it removed.
     </p>
   </Notice>
 );

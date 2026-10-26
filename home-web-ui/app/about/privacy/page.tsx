@@ -22,7 +22,7 @@ const CLOUDFLARE_PRIVACY_POLICY_URL =
   "https://www.cloudflare.com/privacypolicy/";
 
 const PrivacyNotice = () => (
-  <Notice title="Privacy Notice" updated="2026-10-09">
+  <Notice title="Privacy Notice" updated="2026-10-26">
     <p>
       benlambert.tech is my personal website. This notice explains what
       information the site collects, why it collects it, who else handles it,
@@ -84,6 +84,19 @@ const PrivacyNotice = () => (
       verify that the email address is yours, to send you a password reset link
       when you ask for one, to send you the essential notices described under
       Email below, and to show you notifications inside the site.
+    </p>
+
+    <h2>Saved names</h2>
+    <p>
+      When you are signed in, the{" "}
+      <Link href="/projects/software/namegenerator">name generator</Link> lets
+      you save names to your account. For each saved name the site keeps its
+      words, the number it uses for username digits, and when you saved it, up
+      to 10,000 names. Saved names are shown only to you, in the generator's
+      Saved tab, where you can remove any of them. While you are signed in, the
+      generator also asks the server which of your starred favorites you have
+      already saved. That check sends their words to the server, which answers
+      from your saved names and keeps nothing from it.
     </p>
 
     <h2>Signing in</h2>
@@ -193,19 +206,19 @@ const PrivacyNotice = () => (
 
     <h2>How long information is kept</h2>
     <p>
-      Your account details, your notifications, and the site's records of the
-      verification and password reset emails it sent you are kept until you
-      delete your account. Deleting your account is designed to remove your
-      account details and notifications straight away, and to scrub your email
-      address out of those email records, including the delivery reports from
-      the mail provider, replacing it with a random placeholder. The scrubbed
-      records are kept to troubleshoot email delivery and have no set expiry,
-      but once your account is gone they are meant to show only when each email
-      was sent and whether it was delivered, and nothing that connects them to
-      you. Sign-in attempt counts are deleted about 15 minutes after the first
-      attempt, whether or not you have an account. The cookies the site sets,
-      and how long each lasts, are listed in the{" "}
-      <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
+      Your account details, your notifications, your saved names, and the site's
+      records of the verification and password reset emails it sent you are kept
+      until you delete your account. Deleting your account is designed to remove
+      your account details, notifications, and saved names straight away, and to
+      scrub your email address out of those email records, including the
+      delivery reports from the mail provider, replacing it with a random
+      placeholder. The scrubbed records are kept to troubleshoot email delivery
+      and have no set expiry, but once your account is gone they are meant to
+      show only when each email was sent and whether it was delivered, and
+      nothing that connects them to you. Sign-in attempt counts are deleted
+      about 15 minutes after the first attempt, whether or not you have an
+      account. The cookies the site sets, and how long each lasts, are listed in
+      the <Link href={COOKIE_NOTICE.href}>{COOKIE_NOTICE.title}</Link>.
     </p>
 
     <h2>Your choices and rights</h2>
@@ -215,8 +228,9 @@ const PrivacyNotice = () => (
         <Link href="/settings">settings</Link> pages show your name, your email
         address and whether it has been verified, your username, and your
         current choices about newsletter emails and product and marketing
-        emails. To see everything else the site holds about you, ask for a copy
-        as described below.
+        emails. The name generator's Saved tab shows the names you have saved to
+        your account and lets you remove any of them. To see everything else the
+        site holds about you, ask for a copy as described below.
       </li>
       <li>
         You can change your username and your password from the settings page.

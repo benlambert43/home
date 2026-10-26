@@ -57,7 +57,9 @@ const NameGeneratorPage = () => (
     <p className="text-slate-300">
       Generate names for software projects and usernames, using word lists and
       themes to choose your favorites and iterate on the words that speak to
-      you. The project name and username generator runs in the browser.
+      you. The project name and username generator runs in the browser. Star
+      names to keep up to twelve favorites in this browser, and sign in to save
+      names to your account.
     </p>
     <LazyNameGenerator>
       <SampleNames names={SAMPLE_NAMES} />
