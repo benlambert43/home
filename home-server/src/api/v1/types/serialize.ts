@@ -9,6 +9,8 @@ import {
   postImageReference,
   PostShareImage,
   PostSummary,
+  SavedName,
+  SavedNameFields,
   UserNoPassword,
   UserFields,
 } from "@home/shared";
@@ -25,6 +27,8 @@ const toIsoDate = (value: MaybeDate): string =>
 export type SerializableUser = UserFields<MaybeId, MaybeDate>;
 
 export type SerializableNotification = NotificationFields<MaybeId, MaybeDate>;
+
+export type SerializableSavedName = SavedNameFields<MaybeId, MaybeDate>;
 
 const serializeConsent = (consent: Consent<MaybeDate>): Consent => ({
   agreed: consent.agreed,
@@ -59,6 +63,14 @@ export const serializeNotification = (
   canBeMarkedAsRead: notification.canBeMarkedAsRead,
   canBeDeleted: notification.canBeDeleted,
   timestamp: toIsoDate(notification.timestamp),
+});
+
+export const serializeSavedName = (name: SerializableSavedName): SavedName => ({
+  _id: toId(name._id),
+  userId: toId(name.userId),
+  parts: [...name.parts],
+  number: name.number,
+  savedDate: toIsoDate(name.savedDate),
 });
 
 type SerializablePost = StoredPost<MaybeId, MaybeDate>;

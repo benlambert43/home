@@ -1,4 +1,4 @@
-import { MAX_POST_IMAGE_MEGABYTES } from "@home/shared";
+import { MAX_POST_IMAGE_MEGABYTES, MAX_SAVED_NAMES } from "@home/shared";
 
 export const ApiMessage = {
   INVALID_REQUEST: "Invalid request. Please check your details and try again.",
@@ -68,6 +68,11 @@ export const ApiMessage = {
   POST_UPLOAD_INCOMPLETE: "Not every image in this upload has been uploaded.",
   POST_HEADER_IMAGE_REMOVED_AND_UPLOADED:
     "Please either remove the header image or upload a new one, not both.",
+  NAME_SAVED: "Name saved.",
+  NAME_ALREADY_SAVED: "That name is already saved.",
+  SAVED_NAME_REMOVED: "Saved name removed.",
+  SAVED_NAME_NOT_FOUND: "That saved name could not be found.",
+  SAVED_NAMES_FULL: `You have saved ${MAX_SAVED_NAMES.toLocaleString("en-US")} names, the most an account can keep. Remove some to save more.`,
 } as const;
 
 export const accountAlreadyExists = (field: "email" | "username") =>

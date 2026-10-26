@@ -2,11 +2,11 @@
 
 Ben Lambert's personal website, an npm workspaces monorepo.
 
-| Package       |                                                                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `home-web-ui` | Next.js site. Talks to the API only from the server (see [home-web-ui/README.md](home-web-ui/README.md)).                               |
-| `home-server` | Express + Mongoose API on port 4000, under `/api/v1`: `accountManagement`, `signIn`, `notifications`, `posts`. Post files live on disk. |
-| `home-shared` | Types, Zod schemas and Markdown, slug and image-name code used by both (see [home-shared/README.md](home-shared/README.md)).            |
+| Package       |                                                                                                                                                       |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `home-web-ui` | Next.js site. Talks to the API only from the server (see [home-web-ui/README.md](home-web-ui/README.md)).                                             |
+| `home-server` | Express + Mongoose API on port 4000, under `/api/v1`: `accountManagement`, `signIn`, `notifications`, `posts`, `savedNames`. Post files live on disk. |
+| `home-shared` | Types, Zod schemas and Markdown, slug and image-name code used by both (see [home-shared/README.md](home-shared/README.md)).                          |
 
 ## Development
 

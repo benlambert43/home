@@ -5,6 +5,7 @@ import { clearSignInAttempts } from "../../auth/signInThrottle";
 import { EmailVerificationModel } from "../../model/emailVerificationModel";
 import { NotificationModel } from "../../model/notificationModel";
 import { PasswordResetModel } from "../../model/passwordResetModel";
+import { SavedNameModel } from "../../model/savedNameModel";
 import { UserModel } from "../../model/userModel";
 import { ApiMessage } from "../../http/messages";
 
@@ -59,6 +60,7 @@ export const handleDeleteAccount = async (
   }
 
   await NotificationModel.deleteMany({ recipientUserId: foundUser._id });
+  await SavedNameModel.deleteMany({ userId: foundUser._id });
   await anonymizeEmailRecords(foundUser);
   await clearSignInAttempts(foundUser.email);
   await UserModel.findByIdAndDelete(foundUser._id);
