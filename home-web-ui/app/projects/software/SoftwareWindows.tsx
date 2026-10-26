@@ -70,9 +70,6 @@ const SoftwareWindows = () => (
             Live
           </span>
           <span className="ml-auto flex gap-4">
-            <Link href="/" className={FOOTER_LINK_CLASSES}>
-              Open <ArrowUpRightIcon className="size-4" />
-            </Link>
             <Link
               href="https://github.com/benlambert43/home"
               target="_blank"
@@ -80,6 +77,9 @@ const SoftwareWindows = () => (
               className={FOOTER_LINK_CLASSES}
             >
               Source <CodeBracketIcon className="size-4" />
+            </Link>
+            <Link href="/" className={FOOTER_LINK_CLASSES}>
+              Open <ArrowUpRightIcon className="size-4" />
             </Link>
           </span>
         </footer>
@@ -99,7 +99,7 @@ const SoftwareWindows = () => (
             text-xs text-slate-400"
         >
           <WindowDots />
-          <span className="truncate">benlambert.tech</span>
+          <span className="truncate">Name Generator</span>
           <span
             className="ml-auto shrink-0 rounded-full bg-slate-700 px-2 py-0.5
               text-slate-200"
@@ -124,6 +124,14 @@ const SoftwareWindows = () => (
             Live
           </span>
           <span className="ml-auto flex gap-4">
+            <Link
+              href="https://github.com/benlambert43/home/tree/main/home-web-ui/app/projects/software/namegenerator"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={FOOTER_LINK_CLASSES}
+            >
+              Source <CodeBracketIcon className="size-4" />
+            </Link>
             <Link
               href="/projects/software/namegenerator"
               className={FOOTER_LINK_CLASSES}
