@@ -1,5 +1,5 @@
 import { HydratedDocument, InferSchemaType, Types } from "mongoose";
-import { NotificationFields, UserFields } from "@home/shared";
+import { NotificationFields, SavedNameFields, UserFields } from "@home/shared";
 import { ApiError } from "../http/apiError";
 import { ApiMessage } from "../http/messages";
 import { passwordResetSchema } from "../schema/passwordResetSchema";
@@ -9,6 +9,13 @@ export interface UserDocument extends UserFields<Types.ObjectId, Date> {
 }
 
 export type NotificationDocument = NotificationFields<Types.ObjectId, Date>;
+
+export interface SavedNameDocument extends SavedNameFields<
+  Types.ObjectId,
+  Date
+> {
+  key: string;
+}
 
 export type PasswordResetDocument = HydratedDocument<
   InferSchemaType<typeof passwordResetSchema>

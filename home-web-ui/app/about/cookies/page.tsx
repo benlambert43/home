@@ -10,7 +10,7 @@ export const metadata = pageMetadata("cookie notice", {
 });
 
 const CookieNotice = () => (
-  <Notice title="Cookie Notice" updated="2026-10-24">
+  <Notice title="Cookie Notice" updated="2026-10-26">
     <p>
       Cookies are small pieces of text that a website asks your browser to keep
       and send back on later visits. This site uses cookies only to keep you
@@ -64,9 +64,12 @@ const CookieNotice = () => (
     <p>
       The name generator keeps the names you star under{" "}
       <code>namegenerator.favorites</code> in your browser's local storage: up
-      to twelve names and nothing else. It is written only when you star a name,
-      stays until you remove those names or clear the site's data in your
-      browser, and is never sent to the server.
+      to twelve names and nothing else. It is written only when you star a name
+      and stays until you remove those names or clear the site's data in your
+      browser. Signed out, it is never sent to the server. Signed in, the
+      generator sends the starred names' words to the server to check which of
+      them you have saved to your account, as the{" "}
+      <Link href={PRIVACY_NOTICE.href}>{PRIVACY_NOTICE.title}</Link> describes.
     </p>
 
     <h2>Cookies set by Google reCAPTCHA</h2>

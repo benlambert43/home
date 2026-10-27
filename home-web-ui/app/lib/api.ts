@@ -9,6 +9,8 @@ type ApiRequest<Body> = {
   cache?: RequestCache;
 };
 
+export const UNAUTHENTICATED_STATUS = 401;
+
 export const FORBIDDEN_STATUS = 403;
 
 export const NOT_FOUND_STATUS = 404;

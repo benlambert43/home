@@ -3,7 +3,8 @@
 Code shared by `home-server` and `home-web-ui`:
 
 - request and response body types, and the Zod schemas that validate them
-- post, user, notification and session token types, with their limits
+- post, user, notification, saved name and session token types, with their
+  limits
 - post Markdown rules: validation, excerpts, heading ids and image references
 - post slug and image name generation
 

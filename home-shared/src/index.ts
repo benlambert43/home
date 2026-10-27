@@ -6,5 +6,6 @@ export * from "./postImageName";
 export * from "./postSlug";
 export * from "./requests";
 export * from "./responses";
+export * from "./savedName";
 export * from "./schemas";
 export * from "./user";

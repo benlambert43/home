@@ -6,6 +6,7 @@ import {
   PostSummary,
   UploadedPostImage,
 } from "./post";
+import { SavedName, SavedNamesSummary } from "./savedName";
 import { UserNoPassword } from "./user";
 
 export interface ApiFailure {
@@ -84,3 +85,22 @@ export type DeletePostUploadResponse = ApiResponse;
 export type UploadPostImageResponse = ApiResponse<{
   image: UploadedPostImage;
 }>;
+
+export type GetSavedNamesResponse = ApiResponse<
+  SavedNamesSummary & {
+    names: SavedName[];
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }
+>;
+
+export type SaveNameResponse = ApiResponse<
+  SavedNamesSummary & { name: SavedName; created: boolean }
+>;
+
+export type LookupSavedNamesResponse = ApiResponse<
+  SavedNamesSummary & { names: SavedName[] }
+>;
+
+export type DeleteSavedNameResponse = ApiResponse<SavedNamesSummary>;
