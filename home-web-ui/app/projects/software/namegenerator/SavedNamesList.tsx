@@ -72,6 +72,7 @@ const SavedNamesList = ({
   detailsProps: (name: Favorite) => NameDetailsProps;
   onOpen: (name: SavedName) => void;
 }) => {
+  const list = useRef<HTMLUListElement>(null);
   const bookmarks = useRef<(HTMLButtonElement | null)[]>([]);
   const previousButton = useRef<HTMLButtonElement>(null);
   const focusSlot = useRef<number>(undefined);
@@ -86,7 +87,8 @@ const SavedNamesList = ({
     (
       bookmarks.current[slot] ??
       filled[filled.length - 1] ??
-      previousButton.current
+      previousButton.current ??
+      list.current
     )?.focus();
   }, [names]);
 
@@ -99,7 +101,12 @@ const SavedNamesList = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <ul aria-label="Saved names" className={NAME_GRID_CLASSES}>
+      <ul
+        ref={list}
+        tabIndex={-1}
+        aria-label="Saved names"
+        className={`${NAME_GRID_CLASSES} outline-none`}
+      >
         {Array.from({ length: saved.pageSize }, (_, slot) => {
           const name = names?.[slot];
           if (name === undefined) return <PlaceholderSlot key={slot} />;

@@ -81,7 +81,7 @@ const failed = (
   data: SavedNamesData,
   failure: SavedNamesFailure,
 ): SavedNamesData => ({
-  ...data,
+  ...(failure.signedOut ? EMPTY : data),
   error: failure.message,
   signedOut: failure.signedOut,
 });

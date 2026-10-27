@@ -339,14 +339,16 @@ export const CompactName = ({
       <NameText text={display} parts={name.parts} />
     </code>
     {favorite && (
-      <StarIcon className="mt-0.5 size-4 shrink-0 text-amber-400">
-        <title>Favorite</title>
-      </StarIcon>
+      <>
+        <StarIcon className="mt-0.5 size-4 shrink-0 text-amber-400" />
+        <span className="sr-only">, favorite</span>
+      </>
     )}
     {saved && (
-      <BookmarkIcon className="mt-0.5 size-4 shrink-0 text-sky-400">
-        <title>Saved</title>
-      </BookmarkIcon>
+      <>
+        <BookmarkIcon className="mt-0.5 size-4 shrink-0 text-sky-400" />
+        <span className="sr-only">, saved</span>
+      </>
     )}
   </button>
 );

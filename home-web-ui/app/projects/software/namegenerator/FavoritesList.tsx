@@ -24,6 +24,7 @@ const FavoritesList = ({
   detailsProps: (favorite: Favorite) => NameDetailsProps;
   onOpen: (favorite: Favorite) => void;
 }) => {
+  const list = useRef<HTMLUListElement>(null);
   const stars = useRef<(HTMLButtonElement | null)[]>([]);
   const focusSlot = useRef<number>(undefined);
 
@@ -33,12 +34,17 @@ const FavoritesList = ({
 
     focusSlot.current = undefined;
     const filled = stars.current.filter((button) => button !== null);
-    (stars.current[slot] ?? filled[filled.length - 1])?.focus();
+    (stars.current[slot] ?? filled[filled.length - 1] ?? list.current)?.focus();
   }, [favorites]);
 
   return (
     <div className="flex flex-col gap-3">
-      <ul aria-label="Favorite names" className={NAME_GRID_CLASSES}>
+      <ul
+        ref={list}
+        tabIndex={-1}
+        aria-label="Favorite names"
+        className={`${NAME_GRID_CLASSES} outline-none`}
+      >
         {Array.from({ length: MAX_FAVORITES }, (_, slot) => {
           const favorite = favorites[slot];
           if (favorite === undefined) return <PlaceholderSlot key={slot} />;
