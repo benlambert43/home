@@ -88,7 +88,7 @@ const failed = (
 
 export const useSavedNames = (
   signedIn: boolean,
-  favorites: readonly Favorite[],
+  shown: readonly Favorite[],
   wanted: boolean,
   pageSize: number,
 ) => {
@@ -111,27 +111,26 @@ export const useSavedNames = (
     (data.page === undefined || data.page.number !== requested || data.stale);
 
   useEffect(() => {
-    const unchecked = favorites.filter(
-      (favorite) => !data.checked.has(favoriteKey(favorite)),
-    );
-    if (!active || unchecked.length === 0) return;
+    const unchecked = new Map<string, Favorite>();
+    for (const name of shown) {
+      const key = favoriteKey(name);
+      if (!data.checked.has(key)) unchecked.set(key, name);
+    }
+    if (!active || unchecked.size === 0) return;
 
     let cancelled = false;
 
     const lookup = async () => {
       const result = await request(
-        lookupSavedNames({ names: unchecked.map(({ parts }) => ({ parts })) }),
+        lookupSavedNames({
+          names: [...unchecked.values()].map(({ parts }) => ({ parts })),
+        }),
       );
       if (cancelled) return;
 
       setData((current) => {
         if (!result.error) {
-          return known(
-            current,
-            result,
-            result.names,
-            unchecked.map(favoriteKey),
-          );
+          return known(current, result, result.names, [...unchecked.keys()]);
         }
         return result.signedOut ? failed(current, result) : current;
       });
@@ -142,7 +141,7 @@ export const useSavedNames = (
     return () => {
       cancelled = true;
     };
-  }, [active, favorites, data.checked]);
+  }, [active, shown, data.checked]);
 
   useEffect(() => {
     if (!loading) return;

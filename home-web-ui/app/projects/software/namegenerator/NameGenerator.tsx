@@ -141,6 +141,8 @@ const GENERATING_SETTINGS: ReadonlySet<keyof GeneratorSettings> = new Set([
 
 const isWord = (word: string | undefined): word is string => word !== undefined;
 
+const NO_SHUFFLES: Partial<Record<string, string[]>> = {};
+
 const shuffleOrder = (parts: readonly string[]) => {
   const original = parts.join(" ");
   let next = [...parts];
@@ -268,12 +270,6 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
   const { favorites, has, add, remove, full } = useFavorites();
   const session = useContext(SessionContext);
   const [tab, setTab] = useState<NameListTab>("favorites");
-  const saved = useSavedNames(
-    session?.signedIn ?? false,
-    favorites,
-    tab === "saved",
-    MAX_FAVORITES,
-  );
 
   const { mode, style, length, theme, keyword, pins, seed } = state;
   const { format, separator, digits, casing } = state;
@@ -301,11 +297,22 @@ const NameGenerator = ({ params }: { params: Record<string, string> }) => {
     batch: GeneratedName[];
     parts: Partial<Record<string, string[]>>;
   }>({ batch, parts: {} });
-  const shuffledParts = orders.batch === batch ? orders.parts : {};
-  const names = batch.map((name) => ({
-    ...name,
-    parts: shuffledParts[name.id] ?? name.parts,
-  }));
+  const shuffledParts = orders.batch === batch ? orders.parts : NO_SHUFFLES;
+  const names = useMemo(
+    () =>
+      batch.map((name) => ({
+        ...name,
+        parts: shuffledParts[name.id] ?? name.parts,
+      })),
+    [batch, shuffledParts],
+  );
+  const shown = useMemo(() => [...favorites, ...names], [favorites, names]);
+  const saved = useSavedNames(
+    session?.signedIn ?? false,
+    shown,
+    tab === "saved",
+    MAX_FAVORITES,
+  );
 
   const shuffle = (name: GeneratedName) => {
     const parts = shuffleOrder(name.parts);
