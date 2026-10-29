@@ -20,7 +20,7 @@ Needs Node 24, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
 
 | Command                         |                                                                                                                                                                 |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run check`                 | The full check: format, lint, typecheck, deprecated API use, shell scripts, test, build. CI runs it in separate steps. `-- --no-build` skips the build.         |
+| `npm run preflight`             | The preflight: format, lint, typecheck, deprecated API use, shell scripts, test, build. CI runs it in separate steps. `-- --no-build` skips the build.          |
 | `npm run format`, `lint:fix`    | Fix formatting and lint findings. `format:check`, `lint`, `typecheck`, `lint:deprecations`, `lint:shell` and `test` run one check each.                         |
 | `npm run build`                 | Builds every workspace.                                                                                                                                         |
 | `npm run smoke`                 | Builds the production stack, starts it with the values in `smoke.env`, waits for every healthcheck, runs revalidate and a few requests, then removes it.        |
@@ -28,7 +28,7 @@ Needs Node 24, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
 | `npm run rebuilddevenvironment` | `clean`, then `npm install`, starts the dev database and runs `seed`.                                                                                           |
 | `npm run revalidate -- <url>`   | Makes a deployed site fully static (see [Static pages](#static-pages)).                                                                                         |
 
-The pre-commit hook runs format, lint, typecheck and test on the staged files only, and leaves the deprecation, shell and build checks to the full check; `git commit --no-verify` bypasses it. Lint rules shared by every workspace live in `eslint.config.base.mjs`; each workspace's `eslint.config.mjs` layers its framework config and ignores on top. Timestamp strings are ISO 8601. Dependabot updates npm (through the root lockfile only), GitHub Actions, the Dockerfiles and compose images weekly.
+The pre-commit hook runs format, lint, typecheck and test on the staged files only, and leaves the deprecation, shell and build checks to the preflight; `git commit --no-verify` bypasses it. Lint rules shared by every workspace live in `eslint.config.base.mjs`; each workspace's `eslint.config.mjs` layers its framework config and ignores on top. Timestamp strings are ISO 8601. Dependabot updates npm (through the root lockfile only), GitHub Actions, the Dockerfiles and compose images weekly.
 
 ## Test accounts
 

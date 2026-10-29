@@ -98,8 +98,8 @@ else
   skip typecheck "no workspace sources changed"
 fi
 
-skip lint:deprecations "full check only"
-skip lint:shell "full check only"
+skip lint:deprecations "preflight only"
+skip lint:shell "preflight only"
 
 if touches "$TEST_ALL"; then
   tests="$WORKSPACES"
@@ -117,7 +117,7 @@ else
   skip test "no workspace sources changed"
 fi
 
-skip build "full check only"
+skip build "preflight only"
 
 pass "checks passed for staged changes"
-printf '\033[2mThe full check runs in CI — run it here with \033[0m\033[1mnpm run check\033[0m\n\n'
+printf '\033[2mThe preflight runs in CI — run it here with \033[0m\033[1mnpm run preflight\033[0m\n\n'
