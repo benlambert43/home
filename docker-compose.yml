@@ -16,7 +16,7 @@ x-service: &service-defaults
 services:
   database:
     <<: *service-defaults
-    image: mongo:7.0.43
+    image: mongo:7.0.45
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?required}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?required}
