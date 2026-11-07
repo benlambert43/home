@@ -26,7 +26,7 @@
     "test:coverage": "vitest run --coverage",
     "format": "sh scripts/format.sh --write",
     "format:check": "sh scripts/format.sh --check",
-    "check": "sh scripts/check-full.sh",
+    "preflight": "sh scripts/preflight.sh",
     "smoke": "sh scripts/smoke-test.sh",
     "env:placeholders": "sh scripts/env-placeholders.sh",
     "revalidate": "sh scripts/revalidate-site.sh",
