@@ -10,7 +10,7 @@ Ben Lambert's personal website, an npm workspaces monorepo.
 
 ## Development
 
-Needs Node 24, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
+Needs Node 26, npm, Docker and [ShellCheck](https://www.shellcheck.net/).
 
 1. `npm install`
 2. Copy `.env.template` to `.env` in the root (the dev database), `home-server` and `home-web-ui`, and fill them in. `npm run env:placeholders` writes workspace `.env` files with placeholder values instead, which is enough to build and test (CI does this).

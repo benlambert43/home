@@ -15,7 +15,20 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]
+      npm-major:
+        update-types: ["major"]
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
 
   # ci.yml pins actions/checkout, actions/setup-node, actions/cache,
   # docker/setup-buildx-action and docker/build-push-action by major version.
@@ -23,19 +36,28 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns: ["*"]
 
   - package-ecosystem: "docker"
     directories:
       - "/home-server"
       - "/home-web-ui"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      docker:
+        patterns: ["*"]
 
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      docker-compose:
+        patterns: ["*"]
     ignore:
       - dependency-name: "mongo"
         update-types: ["version-update:semver-major"]
