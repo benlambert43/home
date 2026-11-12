@@ -2,7 +2,7 @@ services:
   database:
     container_name: database
     restart: unless-stopped
-    image: mongo:7.0.43
+    image: mongo:7.0.48
     ports:
       - "27017:27017"
     environment:
