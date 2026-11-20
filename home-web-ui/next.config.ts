@@ -40,6 +40,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   cacheComponents: true,
+  partialPrefetching: true,
   headers: () =>
     Promise.resolve([{ source: "/(.*)", headers: SECURITY_HEADERS }]),
 };
