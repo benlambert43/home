@@ -89,10 +89,31 @@ expect_status() {
   printf '  %s -> %s\n' "$2" "$status"
 }
 
+fetch_page() {
+  compose run --rm --no-deps -T --quiet-pull --entrypoint curl revalidate \
+    -s -w '\n%{http_code}' --max-time 30 "$1"
+}
+
+expect_post_not_found() {
+  page=$(fetch_page "$1")
+  status=$(printf '%s\n' "$page" | tail -n 1)
+  if [ "$status" != 200 ]; then
+    printf '  %s -> %s, expected 200\n' "$1" "$status" >&2
+    return 1
+  fi
+  for marker in 'content="noindex"' 'Post Not Found'; do
+    if ! printf '%s\n' "$page" | grep -qF "$marker"; then
+      printf '  %s -> %s without %s\n' "$1" "$status" "$marker" >&2
+      return 1
+    fi
+  done
+  printf '  %s -> %s, Post Not Found, noindex\n' "$1" "$status"
+}
+
 requests() {
   expect_status 200 "$site_url/" || return 1
   expect_status 200 "$site_url/blog" || return 1
-  expect_status 404 "$site_url/blog/this-post-does-not-exist" || return 1
+  expect_post_not_found "$site_url/blog/this-post-does-not-exist" || return 1
   expect_status 200 "$api_url/api/v1/posts?page=1" || return 1
 }
 
